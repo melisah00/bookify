@@ -21,3 +21,8 @@ async def add_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     await db.commit()
     await db.refresh(new_user)
     return {"message": "User added", "user": {"ID": new_user.ID, "Name": new_user.Name}}
+
+@app.on_event("startup")
+async def on_startup():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
