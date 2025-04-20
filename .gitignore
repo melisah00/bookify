@@ -1,0 +1,37 @@
+# Python (.venv, pycache, env fajlovi itd.)
+api/__pycache__/
+api/**/*.py[cod]
+api/.venv/
+api/env/
+api/.env
+*.pyc
+
+# Virtual environment root folder (ako koristiš globalno u rootu)
+.venv/
+env/
+
+# SQLite baza ako je lokalna (po želji)
+*.sqlite3
+*.db
+
+# VS Code / IDE postavke
+.vscode/
+.idea/
+
+# macOS / Linux / Windows sistemski fajlovi
+.DS_Store
+Thumbs.db
+
+# Node.js / frontend buildovi i fajlovi
+app/node_modules/
+app/dist/
+app/build/
+app/.env.local
+app/.env
+
+# Log fajlovi
+*.log
+
+# OS i editor backup fajlovi
+*.swp
+*~
