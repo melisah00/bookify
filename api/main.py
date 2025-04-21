@@ -1,35 +1,16 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from pydantic import BaseModel, EmailStr # Potrebno za Pydantic šeme
-from typing import List # Potrebno za tipizaciju odgovora
+from pydantic import BaseModel, EmailStr 
+from typing import List 
 
-# Import iz vaših lokalnih modula
+
 from database import get_db, engine, Base
-# Importujte sve modele ili samo one koje koristite u rutama
+
 from models import *
+from schemas import *
 
-# --- Pydantic Šeme (obično idu u schemas.py) ---
-# Osnovna šema za kreiranje korisnika
-class UserCreate(BaseModel):
-    username: str
-    email: EmailStr
-    password: str # U realnoj aplikaciji, lozinka bi se heširala pre čuvanja
-
-# Osnovna šema za prikazivanje korisnika (bez lozinke)
-class UserDisplay(BaseModel):
-    id: int
-    username: str
-    email: EmailStr
-    first_name: str | None = None
-    last_name: str | None = None
-
-    class Config:
-        orm_mode = True # Omogućava mapiranje SQLAlchemy modela na Pydantic šemu
-
-
-# --- FastAPI Aplikacija ---
-app = FastAPI(title="Moja Knjiga API", description="API za upravljanje korisnicima i knjigama")
+app = FastAPI(title="Bookify", description="API za upravljanje korisnicima i knjigama")
 
 # --- Event Handlers ---
 @app.on_event("startup")
@@ -38,13 +19,9 @@ async def on_startup():
     Kreiraj sve tabele definisane u Base.metadata prilikom pokretanja aplikacije.
     """
     async with engine.begin() as conn:
-        # U produkciji, razmislite o korišćenju Alembic-a za migracije umesto create_all
-        # await conn.run_sync(Base.metadata.drop_all) # Obrisati sve tabele (oprezno!)
         await conn.run_sync(Base.metadata.create_all)
     print("Database tables created.")
 
-
-# --- Rute ---
 
 @app.get("/")
 async def read_root():
@@ -63,10 +40,8 @@ async def test_db_connection(db: AsyncSession = Depends(get_db)):
     try:
         result = await db.execute(select(User))
         users = result.scalars().all()
-        # Vraćamo listu korisnika formatiranu prema UserDisplay šemi
         return users
     except Exception as e:
-        # Uhvatiti potencijalne greške pri konekciji ili upitu
         print(f"Database connection error: {e}")
         raise HTTPException(status_code=500, detail="Database connection error")
 
@@ -78,7 +53,6 @@ async def add_user(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     Prima podatke definisane u UserCreate šemi.
     Vraća podatke novokreiranog korisnika koristeći UserDisplay šemu.
     """
-    # Provera da li korisnik ili email već postoje (opciono, ali preporučljivo)
     existing_user = await db.execute(
         select(User).where(
             (User.username == user_data.username) | (User.email == user_data.email)
@@ -87,37 +61,161 @@ async def add_user(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     if existing_user.scalars().first():
         raise HTTPException(status_code=400, detail="Username or email already registered")
 
-    # Kreiranje instance User modela
-    # !!! Upozorenje: Lozinka se čuva kao čist tekst. Koristite heširanje! !!!
-    # Primer sa passlib:
-    # from passlib.context import CryptContext
-    # pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    # hashed_password = pwd_context.hash(user_data.password)
-    # new_user = models.User(username=user_data.username, email=user_data.email, password=hashed_password)
-
     new_user = User(
         username=user_data.username,
         email=user_data.email,
-        password=user_data.password # Direktno čuvanje - NIJE PREPORUČLJIVO
+        password=user_data.password 
     )
 
     try:
         db.add(new_user)
         await db.commit()
         await db.refresh(new_user) # Osvežava instancu sa podacima iz baze (npr. ID)
-        # Vraćamo podatke korisnika formatirane prema UserDisplay šemi
         return new_user
     except Exception as e:
-        # Uhvatiti potencijalne greške pri upisu u bazu
-        await db.rollback() # Vratiti transakciju u slučaju greške
+        await db.rollback() 
         print(f"Error adding user: {e}")
         raise HTTPException(status_code=500, detail="Error adding user to the database")
 
-# Dodajte ovde ostale rute za vaše modele (knjige, kategorije, forume itd.)
-# Primer za dodavanje knjige (zahteva definisanje BookCreate i BookDisplay šema)
-# @app.post("/books", response_model=BookDisplay, status_code=201)
-# async def add_book(book_data: BookCreate, db: AsyncSession = Depends(get_db)):
-#     # Logika za dodavanje knjige...
-#     pass
+@app.post("/books", response_model=BookDisplay, status_code=201)
+async def add_book(book_data: BookCreate, db: AsyncSession = Depends(get_db)):
+    """
+    Dodaje novu knjigu u bazu podataka.
+    Prima podatke definisane u BookCreate šemi.
+    Vraća podatke novokreirane knjige koristeći BookDisplay šemu.
+    """
+    author_result = await db.execute(select(User).where(User.id == book_data.author_id))
+    author = author_result.scalars().first()
+    if not author:
+        raise HTTPException(status_code=404, detail=f"Author with ID {book_data.author_id} not found")
 
-# Možete pokrenuti server komandom: uvicorn main:app --reload
+    new_book = Book(
+        title=book_data.title,
+        path=book_data.path,
+        author_id=book_data.author_id
+        # num_of_downloads će imati default vrednost 0 iz modela
+    )
+
+    try:
+        db.add(new_book)
+        await db.commit()
+        await db.refresh(new_book) 
+        return new_book
+    except Exception as e:
+        await db.rollback()  
+        print(f"Error adding book: {e}")
+        raise HTTPException(status_code=500, detail="Error adding book to the database")
+    
+@app.post("/reviews", response_model=ReviewDisplay, status_code=status.HTTP_201_CREATED)
+async def create_review(
+    review_data: ReviewCreate,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Dodaje novu recenziju za knjigu.
+    Prima podatke definisane u ReviewCreate šemi.
+    Vraća podatke novokreirane recenzije koristeći ReviewDisplay šemu.
+    """
+    book = await db.get(Book, review_data.book_id)
+    if not book:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Book with ID {review_data.book_id} not found"
+        )
+
+    user = await db.get(User, review_data.user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with ID {review_data.user_id} not found"
+        )
+
+    existing_review_result = await db.execute(
+        select(Review).where(
+            (Review.book_id == review_data.book_id) &
+            (Review.user_id == review_data.user_id)
+        )
+    )
+    if existing_review_result.scalars().first():
+         raise HTTPException(
+             status_code=status.HTTP_400_BAD_REQUEST,
+             detail=f"User {review_data.user_id} has already reviewed book {review_data.book_id}"
+         )
+
+    new_review = Review(**review_data.dict())
+
+    try:
+        db.add(new_review)
+        await db.commit()
+        await db.refresh(new_review)
+        return new_review
+    except Exception as e:
+        await db.rollback() # Vratiti transakciju u slučaju greške
+        print(f"Error adding review: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error adding review to the database"
+        )
+
+@app.get("/books/{book_id}/reviews", response_model=List[ReviewDisplay])
+async def get_reviews_for_book(book_id: int, db: AsyncSession = Depends(get_db)):
+    """
+    Dohvata sve recenzije za određenu knjigu.
+    """
+
+    book = await db.get(Book, book_id)
+    if not book:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Book with ID {book_id} not found"
+        )
+
+    result = await db.execute(
+        select(Review).where(Review.book_id == book_id)
+    )
+    reviews = result.scalars().all()
+    return reviews
+
+@app.get("/users/{user_id}/reviews", response_model=List[ReviewDisplay])
+async def get_reviews_by_user(user_id: int, db: AsyncSession = Depends(get_db)):
+    """
+    Dohvata sve recenzije koje je ostavio određeni korisnik.
+    """
+    user = await db.get(User, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with ID {user_id} not found"
+        )
+
+    result = await db.execute(
+        select(Review).where(Review.user_id == user_id)
+    )
+    reviews = result.scalars().all()
+    return reviews
+
+@app.get("/books/{book_id}/average-rating", response_model=BookAverageRating)
+async def get_book_average_rating(
+    book_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Dohvata prosečnu ocenu za određenu knjigu na osnovu svih njenih recenzija.
+    """
+    book = await db.get(Book, book_id)
+    if not book:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Book with ID {book_id} not found"
+        )
+
+    query = select(
+        func.avg(Review.rating).label("average_rating") 
+    ).where(
+        Review.book_id == book_id 
+    )
+
+    result = await db.execute(query)
+    average_rating = result.scalar_one_or_none() 
+
+    return BookAverageRating(book_id=book_id, average_rating=average_rating)

@@ -17,7 +17,6 @@ AsyncSessionLocal = sessionmaker(
 
 Base = declarative_base()
 
-# Dependency za dobavljanje sesije
 async def get_db():
     async with AsyncSessionLocal() as session:
         yield session
