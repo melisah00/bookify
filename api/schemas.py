@@ -41,7 +41,6 @@ class ReviewBase(BaseModel):
 
 
 class ReviewCreate(ReviewBase):
-    book_id: int
     user_id: int 
 
 
@@ -55,6 +54,25 @@ class ReviewDisplay(ReviewBase):
 class BookAverageRating(BaseModel):
     book_id: int
     average_rating: Optional[float] = None 
+
+    class Config:
+        orm_mode = True
+
+class UserBase(BaseModel):
+    id: int
+    username: str 
+
+    class Config:
+        orm_mode = True
+
+class BookDisplay(BaseModel):
+    id: int
+    title: str
+    path: str 
+    num_of_downloads: int
+    author: UserBase
+
+
 
     class Config:
         orm_mode = True

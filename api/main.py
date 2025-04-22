@@ -3,6 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from pydantic import BaseModel, EmailStr 
 from typing import List 
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 
 
 from database import get_db, engine, Base
@@ -11,6 +14,20 @@ from models import *
 from schemas import *
 
 app = FastAPI(title="Bookify", description="API za upravljanje korisnicima i knjigama")
+
+origins = [
+    "http://localhost:3000", # Adresa tvog React development servera
+    # Dodaj druge potrebne origin-e
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"], # Dozvoli sve metode (GET, POST, etc.)
+    allow_headers=["*"], # Dozvoli sve headere
+)
+
 
 # --- Event Handlers ---
 @app.on_event("startup")
@@ -106,21 +123,22 @@ async def add_book(book_data: BookCreate, db: AsyncSession = Depends(get_db)):
         print(f"Error adding book: {e}")
         raise HTTPException(status_code=500, detail="Error adding book to the database")
     
-@app.post("/reviews", response_model=ReviewDisplay, status_code=status.HTTP_201_CREATED)
+@app.post("/reviews/{book_id}", response_model=ReviewDisplay, status_code=status.HTTP_201_CREATED) 
 async def create_review(
+    book_id: int,
     review_data: ReviewCreate,
     db: AsyncSession = Depends(get_db)
 ):
     """
     Dodaje novu recenziju za knjigu.
-    Prima podatke definisane u ReviewCreate šemi.
+    Prima podatke definisane u ReviewCreate šemi osim book_id (uzima se iz URL-a).
     Vraća podatke novokreirane recenzije koristeći ReviewDisplay šemu.
     """
-    book = await db.get(Book, review_data.book_id)
+    book = await db.get(Book, book_id)
     if not book:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Book with ID {review_data.book_id} not found"
+            detail=f"Book with ID {book_id} not found"
         )
 
     user = await db.get(User, review_data.user_id)
@@ -132,17 +150,22 @@ async def create_review(
 
     existing_review_result = await db.execute(
         select(Review).where(
-            (Review.book_id == review_data.book_id) &
+            (Review.book_id == book_id) & 
             (Review.user_id == review_data.user_id)
         )
     )
     if existing_review_result.scalars().first():
-         raise HTTPException(
-             status_code=status.HTTP_400_BAD_REQUEST,
-             detail=f"User {review_data.user_id} has already reviewed book {review_data.book_id}"
-         )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"User {review_data.user_id} has already reviewed book {book_id}"
+        )
 
-    new_review = Review(**review_data.dict())
+    new_review = Review(
+        rating=review_data.rating,
+        comment=review_data.comment,
+        book_id=book_id,
+        user_id=review_data.user_id
+    )
 
     try:
         db.add(new_review)
@@ -150,12 +173,13 @@ async def create_review(
         await db.refresh(new_review)
         return new_review
     except Exception as e:
-        await db.rollback() # Vratiti transakciju u slučaju greške
+        await db.rollback()
         print(f"Error adding review: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error adding review to the database"
         )
+
 
 @app.get("/books/{book_id}/reviews", response_model=List[ReviewDisplay])
 async def get_reviews_for_book(book_id: int, db: AsyncSession = Depends(get_db)):
@@ -219,3 +243,27 @@ async def get_book_average_rating(
     average_rating = result.scalar_one_or_none() 
 
     return BookAverageRating(book_id=book_id, average_rating=average_rating)
+
+@app.get("/books", response_model=List[BookDisplay])
+async def get_all_books(db: AsyncSession = Depends(get_db)):
+    """
+    Vraća listu svih knjiga sa osnovnim informacijama i autorom.
+    """
+    result = await db.execute(
+        select(Book).options(selectinload(Book.author))
+    )
+    books = result.scalars().all()
+    return books
+
+@app.get("/books/{book_id}", response_model=BookDisplay)
+async def get_book_details(book_id: int, db: AsyncSession = Depends(get_db)):
+    """
+    Vraća detalje za specifičnu knjigu na osnovu ID-ja.
+    """
+    book = await db.get(Book, book_id, options=[selectinload(Book.author)]) 
+    if not book:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Book with ID {book_id} not found"
+        )
+    return book
