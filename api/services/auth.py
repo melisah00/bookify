@@ -6,6 +6,8 @@ from datetime import datetime, timedelta
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends, HTTPException, status
+from sqlalchemy.orm import selectinload
+
 from database import get_db
 from models import Role, RoleNameEnum, User
 from schemas import UserCreate
@@ -18,7 +20,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token") #ovdje mi je stajao login
 
 
 def hash_password(password: str):
@@ -50,8 +52,13 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
     except JWTError:
         raise credentials_exception
 
-    result = await db.execute(select(User).where(User.email == email))
-    user = result.scalars().first()
+    result = await db.execute(
+    select(User)
+      .options(selectinload(User.roles))
+      .where(User.email == email)
+    )
+    user: User = result.scalars().first()
+    
 
     if user is None:
         raise credentials_exception
@@ -98,3 +105,13 @@ async def authenticate_user(username: str, password: str, db: AsyncSession):
     
     token = create_access_token(data={"sub": user.email})
     return {"access_token": token, "token_type": "bearer"}
+
+
+async def veryfy_token(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Could not validate credentials")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Could not validate credentials")

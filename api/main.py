@@ -19,6 +19,7 @@ app = FastAPI(title="Bookify", description="API za upravljanje korisnicima i knj
 origins = [
     "http://localhost:3000", # Adresa tvog React development servera
     # Dodaj druge potrebne origin-e
+    "http://127.0.0.1:3000",
 ]
 
 app.add_middleware(
