@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import BookImage from '../assets/images/Book.png';
+
+
 import { useNavigate } from "react-router-dom";
 
 function Login() {
@@ -49,14 +52,14 @@ function Login() {
       }
       const userData = await userRes.json();
 
-      
+
       localStorage.setItem('user', JSON.stringify(userData));
 
-    
+
       const roleNames = Array.isArray(userData.roles)
         ? userData.roles.map(r =>
-            typeof r === 'string' ? r.toLowerCase() : String(r.name).toLowerCase()
-          )
+          typeof r === 'string' ? r.toLowerCase() : String(r.name).toLowerCase()
+        )
         : [];
 
       if (roleNames.includes('admin')) {
@@ -81,35 +84,56 @@ function Login() {
   };
 
   return (
-    <div className="login-container">
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="username">Username:</label>
-          <input
-            type="text"
-            id="username"
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="password">Password:</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'}
-        </button>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-      </form>
+    <div className="d-flex justify-content-center align-items-center vh-100" style={{ backgroundColor: '#f8f6f1', fontFamily: 'Lora, serif' }}>
+      <div className="d-flex flex-column align-items-center p-4 rounded shadow" style={{ backgroundColor: '#D0EFCF', borderRadius: '10px', width: '400px' }}>
+        <h2 style={{ marginTop: '20px', marginBottom: '0px', color: '#21583B', fontWeight: 'bold' }}>BOOKIFY</h2>
+        <img src={BookImage} alt="Book" style={{ maxWidth: '250px', margin: '0px', padding: '0px' }} />
+        <h2 style={{ marginTop: '0px', marginBottom: '20px', color: '#21583B', fontWeight: 'bold' }}>Log In</h2>
+
+        <form onSubmit={handleSubmit} className="d-flex flex-column" style={{ width: '250px' }}>
+          <div className="mb-2">
+            <label htmlFor="username" className="form-label" style={{ marginBottom: '4px', color: '#21583B' }}>Username:</label>
+            <input
+              type="text"
+              id="username"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              required
+              className="form-control"
+              style={{ backgroundColor: '#D0EFCF', height: '35px', fontSize: '14px', borderColor: '#21583B' }}
+            />
+          </div>
+          <div className="mb-2">
+            <label htmlFor="password" className="form-label" style={{ marginBottom: '4px', color: '#21583B' }}>Password:</label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              className="form-control"
+              style={{ backgroundColor: '#D0EFCF', height: '35px', fontSize: '14px', borderColor: '#21583B' }}
+            />
+          </div>
+          <button type="submit" disabled={loading} className="btn btn-primary mt-2" style={{ backgroundColor: '#21583B', borderColor: '#21583B', color: 'white' }}>
+            {loading ? 'Logging in...' : 'Log in'}
+          </button>
+          {error && <p className="text-danger mt-2">{error}</p>}
+        </form>
+
+
+        <p className="mt-3" style={{ fontSize: '14px', color: '#21583B' }}>
+          Don't have an account?{' '}
+          <span
+            style={{ cursor: 'pointer', textDecoration: 'underline', color: '#21583B' }}
+            onClick={() => navigate('/register')}
+          >
+            Register
+          </span>
+        </p>
+      </div>
     </div>
+
   );
 }
 

@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import BookImage from '../assets/images/Book.png';
 
 function Register() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,6 +24,12 @@ function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
     if (!validateForm()) return;
 
     setLoading(true);
@@ -72,8 +80,8 @@ function Register() {
 
       const roleNames = Array.isArray(userData.roles)
         ? userData.roles.map(r =>
-            typeof r === 'string' ? r.toLowerCase() : String(r.name).toLowerCase()
-          )
+          typeof r === 'string' ? r.toLowerCase() : String(r.name).toLowerCase()
+        )
         : [];
 
       if (roleNames.includes('reader')) navigate('/reader', { state: { user: userData } });
@@ -90,59 +98,102 @@ function Register() {
   };
 
   return (
-    <div className="register-container">
-      <h2>Register</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="username">Username:</label>
-          <input
-            type="text"
-            id="username"
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-            required
+
+
+    <div className="min-vh-100 d-flex justify-content-center align-items-center" style={{ backgroundColor: '#f8f6f1', fontFamily: 'Lora, serif' }}>
+      <div className="d-flex flex-column flex-md-row rounded shadow" style={{ width: '90%', maxWidth: '900px', overflow: 'hidden' }}>
+
+
+        <div className=" bg-opacity-25 d-flex flex-column justify-content-center align-items-center p-4" style={{ flex: 1, backgroundColor: '#D0EFCF' }}>
+          <img
+            src={BookImage}
+            alt="Bookify Logo"
+            style={{ width: '300px', margin: '0px', padding: '0px' }}
           />
+          <h1 style={{ fontSize: '80px', fontWeight: 'bold', color: '#21583B' }}>Bookify</h1>
         </div>
-        <div>
-          <label htmlFor="email">Email:</label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-          />
+
+
+        <div className="p-5" style={{ flex: 1, backgroundColor: '#E1EAE5' }}>
+          <h2 className="text-center mb-4" style={{ color: '#21583B', fontWeight: 'bold', fontSize: '45px' }}>Create Account</h2>
+          <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label htmlFor="username" style={{ color: '#21583B' }}>Username:</label>
+              <input
+                type="text"
+                style={{ backgroundColor: '#E1EAE5', borderColor: '#21583B' }}
+                id="username"
+                className="form-control"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="email" style={{ color: '#21583B', }}>Email:</label>
+              <input
+                type="email"
+                style={{ backgroundColor: '#E1EAE5', borderColor: '#21583B' }}
+                id="email"
+                className="form-control"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="password" style={{ color: '#21583B' }}>Password:</label>
+              <input
+                type="password"
+                style={{ backgroundColor: '#E1EAE5', borderColor: '#21583B' }}
+                id="password"
+                className="form-control"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="confirmPassword" style={{ color: '#21583B' }}>Confirm Password:</label>
+              <input
+                type="password"
+                style={{ backgroundColor: '#E1EAE5', borderColor: '#21583B' }}
+                id="confirmPassword"
+                className="form-control"
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="mb-4">
+              <label htmlFor="role" style={{ color: '#21583B' }}>Role:</label>
+              <select
+                id="role"
+                style={{ backgroundColor: '#E1EAE5', borderColor: '#21583B' }}
+                className="form-select"
+                value={role}
+                onChange={e => setRole(e.target.value)}
+                required
+              >
+                <option value="">Select a role</option>
+                <option value="reader">Reader</option>
+                <option value="author">Author</option>
+                <option value="forum_moderator">Forum Moderator</option>
+                <option value="forum_admin">Forum Admin</option>
+              </select>
+            </div>
+            <button type="submit" className="btn btn-success w-100" disabled={loading} style={{ backgroundColor: '#21583B', borderColor: '#21583B' }}>
+              {loading ? 'Registering...' : 'Register'}
+            </button>
+            {error && <p className="text-danger text-center mt-3">{error}</p>}
+          </form>
+          <div className="text-center mt-3">
+            Already have an account? <a href="/login" style={{ color: '#21583B' }}>Log in</a>
+          </div>
         </div>
-        <div>
-          <label htmlFor="password">Password:</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="role">Role:</label>
-          <select
-            id="role"
-            value={role}
-            onChange={e => setRole(e.target.value)}
-            required
-          >
-            <option value="">Select a role</option>
-            <option value="reader">Reader</option>
-            <option value="author">Author</option>
-            <option value="forum_moderator">Forum Moderator</option>
-            <option value="forum_admin">Forum Admin</option>
-          </select>
-        </div>
-        <button type="submit" disabled={loading}>
-          {loading ? 'Registering...' : 'Register'}
-        </button>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-      </form>
+
+      </div>
     </div>
   );
 }
