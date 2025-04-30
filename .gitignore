@@ -1,9 +1,9 @@
 # Python (.venv, pycache, env fajlovi itd.)
-api/__pycache__/
-api/**/*.py[cod]
-api/.venv/
-api/env/
-api/.env
+backend/__pycache__/
+backend/**/*.py[cod]
+backend/.venv/
+backend/env/
+backend/.env
 *.pyc
 
 # Virtual environment root folder (ako koristiš globalno u rootu)
@@ -23,11 +23,11 @@ env/
 Thumbs.db
 
 # Node.js / frontend buildovi i fajlovi
-app/node_modules/
-app/dist/
-app/build/
-app/.env.local
-app/.env
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.env.local
+frontend/.env
 
 # Log fajlovi
 *.log
