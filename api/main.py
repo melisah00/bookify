@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from pydantic import BaseModel, EmailStr 
@@ -8,6 +8,7 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
 
+from routers import auth
 from database import get_db, engine, Base
 
 from models import *
@@ -18,6 +19,7 @@ app = FastAPI(title="Bookify", description="API za upravljanje korisnicima i knj
 origins = [
     "http://localhost:3000", # Adresa tvog React development servera
     # Dodaj druge potrebne origin-e
+    "http://127.0.0.1:3000",
 ]
 
 app.add_middleware(
@@ -27,6 +29,9 @@ app.add_middleware(
     allow_methods=["*"], # Dozvoli sve metode (GET, POST, etc.)
     allow_headers=["*"], # Dozvoli sve headere
 )
+
+
+app.include_router(auth.router)
 
 
 # --- Event Handlers ---
@@ -48,51 +53,6 @@ async def read_root():
     return {"message": "Dobrodošli na Moj Knjiga API!"}
 
 
-@app.get("/test-db", response_model=List[UserDisplay])
-async def test_db_connection(db: AsyncSession = Depends(get_db)):
-    """
-    Testira konekciju sa bazom podataka tako što dohvati sve korisnike.
-    Vraća listu korisnika koristeći UserDisplay šemu.
-    """
-    try:
-        result = await db.execute(select(User))
-        users = result.scalars().all()
-        return users
-    except Exception as e:
-        print(f"Database connection error: {e}")
-        raise HTTPException(status_code=500, detail="Database connection error")
-
-
-@app.post("/add-user", response_model=UserDisplay, status_code=201)
-async def add_user(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
-    """
-    Dodaje novog korisnika u bazu podataka.
-    Prima podatke definisane u UserCreate šemi.
-    Vraća podatke novokreiranog korisnika koristeći UserDisplay šemu.
-    """
-    existing_user = await db.execute(
-        select(User).where(
-            (User.username == user_data.username) | (User.email == user_data.email)
-        )
-    )
-    if existing_user.scalars().first():
-        raise HTTPException(status_code=400, detail="Username or email already registered")
-
-    new_user = User(
-        username=user_data.username,
-        email=user_data.email,
-        password=user_data.password 
-    )
-
-    try:
-        db.add(new_user)
-        await db.commit()
-        await db.refresh(new_user) # Osvežava instancu sa podacima iz baze (npr. ID)
-        return new_user
-    except Exception as e:
-        await db.rollback() 
-        print(f"Error adding user: {e}")
-        raise HTTPException(status_code=500, detail="Error adding user to the database")
 
 @app.post("/books", response_model=BookDisplay, status_code=201)
 async def add_book(book_data: BookCreate, db: AsyncSession = Depends(get_db)):
@@ -117,7 +77,13 @@ async def add_book(book_data: BookCreate, db: AsyncSession = Depends(get_db)):
         db.add(new_book)
         await db.commit()
         await db.refresh(new_book) 
-        return new_book
+        result = await db.execute(
+            select(Book).where(Book.id == new_book.id).options(
+                selectinload(Book.author).selectinload(User.roles)
+            )
+        )
+        full_book = result.scalars().first()
+        return full_book
     except Exception as e:
         await db.rollback()  
         print(f"Error adding book: {e}")
@@ -250,7 +216,9 @@ async def get_all_books(db: AsyncSession = Depends(get_db)):
     Vraća listu svih knjiga sa osnovnim informacijama i autorom.
     """
     result = await db.execute(
-        select(Book).options(selectinload(Book.author))
+        select(Book).options(
+            selectinload(Book.author).selectinload(User.roles)
+        )
     )
     books = result.scalars().all()
     return books
@@ -260,7 +228,14 @@ async def get_book_details(book_id: int, db: AsyncSession = Depends(get_db)):
     """
     Vraća detalje za specifičnu knjigu na osnovu ID-ja.
     """
-    book = await db.get(Book, book_id, options=[selectinload(Book.author)]) 
+    book = await db.execute(
+    select(Book)
+    .options(
+        selectinload(Book.author).selectinload(User.roles)  # Učitaj i uloge autora
+    )
+    .where(Book.id == book_id)
+    )
+    book = book.scalars().first()
     if not book:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

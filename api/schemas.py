@@ -1,36 +1,53 @@
 from datetime import datetime
-from typing import Optional
+import enum
+from typing import List, Optional
 from pydantic import BaseModel, EmailStr, Field
+from sqlalchemy import Enum
 
-class UserCreate(BaseModel):
-    username: str
-    email: EmailStr
-    password: str
+from models import RoleNameEnum
 
-class UserDisplay(BaseModel):
+
+class Role(BaseModel):
     id: int
-    username: str
-    email: EmailStr
-    first_name: str | None = None
-    last_name: str | None = None
+    name: RoleNameEnum
 
     class Config:
-        orm_mode = True 
+        orm_mode = True
+
+class UserBase(BaseModel):
+    username: str
+    email: EmailStr
+    roles: Optional[List[Role]] = None
+
+
+
+class UserCreate(UserBase):
+    password: str
+    roles: Optional[List[RoleNameEnum]] = [RoleNameEnum.reader]  # Default role
+
+
+class UserDisplay(UserBase):
+    id: int
+    roles: List[Role]
+
+    class Config:
+        orm_mode = True
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    email: Optional[str] = None
+
 
 class BookCreate(BaseModel):
     title: str = Field(..., min_length=1, example="Gospodar Prstenova")
     path: str = Field(..., min_length=1, example="/books/lotr.pdf") 
     author_id: int = Field(..., gt=0, example=1) 
 
-class BookDisplay(BaseModel):
-    id: int
-    title: str
-    path: str
-    num_of_downloads: int
-    author_id: int
-
-    class Config:
-        orm_mode = True
 
 class ReviewBase(BaseModel):
     rating: int = Field(..., ge=1, le=5, description="Ocena od 1 do 5")
@@ -58,21 +75,13 @@ class BookAverageRating(BaseModel):
     class Config:
         orm_mode = True
 
-class UserBase(BaseModel):
-    id: int
-    username: str 
-
-    class Config:
-        orm_mode = True
 
 class BookDisplay(BaseModel):
     id: int
     title: str
     path: str 
     num_of_downloads: int
-    author: UserBase
-
-
+    author: UserDisplay  
 
     class Config:
         orm_mode = True

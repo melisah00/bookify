@@ -10,9 +10,11 @@ from database import Base
 # Definisanje Enum tipova
 class RoleNameEnum(enum.Enum):
     admin = "admin"
-    moderator = "moderator"
-    user = "user"
-    guest = "guest"
+    author = "author"
+    reader = "reader"
+    forum_admin = "forum_admin"
+    forum_moderator = "forum_moderator"
+
 
 class CategoryEnum(enum.Enum):
     fiction = "fiction"
@@ -73,7 +75,7 @@ class User(Base):
         secondary=user_followers,
         primaryjoin=(user_followers.c.user1_id == id),
         secondaryjoin=(user_followers.c.user2_id == id),
-        backref="followers" # Korisnici koji prate ovog korisnika
+        backref="followers" 
     )
     interests = relationship("Category", secondary=user_interests, back_populates="users")
     roles = relationship("Role", secondary=user_role, back_populates="users")
