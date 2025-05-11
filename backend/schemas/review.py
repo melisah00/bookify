@@ -9,6 +9,7 @@ class ReviewBase(BaseModel):
     class Config:
         model_config = ConfigDict(from_attributes=True)
 
+
 class ReviewCreate(ReviewBase):
     user_id: int
 

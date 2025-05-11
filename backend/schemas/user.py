@@ -24,3 +24,4 @@ class UserDisplay(UserBase):
 
     class Config:
         model_config = ConfigDict(from_attributes=True)
+

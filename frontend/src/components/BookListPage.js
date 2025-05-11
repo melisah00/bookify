@@ -66,8 +66,15 @@ function BookListPage() {
         transform: "scale(1.02)",
       },
     },
-    linkHover: {
+
+    link: {
+      marginTop: "10px",
+      display: "inline-block",
       color: colors.accentMedium,
+      textDecoration: "none",
+      fontWeight: "bold",
+      borderBottom: "1px solid transparent",
+      transition: "border-color 0.3s",
     },
     author: {
       fontSize: "0.9em",
@@ -97,15 +104,6 @@ function BookListPage() {
       boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
       transition: "transform 0.2s ease-in-out",
       textAlign: "center",
-    },
-    link: {
-      marginTop: "10px",
-      display: "inline-block",
-      color: colors.accentMedium,
-      textDecoration: "none",
-      fontWeight: "bold",
-      borderBottom: "1px solid transparent",
-      transition: "border-color 0.3s",
     },
   };
 
@@ -139,8 +137,14 @@ function BookListPage() {
               {book.author && (
                 <p style={styles.author}>Author: {book.author.username}</p>
               )}
-              <Link to={`/books/${book.id}`} style={styles.link}>
-                Details
+
+              <Link
+                to={`/app/books/${book.id}`}
+                style={styles.link}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              >
+                View Details
               </Link>
             </div>
           ))}

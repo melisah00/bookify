@@ -10,6 +10,7 @@ class ForumCategoryDisplay(BaseModel):
     class Config:
         model_config = ConfigDict(from_attributes=True)
 
+
 class ForumTopicDisplay(BaseModel):
     topic_id: int
     category_id: int
@@ -25,6 +26,7 @@ class ForumTopicDisplay(BaseModel):
     class Config:
         model_config = ConfigDict(from_attributes=True)
 
+
 class ForumPostDisplay(BaseModel):
     post_id: int
     topic_id: int
@@ -38,3 +40,4 @@ class ForumPostDisplay(BaseModel):
 
     class Config:
         model_config = ConfigDict(from_attributes=True)
+

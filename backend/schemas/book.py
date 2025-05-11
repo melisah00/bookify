@@ -19,7 +19,6 @@ class BookDisplay(BaseModel):
     title: str
     path: str
     num_of_downloads: int
-    author: UserDisplay  # koristi ugnježdeni prikaz autora
-
+    author: UserDisplay  
     class Config:
         model_config = ConfigDict(from_attributes=True)

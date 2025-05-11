@@ -99,10 +99,7 @@ function ReviewForm({ bookId, onReviewSubmitted }) {
         onReviewSubmitted(responseData);
       }
     } catch (err) {
-      setError(
-        err.message ||
-          "An unexpected error occurred while submitting the review."
-      );
+      setError(err.message || "An unexpected error occurred while submitting.");
     } finally {
       setIsLoading(false);
     }
@@ -127,10 +124,9 @@ function ReviewForm({ bookId, onReviewSubmitted }) {
           fontWeight: "600",
         }}
       >
-        Leave a review for book ID: {bookId}
+        Leave a Review for Book ID: {bookId}
       </h3>
       <form onSubmit={handleSubmit}>
-        {/* Rating */}
         <div style={{ marginBottom: "20px", textAlign: "center" }}>
           <label
             style={{
@@ -154,8 +150,6 @@ function ReviewForm({ bookId, onReviewSubmitted }) {
             ))}
           </div>
         </div>
-
-        {/* Temporary User ID */}
         <div style={{ marginBottom: "15px" }}>
           <label
             htmlFor="userIdInput"
@@ -246,8 +240,6 @@ function ReviewForm({ bookId, onReviewSubmitted }) {
             {successMessage}
           </p>
         )}
-
-        {/* Submit Button */}
         <button
           type="submit"
           disabled={isLoading}

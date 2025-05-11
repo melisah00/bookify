@@ -22,6 +22,7 @@ class EventDisplay(EventBase):
     class Config:
         model_config = ConfigDict(from_attributes=True)
 
+
 class EventParticipantBase(BaseModel):
     status: EventParticipantStatusEnum = EventParticipantStatusEnum.registered
     user_id: int
@@ -32,3 +33,4 @@ class EventParticipantDisplay(EventParticipantBase):
 
     class Config:
         model_config = ConfigDict(from_attributes=True)
+
