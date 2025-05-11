@@ -1,13 +1,13 @@
 from typing import List, Optional
 from pydantic import BaseModel, EmailStr
-from models.user import RoleNameEnum  # koristi Enum iz modela
+from models.user import RoleNameEnum 
 
 class Role(BaseModel):
     id: int
     name: RoleNameEnum
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class UserBase(BaseModel):
     username: str
@@ -23,4 +23,4 @@ class UserDisplay(UserBase):
     roles: List[Role]
 
     class Config:
-        orm_mode = True
+        from_attributes = True

@@ -20,7 +20,7 @@ class EventDisplay(EventBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class EventParticipantBase(BaseModel):
     status: EventParticipantStatusEnum = EventParticipantStatusEnum.registered
@@ -31,4 +31,4 @@ class EventParticipantDisplay(EventParticipantBase):
     registered_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True

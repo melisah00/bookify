@@ -1,6 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel, Field
-from schemas.user import UserDisplay  # biće definisan kasnije
+from schemas.user import UserDisplay  
 
 class BookCreate(BaseModel):
     title: str = Field(..., min_length=1, example="Gospodar Prstenova")
@@ -12,14 +12,13 @@ class BookAverageRating(BaseModel):
     average_rating: Optional[float] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class BookDisplay(BaseModel):
     id: int
     title: str
     path: str
     num_of_downloads: int
-    author: UserDisplay  # koristi ugnježdeni prikaz autora
-
+    author: UserDisplay  
     class Config:
-        orm_mode = True
+        from_attributes = True
