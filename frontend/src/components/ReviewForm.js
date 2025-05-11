@@ -150,8 +150,6 @@ function ReviewForm({ bookId, onReviewSubmitted }) {
             ))}
           </div>
         </div>
-
-        {/* --- TEMPORARY USER ID FIELD --- */}
         <div style={{ marginBottom: "15px" }}>
           <label
             htmlFor="userIdInput"
@@ -182,11 +180,11 @@ function ReviewForm({ bookId, onReviewSubmitted }) {
             }}
           />
           <small style={{ color: colors.textDark, opacity: 0.8 }}>
-            *This field will be removed once login is implemented.
+            *This field will be removed after login is implemented.
           </small>
         </div>
-        {/* --- END TEMP FIELD --- */}
 
+        {/* Comment */}
         <div style={{ marginBottom: "25px" }}>
           <label
             htmlFor="commentInput"
@@ -242,7 +240,6 @@ function ReviewForm({ bookId, onReviewSubmitted }) {
             {successMessage}
           </p>
         )}
-
         <button
           type="submit"
           disabled={isLoading}

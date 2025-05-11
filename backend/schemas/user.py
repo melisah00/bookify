@@ -1,13 +1,13 @@
 from typing import List, Optional
-from pydantic import BaseModel, EmailStr
-from models.user import RoleNameEnum 
+from pydantic import BaseModel, ConfigDict, EmailStr
+from models.user import RoleNameEnum  # koristi Enum iz modela
 
 class Role(BaseModel):
     id: int
     name: RoleNameEnum
 
     class Config:
-        from_attributes = True
+        model_config = ConfigDict(from_attributes=True)
 
 class UserBase(BaseModel):
     username: str
@@ -23,4 +23,5 @@ class UserDisplay(UserBase):
     roles: List[Role]
 
     class Config:
-        from_attributes = True
+        model_config = ConfigDict(from_attributes=True)
+

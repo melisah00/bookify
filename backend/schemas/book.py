@@ -1,6 +1,6 @@
 from typing import Optional
-from pydantic import BaseModel, Field
-from schemas.user import UserDisplay  
+from pydantic import BaseModel, ConfigDict, Field
+from schemas.user import UserDisplay  # biće definisan kasnije
 
 class BookCreate(BaseModel):
     title: str = Field(..., min_length=1, example="Gospodar Prstenova")
@@ -12,7 +12,7 @@ class BookAverageRating(BaseModel):
     average_rating: Optional[float] = None
 
     class Config:
-        from_attributes = True
+        model_config = ConfigDict(from_attributes=True)
 
 class BookDisplay(BaseModel):
     id: int
@@ -21,4 +21,4 @@ class BookDisplay(BaseModel):
     num_of_downloads: int
     author: UserDisplay  
     class Config:
-        from_attributes = True
+        model_config = ConfigDict(from_attributes=True)

@@ -7,6 +7,7 @@ from controllers import user_controller
 from controllers import event_controller
 from controllers import notification_controller
 from controllers import forum_controller
+from controllers import category_controller
 from controllers import auth_controller
 
 
@@ -31,7 +32,9 @@ app.include_router(user_controller.router)
 app.include_router(event_controller.router)
 app.include_router(notification_controller.router)
 app.include_router(forum_controller.router)
+app.include_router(category_controller.router)
 app.include_router(auth_controller.router)
+
 
 # Kreiranje tabela na startu
 @app.on_event("startup")

@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from models.event import EventParticipantStatusEnum
 
 class EventBase(BaseModel):
@@ -20,7 +20,8 @@ class EventDisplay(EventBase):
     id: int
 
     class Config:
-        from_attributes = True
+        model_config = ConfigDict(from_attributes=True)
+
 
 class EventParticipantBase(BaseModel):
     status: EventParticipantStatusEnum = EventParticipantStatusEnum.registered
@@ -31,4 +32,5 @@ class EventParticipantDisplay(EventParticipantBase):
     registered_at: datetime
 
     class Config:
-        from_attributes = True
+        model_config = ConfigDict(from_attributes=True)
+

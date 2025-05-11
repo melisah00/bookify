@@ -10,7 +10,7 @@ function BookDetailPage() {
     fetch(`http://localhost:8000/books/${bookId}`)
       .then((response) => response.json())
       .then((data) => setBook(data))
-      .catch((error) => console.error("Error fetching book:", error));
+      .catch((error) => console.error("Error fetching book details:", error));
   }, [bookId]);
 
   const handleReviewSubmit = () => {

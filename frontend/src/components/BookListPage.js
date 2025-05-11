@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import BookFilter from "./BookFilter";
 
 const colors = {
   backgroundLight: "rgb(248,246,241)",
@@ -65,6 +66,7 @@ function BookListPage() {
         transform: "scale(1.02)",
       },
     },
+
     link: {
       marginTop: "10px",
       display: "inline-block",
@@ -105,9 +107,6 @@ function BookListPage() {
     },
   };
 
-  const handleMouseEnter = (e) => (e.target.style.color = colors.accentMedium);
-  const handleMouseLeave = (e) => (e.target.style.color = colors.textDark);
-
   if (isLoading) {
     return (
       <div style={styles.page}>
@@ -127,6 +126,7 @@ function BookListPage() {
   return (
     <div style={styles.page}>
       <h1 style={styles.heading}>All Books</h1>
+      <BookFilter onResults={setBooks} />
       {books.length === 0 ? (
         <p>No books available.</p>
       ) : (
@@ -137,6 +137,7 @@ function BookListPage() {
               {book.author && (
                 <p style={styles.author}>Author: {book.author.username}</p>
               )}
+
               <Link
                 to={`/app/books/${book.id}`}
                 style={styles.link}
