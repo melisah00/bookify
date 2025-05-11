@@ -32,7 +32,6 @@ class Event(Base):
 class EventParticipant(Base):
     __tablename__ = "event_participant"
 
-    id = Column(Integer, primary_key=True, index=True)
     registered_at = Column(DateTime(timezone=True), server_default=func.now())
     status = Column(Enum(EventParticipantStatusEnum), default=EventParticipantStatusEnum.registered)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)

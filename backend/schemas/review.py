@@ -7,7 +7,7 @@ class ReviewBase(BaseModel):
     comment: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ReviewCreate(ReviewBase):
     user_id: int
