@@ -23,14 +23,12 @@ function BookListPage() {
       try {
         const response = await fetch("http://localhost:8000/books");
         if (!response.ok) {
-          throw new Error(
-            `Greška ${response.status}: Ne mogu da dobavim knjige.`
-          );
+          throw new Error(`Error ${response.status}: Unable to fetch books.`);
         }
         const data = await response.json();
         setBooks(data);
       } catch (err) {
-        setError(err.message || "Došlo je do greške.");
+        setError(err.message || "An error occurred.");
       } finally {
         setIsLoading(false);
       }
@@ -68,14 +66,13 @@ function BookListPage() {
       },
     },
     link: {
-      textDecoration: "none",
-      color: colors.textDark,
-      fontWeight: "bold",
-      display: "block",
-      transition: "color 0.2s",
-    },
-    linkHover: {
+      marginTop: "10px",
+      display: "inline-block",
       color: colors.accentMedium,
+      textDecoration: "none",
+      fontWeight: "bold",
+      borderBottom: "1px solid transparent",
+      transition: "border-color 0.3s",
     },
     author: {
       fontSize: "0.9em",
@@ -106,15 +103,6 @@ function BookListPage() {
       transition: "transform 0.2s ease-in-out",
       textAlign: "center",
     },
-    link: {
-      marginTop: "10px",
-      display: "inline-block",
-      color: colors.accentMedium,
-      textDecoration: "none",
-      fontWeight: "bold",
-      borderBottom: "1px solid transparent",
-      transition: "border-color 0.3s",
-    },
   };
 
   const handleMouseEnter = (e) => (e.target.style.color = colors.accentMedium);
@@ -123,7 +111,7 @@ function BookListPage() {
   if (isLoading) {
     return (
       <div style={styles.page}>
-        <p style={styles.loading}>Učitavanje knjiga...</p>
+        <p style={styles.loading}>Loading books...</p>
       </div>
     );
   }
@@ -131,26 +119,31 @@ function BookListPage() {
   if (error) {
     return (
       <div style={styles.page}>
-        <p style={styles.error}>Greška: {error}</p>
+        <p style={styles.error}>Error: {error}</p>
       </div>
     );
   }
 
   return (
     <div style={styles.page}>
-      <h1 style={styles.heading}>Sve Knjige</h1>
+      <h1 style={styles.heading}>All Books</h1>
       {books.length === 0 ? (
-        <p>Nema dostupnih knjiga.</p>
+        <p>No books available.</p>
       ) : (
         <div style={styles.grid}>
           {books.map((book) => (
             <div key={book.id} style={styles.card}>
               <h3>{book.title}</h3>
               {book.author && (
-                <p style={styles.author}>Autor: {book.author.username}</p>
+                <p style={styles.author}>Author: {book.author.username}</p>
               )}
-              <Link to={`/books/${book.id}`} style={styles.link}>
-                Detalji
+              <Link
+                to={`/app/books/${book.id}`}
+                style={styles.link}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              >
+                View Details
               </Link>
             </div>
           ))}
