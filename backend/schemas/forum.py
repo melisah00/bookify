@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 class ForumCategoryDisplay(BaseModel):
     category_id: int
@@ -8,7 +8,7 @@ class ForumCategoryDisplay(BaseModel):
     description: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        model_config = ConfigDict(from_attributes=True)
 
 class ForumTopicDisplay(BaseModel):
     topic_id: int
@@ -23,7 +23,7 @@ class ForumTopicDisplay(BaseModel):
     view_count: int
 
     class Config:
-        orm_mode = True
+        model_config = ConfigDict(from_attributes=True)
 
 class ForumPostDisplay(BaseModel):
     post_id: int
@@ -37,4 +37,4 @@ class ForumPostDisplay(BaseModel):
     reply_to_post_id: Optional[int] = None
 
     class Config:
-        orm_mode = True
+        model_config = ConfigDict(from_attributes=True)

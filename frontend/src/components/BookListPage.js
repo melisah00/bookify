@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import BookFilter from "./BookFilter";
 
 const colors = {
   backgroundLight: "rgb(248,246,241)",
@@ -23,14 +24,12 @@ function BookListPage() {
       try {
         const response = await fetch("http://localhost:8000/books");
         if (!response.ok) {
-          throw new Error(
-            `Greška ${response.status}: Ne mogu da dobavim knjige.`
-          );
+          throw new Error(`Error ${response.status}: Unable to fetch books.`);
         }
         const data = await response.json();
         setBooks(data);
       } catch (err) {
-        setError(err.message || "Došlo je do greške.");
+        setError(err.message || "An error occurred.");
       } finally {
         setIsLoading(false);
       }
@@ -66,13 +65,6 @@ function BookListPage() {
       "&:hover": {
         transform: "scale(1.02)",
       },
-    },
-    link: {
-      textDecoration: "none",
-      color: colors.textDark,
-      fontWeight: "bold",
-      display: "block",
-      transition: "color 0.2s",
     },
     linkHover: {
       color: colors.accentMedium,
@@ -117,13 +109,10 @@ function BookListPage() {
     },
   };
 
-  const handleMouseEnter = (e) => (e.target.style.color = colors.accentMedium);
-  const handleMouseLeave = (e) => (e.target.style.color = colors.textDark);
-
   if (isLoading) {
     return (
       <div style={styles.page}>
-        <p style={styles.loading}>Učitavanje knjiga...</p>
+        <p style={styles.loading}>Loading books...</p>
       </div>
     );
   }
@@ -131,26 +120,27 @@ function BookListPage() {
   if (error) {
     return (
       <div style={styles.page}>
-        <p style={styles.error}>Greška: {error}</p>
+        <p style={styles.error}>Error: {error}</p>
       </div>
     );
   }
 
   return (
     <div style={styles.page}>
-      <h1 style={styles.heading}>Sve Knjige</h1>
+      <h1 style={styles.heading}>All Books</h1>
+      <BookFilter onResults={setBooks} />
       {books.length === 0 ? (
-        <p>Nema dostupnih knjiga.</p>
+        <p>No books available.</p>
       ) : (
         <div style={styles.grid}>
           {books.map((book) => (
             <div key={book.id} style={styles.card}>
               <h3>{book.title}</h3>
               {book.author && (
-                <p style={styles.author}>Autor: {book.author.username}</p>
+                <p style={styles.author}>Author: {book.author.username}</p>
               )}
               <Link to={`/books/${book.id}`} style={styles.link}>
-                Detalji
+                Details
               </Link>
             </div>
           ))}

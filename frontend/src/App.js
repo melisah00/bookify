@@ -28,15 +28,16 @@ function App() {
       transition: "border-bottom 0.2s",
     },
   };
+
   return (
     <div className="App">
       <nav style={styles.navbar}>
         <div style={styles.navLinks}>
           <Link to="/" style={styles.navLink}>
-            Početna
+            Home
           </Link>
           <Link to="/books" style={styles.navLink}>
-            Sve Knjige
+            All Books
           </Link>
         </div>
       </nav>
@@ -46,13 +47,12 @@ function App() {
           path="/"
           element={
             <div style={{ padding: "20px" }}>
-              <h1>Dobrodošli na Bookify</h1>
-              <p>Pregledajte knjige i ostavite recenziju.</p>
-              <Link to="/books">Pregled knjiga</Link>
+              <h1>Welcome to Bookify</h1>
+              <p>Browse books and leave a review.</p>
+              <Link to="/books">Browse Books</Link>
             </div>
           }
         />
-
         <Route path="/books" element={<BookListPage />} />
         <Route path="/books/:bookId" element={<BookDetailPage />} />
       </Routes>

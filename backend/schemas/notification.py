@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 class NotificationDisplay(BaseModel):
     id: int
@@ -9,4 +9,4 @@ class NotificationDisplay(BaseModel):
     recipient_id: int
 
     class Config:
-        orm_mode = True
+        model_config = ConfigDict(from_attributes=True)

@@ -10,25 +10,23 @@ function BookDetailPage() {
     fetch(`http://localhost:8000/books/${bookId}`)
       .then((response) => response.json())
       .then((data) => setBook(data))
-      .catch((error) => console.error("Greška pri dohvatanju knjige:", error));
+      .catch((error) => console.error("Error fetching book details:", error));
   }, [bookId]);
 
   const handleReviewSubmit = () => {
-    alert("Recenzija je uspešno poslata!");
+    alert("Review submitted successfully!");
   };
 
-  if (!book) return <p>Učitavanje knjige...</p>;
+  if (!book) return <p>Loading book...</p>;
 
   return (
     <div style={styles.page}>
       <div style={styles.card}>
-        <h2 style={styles.title}>Detalji Knjige: {book.title}</h2>
+        <h2 style={styles.title}>Book Details: {book.title}</h2>
         <p style={styles.author}>
-          Autor: {book.author?.username || "Nepoznat"}
+          Author: {book.author?.username || "Unknown"}
         </p>
-        <p style={styles.downloads}>
-          Broj preuzimanja: {book.num_of_downloads}
-        </p>
+        <p style={styles.downloads}>Downloads: {book.num_of_downloads}</p>
       </div>
 
       <ReviewForm bookId={bookId} onReviewSubmitted={handleReviewSubmit} />
