@@ -34,17 +34,39 @@ function ReviewForm({ bookId, onReviewSubmitted }) {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
-  const [userId, setUserId] = useState("");
+  const [userId, setUserId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
+
+ 
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/auth/user-info", {
+          credentials: "include", 
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch user info");
+
+        const data = await res.json();
+        setUserId(data.id);
+      } catch (err) {
+        setError("Could not retrieve user information.");
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     setError(null);
     setSuccessMessage("");
     setRating(0);
     setComment("");
-    setUserId("");
   }, [bookId]);
 
   const handleSubmit = async (event) => {
@@ -57,8 +79,8 @@ function ReviewForm({ bookId, onReviewSubmitted }) {
       return;
     }
 
-    if (!userId || isNaN(parseInt(userId, 10))) {
-      setError("Please enter a valid user ID (temporary).");
+    if (!userId) {
+      setError("User ID not found. Are you logged in?");
       return;
     }
 
@@ -67,7 +89,7 @@ function ReviewForm({ bookId, onReviewSubmitted }) {
     const reviewData = {
       rating: rating,
       comment: comment || null,
-      user_id: parseInt(userId, 10),
+      user_id: userId,
     };
 
     try {
@@ -93,7 +115,6 @@ function ReviewForm({ bookId, onReviewSubmitted }) {
       setSuccessMessage("Review submitted successfully!");
       setRating(0);
       setComment("");
-      setUserId("");
 
       if (onReviewSubmitted) {
         onReviewSubmitted(responseData);
@@ -149,39 +170,6 @@ function ReviewForm({ bookId, onReviewSubmitted }) {
               />
             ))}
           </div>
-        </div>
-        <div style={{ marginBottom: "15px" }}>
-          <label
-            htmlFor="userIdInput"
-            style={{
-              display: "block",
-              marginBottom: "5px",
-              color: colors.textDark,
-              fontWeight: "500",
-            }}
-          >
-            User ID (Temporary):
-          </label>
-          <input
-            type="number"
-            id="userIdInput"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            placeholder="Enter user ID"
-            required
-            style={{
-              width: "calc(100% - 20px)",
-              padding: "10px",
-              border: `1px solid ${colors.accentLight}`,
-              borderRadius: "5px",
-              backgroundColor: colors.backgroundLight,
-              color: colors.textDark,
-              fontSize: "1rem",
-            }}
-          />
-          <small style={{ color: colors.textDark, opacity: 0.8 }}>
-            *This field will be removed after login is implemented.
-          </small>
         </div>
 
         {/* Comment */}
