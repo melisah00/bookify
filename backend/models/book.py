@@ -19,9 +19,10 @@ book_categories = Table(
 class Book(Base):
     __tablename__ = "books"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     title = Column(String, nullable=False)
     path = Column(String, nullable=False)
+    description = Column(String)
     num_of_downloads = Column(Integer, default=0)
     author_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
