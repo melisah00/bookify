@@ -10,6 +10,7 @@ import {
   ListItemText,
   Divider,
   Tooltip,
+  useMediaQuery,
 } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import HomeIcon from '@mui/icons-material/Home';
@@ -18,16 +19,19 @@ import SchoolIcon from '@mui/icons-material/School';
 import InboxIcon from '@mui/icons-material/MoveToInbox';
 import EventIcon from '@mui/icons-material/Event';
 import ForumIcon from '@mui/icons-material/Forum';
+import HeartIcon from '@mui/icons-material/Favorite';
+import CartIcon from '@mui/icons-material/ShoppingCart';
+import { useTheme } from '@mui/material/styles';
 
 const drawerWidth = 200;
 
 const colors = {
-  backgroundLight: "rgb(248,246,241)",
-  backgroundMedium: "rgb(225,234,229)",
-  accentLight: "rgb(167,215,184)",
-  accentMedium: "rgb(102,178,160)",
-  textDark: "rgb(78,121,107)",
-  errorRed: "#d9534f"
+  backgroundLight: 'rgb(248,246,241)',
+  backgroundMedium: 'rgb(225,234,229)',
+  accentLight: 'rgb(167,215,184)',
+  accentMedium: 'rgb(102,178,160)',
+  textDark: 'rgb(78,121,107)',
+  errorRed: '#d9534f',
 };
 
 const navItems = [
@@ -37,20 +41,29 @@ const navItems = [
   { label: 'Inbox', icon: <InboxIcon /> },
   { label: 'Events', icon: <EventIcon /> },
   { label: 'Forums', icon: <ForumIcon /> },
+  { label: 'Favorites', icon: <HeartIcon /> },
+  { label: 'Shopping Cart', icon: <CartIcon /> },
 ];
 
 export default function ReaderSidebar({ open, onToggle }) {
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
+
+
+  const effectiveOpen = !isSmallScreen && open;
+  const widthToUse = effectiveOpen ? drawerWidth : 60;
+
   return (
     <Drawer
       variant="permanent"
       sx={{
-        width: open ? drawerWidth : 60,
+        width: widthToUse,
         flexShrink: 0,
         whiteSpace: 'nowrap',
         '& .MuiDrawer-paper': {
           marginTop: '64px',
           height: `calc(100% - 64px)`,
-          width: open ? drawerWidth : 60,
+          width: widthToUse,
           transition: 'width 0.3s',
           overflowX: 'hidden',
           bgcolor: colors.backgroundLight,
@@ -60,9 +73,11 @@ export default function ReaderSidebar({ open, onToggle }) {
       }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 1 }}>
-        <IconButton onClick={onToggle} sx={{ color: colors.textDark }}>
-          <ChevronLeftIcon />
-        </IconButton>
+        {!isSmallScreen && (
+          <IconButton onClick={onToggle} sx={{ color: colors.textDark }}>
+            <ChevronLeftIcon />
+          </IconButton>
+        )}
       </Box>
 
       <Divider sx={{ borderColor: colors.backgroundMedium }} />
@@ -76,7 +91,7 @@ export default function ReaderSidebar({ open, onToggle }) {
               end
               sx={({ isActive }) => ({
                 minHeight: 48,
-                justifyContent: open ? 'initial' : 'center',
+                justifyContent: effectiveOpen ? 'initial' : 'center',
                 px: 2.5,
                 mx: 1,
                 borderRadius: 2,
@@ -88,21 +103,25 @@ export default function ReaderSidebar({ open, onToggle }) {
                 },
               })}
             >
-              <ListItemIcon sx={{
-                minWidth: 0,
-                mr: open ? 3 : 'auto',
-                justifyContent: 'center',
-                color: 'inherit',
-              }}>
+              <ListItemIcon
+                sx={{
+                  minWidth: 0,
+                  mr: effectiveOpen ? 3 : 'auto',
+                  justifyContent: 'center',
+                  color: 'inherit',
+                }}
+              >
                 {icon}
               </ListItemIcon>
-              <ListItemText primary={label} sx={{ opacity: open ? 1 : 0 }} />
+              <ListItemText primary={label} sx={{ opacity: effectiveOpen ? 1 : 0 }} />
             </ListItemButton>
           );
 
           return (
             <ListItem key={label} disablePadding sx={{ display: 'block' }}>
-              {open ? listItem : (
+              {effectiveOpen ? (
+                listItem
+              ) : (
                 <Tooltip title={label} placement="right">
                   {listItem}
                 </Tooltip>

@@ -12,9 +12,8 @@ import MailIcon from '@mui/icons-material/Mail';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import MoreIcon from '@mui/icons-material/MoreVert';
 import LogoutButton from './LogoutButton';
-import { useNavigate } from 'react-router-dom';
-import { NavLink } from 'react-router-dom';
-
+import { useNavigate, NavLink } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Header() {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -22,7 +21,19 @@ export default function Header() {
 
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
-  const navigate = useNavigate();
+  //const navigate = useNavigate();
+
+  const { user, loading } = useAuth();
+
+  const getRolePath = (user) => {
+    if (!user) return 'reader';
+    if (user.roles.includes('admin')) return 'admin';
+    if (user.roles.includes('author')) return 'author';
+    return 'reader';
+  };
+
+  const role = !loading ? getRolePath(user) : 'reader';
+  const profilePath = `/app/${role}/profile`;
 
 
   const handleProfileMenuOpen = (event) => {
@@ -59,10 +70,9 @@ export default function Header() {
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
-
       <MenuItem onClick={handleMenuClose}>
         <NavLink
-          to="/app/reader/profile"
+          to={profilePath}
           end
           style={({ isActive }) => ({
             textDecoration: 'none',
@@ -189,7 +199,6 @@ export default function Header() {
           </Box>
         </Toolbar>
       </AppBar>
-
 
       {renderMobileMenu}
       {renderMenu}

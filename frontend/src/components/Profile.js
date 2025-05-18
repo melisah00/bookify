@@ -1,23 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Box, Card, CardContent, Avatar, Typography, CircularProgress } from '@mui/material';
-import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Profile() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    axios.get('http://localhost:8000/auth/user-info', { withCredentials: true })
-      .then(res => {
-        setUser(res.data);
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error('Failed to fetch user info:', error.response || error.message);
-        setLoading(false);
-      });
-  }, []);
-
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -54,7 +40,6 @@ export default function Profile() {
           <Typography variant="body2" color="text.secondary">
             Email: {user.email}
           </Typography>
-
           <Typography variant="body2" color="text.secondary">
             Roles: {user.roles?.join(', ')}
           </Typography>

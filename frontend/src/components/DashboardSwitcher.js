@@ -1,20 +1,20 @@
-import { useAuth } from "../contexts/AuthContext";
-import AdminDashboard from "../dashboards/AdminDashboard";
-import AuthorDashboard from "../dashboards/AuthorDashboard";
-import ReaderDashboard from "../dashboards/ReaderDashboard";
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+
+const getRolePath = (user) => {
+  if (!user) return 'reader';
+  if (user.roles.includes('admin')) return 'admin';
+  if (user.roles.includes('author')) return 'author';
+  return 'reader';
+};
 
 export default function DashboardSwitcher() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
-  if (!user || !Array.isArray(user.roles)) {
-    return <p>Loading…</p>;
-  }
+  if (loading) return <p>Loading…</p>;
+  if (!user) return <Navigate to="/login" replace />;
 
-  if (user.roles.includes("admin")) {
-    return <AdminDashboard />;
-  }
-  if (user.roles.includes("author")) {
-    return <AuthorDashboard />;
-  }
-  return <ReaderDashboard />;
+  const role = getRolePath(user);
+  return <Navigate to={`/app/${role}`} replace />;
 }

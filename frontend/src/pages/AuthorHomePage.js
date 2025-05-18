@@ -12,19 +12,25 @@ import HeartIcon from '@mui/icons-material/Favorite';
 import CartIcon from '@mui/icons-material/ShoppingCart';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import UploadIcon from '@mui/icons-material/Upload';
+import MyBooksIcon from '@mui/icons-material/MenuBook';
+import AnalyticsIcon from '@mui/icons-material/Analytics';
 
 const items = [
-  { label: 'Profile', icon: <AccountCircleIcon />, to: '/app/reader/profile' },
-  { label: 'Browse Books', to: '/app/reader/books', icon: <BookIcon /> },
+  { label: 'Profile', icon: <AccountCircleIcon />, to: '/app/author/profile' },
+  { label: 'Browse Books', to: '/app/author/books', icon: <BookIcon /> },
   { label: 'Student Corner', icon: <SchoolIcon /> },
   { label: 'Inbox', icon: <InboxIcon /> },
   { label: 'Events', icon: <EventIcon /> },
   { label: 'Forums', icon: <ForumIcon /> },
   { label: 'Favorites', icon: <HeartIcon /> },
   { label: 'Shopping Cart', icon: <CartIcon /> },
+  { label: 'Upload Book', icon: <UploadIcon /> },
+  { label: 'My Books', icon: <MyBooksIcon /> },
+  { label: 'Analytics', icon: <AnalyticsIcon /> },
 ];
 
-export default function ReaderHomePage() {
+export default function AuthorHomePage() {
   const [selected, setSelected] = useState(null);
   const navigate = useNavigate();
   const { user, loading } = useAuth();
@@ -60,7 +66,6 @@ export default function ReaderHomePage() {
           },
         }}
       >
-
         {items.map((item, index) => (
           <Paper
             key={index}
