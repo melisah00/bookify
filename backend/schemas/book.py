@@ -1,11 +1,13 @@
-from typing import Optional
+from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 from schemas.user import UserDisplay  # biće definisan kasnije
 
 class BookCreate(BaseModel):
-    title: str = Field(..., min_length=1, example="Gospodar Prstenova")
-    path: str = Field(..., min_length=1, example="/books/lotr.pdf")
-    author_id: int = Field(..., gt=0)
+    title: str
+    path: str
+    author_id: int
+    description: Optional[str] = None
+
 
 class BookAverageRating(BaseModel):
     book_id: int
@@ -22,3 +24,23 @@ class BookDisplay(BaseModel):
     author: UserDisplay  
     class Config:
         model_config = ConfigDict(from_attributes=True)
+
+class CategoryResponseSimpleSchema(BaseModel):
+    id: int
+    category: str  # ← koristi pravo ime iz modela
+
+    class Config:
+        from_attributes = True
+
+
+class BookResponseSchema(BaseModel):
+    id: int
+    title: str
+    path: str
+    author_id: int
+    num_of_downloads: int
+    description: Optional[str] = None
+    categories: List[CategoryResponseSimpleSchema] = []
+
+    class Config:
+        from_attributes = True
