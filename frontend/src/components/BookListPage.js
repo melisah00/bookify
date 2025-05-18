@@ -138,7 +138,7 @@ function BookListPage() {
                 <p style={styles.author}>Author: {book.author.username}</p>
               )}
 
-              <Link to={`/app/books/${book.id}`} style={styles.link}>
+              <Link to={`${book.id}`} style={styles.link}>
                 View Details
               </Link>
             </div>

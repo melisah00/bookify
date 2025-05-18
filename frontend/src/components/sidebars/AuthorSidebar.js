@@ -48,7 +48,7 @@ const navItems = [
     { label: 'Forums', icon: <ForumIcon /> },
     { label: 'Favorites', icon: <HeartIcon /> },
     { label: 'Shopping Cart', icon: <CartIcon /> },
-    { label: 'Upload Book', icon: <UploadIcon /> },
+    { label: 'Upload Book', icon: <UploadIcon />, to: '/app/author/upload' },
     { label: 'My Books', icon: <MyBooksIcon /> },
     { label: 'Analytics', icon: <AnalyticsIcon /> },
 ];

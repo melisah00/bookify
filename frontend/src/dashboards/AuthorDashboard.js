@@ -6,9 +6,12 @@ import { Box, Toolbar } from '@mui/material';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 import BookListPage from '../components/BookListPage';
-import BookDetailPage from '../components/BookDetailPage';
 import AuthorHomePage from '../pages/AuthorHomePage';
 import Profile from '../components/Profile';
+import SingleBookDisplayPage from '../components/SingleBookDisplayPage';
+import SubmitReviewPage from '../pages/SubmitReviewPage';
+import BookUploadForm from '../components/BookUploadForm';
+
 
 export default function AuthorDashboard() {
   const { user, loading } = useAuth();
@@ -52,7 +55,13 @@ export default function AuthorDashboard() {
               <Route index element={<AuthorHomePage />} />
               <Route path="profile" element={<Profile />} />
               <Route path="books" element={<BookListPage />} />
-              <Route path="books/:bookId" element={<BookDetailPage />} />
+              <Route path="books/:bookId" element={<SingleBookDisplayPage />} />
+              <Route
+                path="books/:bookId/submit-review"
+                element={<SubmitReviewPage />}
+              />
+              <Route path="upload" element={<BookUploadForm />} />
+
               <Route path="*" element={<Navigate to="" replace />} />
             </Routes>
 

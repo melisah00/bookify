@@ -72,7 +72,8 @@ function SubmitReviewPage() {
       {!bookTitle && !isLoadingTitle && !errorTitle && bookId &&
         <h2 style={pageStyles.bookTitleHeader}>Recenzija za knjigu (ID: {bookId})</h2>
       }
-      <ReviewForm /> 
+      <ReviewForm bookId={bookId} />
+
       {/* bookId se sada uzima iz useParams unutar ReviewForm, pa ga ne moramo explicitno slati */}
       {/* onReviewSubmitted prop nije više neophodan ako se preusmjeravanje radi unutar ReviewForm */}
     </div>

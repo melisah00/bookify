@@ -26,10 +26,10 @@ export default function AppRoutes() {
         <Route path="/app/reader/*" element={<ReaderDashboard />} />
       </Route>
       
-      <Route path="/app/books" element={<BookListPage />} />
+      {/* <Route path="/app/books" element={<BookListPage />} />
       <Route path="/app/books/:bookId" element={<SingleBookDisplayPage />} /> {/* Nova ruta */}
 
-      <Route path="/app/books/:bookId/submit-review" element={<SubmitReviewPage />} />
+      {/* <Route path="/app/books/:bookId/submit-review" element={<SubmitReviewPage />} /> */} 
 
 
       <Route path="/" element={<Login />} />

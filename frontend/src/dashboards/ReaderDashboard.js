@@ -6,9 +6,11 @@ import { Box, Toolbar } from '@mui/material';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 import BookListPage from '../components/BookListPage';
-import BookDetailPage from '../components/BookDetailPage';
+import SingleBookDisplayPage from '../components/SingleBookDisplayPage';
 import ReaderHomePage from '../pages/ReaderHomePage';
 import Profile from '../components/Profile';
+import SubmitReviewPage from '../pages/SubmitReviewPage';
+
 
 export default function ReaderDashboard() {
   const { user, loading } = useAuth();
@@ -52,7 +54,11 @@ export default function ReaderDashboard() {
               <Route path="/" element={<ReaderHomePage />} />
               <Route path="profile" element={<Profile />} />
               <Route path="books" element={<BookListPage />} />
-              <Route path="books/:bookId" element={<BookDetailPage />} />
+              <Route path="books/:bookId" element={<SingleBookDisplayPage />} />
+              <Route
+                path="books/:bookId/submit-review"
+                element={<SubmitReviewPage />}
+              />
               <Route path="*" element={<Navigate to="books" replace />} />
             </Routes>
           </Box>

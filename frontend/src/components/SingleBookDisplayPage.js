@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import AppHeader from './AppHeader';
+import AppHeader from './Header';
 
 const colors = {
   backgroundLight: "rgb(248,246,241)",
@@ -257,12 +257,11 @@ function SingleBookDisplayPage() {
           <div style={pageStyles.addReviewButtonContainer}>
             {user ? (
               <Link
-                to={`/app/books/${bookId}/submit-review`}
+                to={`submit-review`}
                 style={reviewButtonStyle}
                 onMouseEnter={() => setIsReviewButtonHovered(true)}
                 onMouseLeave={() => setIsReviewButtonHovered(false)}
-              >
-                Napiši recenziju
+              >Napiši recenziju
               </Link>
             ) : (
               <p>Morate biti <Link to="/login" style={{ color: colors.accentMedium, fontWeight: 'bold' }}>ulogovani</Link> da biste ostavili recenziju.</p>
