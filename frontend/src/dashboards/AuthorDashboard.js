@@ -11,6 +11,8 @@ import Profile from '../components/Profile';
 import SingleBookDisplayPage from '../components/SingleBookDisplayPage';
 import SubmitReviewPage from '../pages/SubmitReviewPage';
 import BookUploadForm from '../components/BookUploadForm';
+import Footer from '../components/Footer';
+
 
 
 export default function AuthorDashboard() {
@@ -68,6 +70,7 @@ export default function AuthorDashboard() {
           </Box>
         </Box>
       </Box>
+      <Footer />
     </Box>
   );
 }

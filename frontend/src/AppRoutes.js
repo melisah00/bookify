@@ -10,6 +10,7 @@ import DashboardSwitcher from "./components/DashboardSwitcher";
 import AuthorDashboard from "./dashboards/AuthorDashboard";
 import AdminDashboard from "./dashboards/AdminDashboard";
 import ReaderDashboard from "./dashboards/ReaderDashboard";
+import LandingPage from "./pages/LandingPage";
 
 
 export default function AppRoutes() {
@@ -32,7 +33,7 @@ export default function AppRoutes() {
       {/* <Route path="/app/books/:bookId/submit-review" element={<SubmitReviewPage />} /> */} 
 
 
-      <Route path="/" element={<Login />} />
+      <Route path="/" element={<LandingPage />} />
     </Routes>
   );
 }

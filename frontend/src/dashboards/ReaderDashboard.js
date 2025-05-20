@@ -10,6 +10,7 @@ import SingleBookDisplayPage from '../components/SingleBookDisplayPage';
 import ReaderHomePage from '../pages/ReaderHomePage';
 import Profile from '../components/Profile';
 import SubmitReviewPage from '../pages/SubmitReviewPage';
+import Footer from '../components/Footer';
 
 
 export default function ReaderDashboard() {
@@ -64,6 +65,7 @@ export default function ReaderDashboard() {
           </Box>
         </Box>
       </Box>
+      <Footer />
     </Box>
   );
 }
