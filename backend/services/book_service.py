@@ -1,6 +1,10 @@
+import os
+import shutil
+import uuid
+
 from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, UploadFile
 
 from schemas import BookCreate, BookAverageRating
 from models import Book, Review, Category, User, CategoryEnum
@@ -80,3 +84,104 @@ async def get_book_average_rating_service(book_id: int, db: AsyncSession) -> Boo
 
     avg = await book_repository.get_book_average_rating(book_id, db)
     return BookAverageRating(book_id=book_id, average_rating=avg)
+
+async def create_book_in_db(
+    book_data: BookCreate,
+    db: AsyncSession,
+    category_names: Optional[List[str]] = None
+) -> Optional[Book]:
+    print(f"[DB] Pokušaj pronalaska autora ID: {book_data.author_id}")
+    author = await db.get(User, book_data.author_id)
+    if not author:
+        print(f"[DB ERROR] Autor nije pronađen.")
+        return None
+
+    new_book = Book(
+        title=book_data.title,
+        path=book_data.path,
+        author_id=book_data.author_id,
+        description=book_data.description
+    )
+
+    # ✅ Obradi kategorije prije flush/add
+    if category_names:
+        for cat_name in category_names:
+            try:
+                cat_enum = CategoryEnum(cat_name)  # Validiraj
+                stmt = select(Category).where(Category.category == cat_enum)
+                result = await db.execute(stmt)
+                category_obj = result.scalar_one_or_none()
+
+                if not category_obj:
+                    category_obj = Category(category=cat_enum)
+                    db.add(category_obj)
+                    await db.flush()  # ⚠️ flush samo za kategoriju
+
+                new_book.categories.append(category_obj)
+            except ValueError:
+                print(f"[DB WARNING] '{cat_name}' nije validna kategorija.")
+                continue
+
+    db.add(new_book)            # ✅ Tek sad dodaj knjigu
+    await db.flush()            # ✅ Sad flush
+    await db.commit()
+    await db.refresh(new_book)
+    print(f"[DB] Nova knjiga dodana u bazu: {new_book}")
+    return new_book
+
+
+UPLOAD_DIRECTORY = "book_files"
+# Kreiraj direktorij ako ne postoji
+os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
+
+async def service_create_book_with_upload(
+    title: str,
+    description: Optional[str],
+    categories_data: Optional[List[str]],
+    book_file: UploadFile,
+    author_id: int,
+    db: AsyncSession
+) -> Book:
+    if book_file.content_type != "application/pdf":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nevažeći tip fajla. Dozvoljeni su samo PDF fajlovi."
+        )
+
+    try:
+        file_extension = os.path.splitext(book_file.filename)[1] or ".pdf"
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        file_location_on_server = os.path.join(UPLOAD_DIRECTORY, unique_filename)
+
+        with open(file_location_on_server, "wb+") as file_object:
+            shutil.copyfileobj(book_file.file, file_object)
+
+        db_file_path = f"/book_files/{unique_filename}"
+
+    except IOError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Greška prilikom čuvanja fajla."
+        )
+    finally:
+        if book_file and hasattr(book_file, 'file') and book_file.file:
+            book_file.file.close()
+
+    book_data_for_db = BookCreate(
+        title=title,
+        path=db_file_path,
+        author_id=author_id,
+        description=description
+    )
+
+    created_book = await create_book_in_db(book_data_for_db, db, categories_data)
+
+    if not created_book:
+        if os.path.exists(file_location_on_server):
+            os.remove(file_location_on_server)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Autor sa ID {author_id} nije pronađen ili je došlo do greške prilikom kreiranja knjige."
+        )
+
+    return created_book
