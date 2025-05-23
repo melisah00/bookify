@@ -66,21 +66,21 @@ export default function ReaderSidebar({ open, onToggle }) {
           width: widthToUse,
           transition: 'width 0.3s',
           overflowX: 'hidden',
-          bgcolor: colors.backgroundLight,
-          color: colors.textDark,
-          borderRight: `1px solid ${colors.backgroundMedium}`,
+          bgcolor: colors.accentMedium,
+          color: 'white',
+          borderRight: 'none',
         },
       }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 1 }}>
         {!isSmallScreen && (
-          <IconButton onClick={onToggle} sx={{ color: colors.textDark }}>
+          <IconButton onClick={onToggle} sx={{ color: 'white' }}>
             <ChevronLeftIcon />
           </IconButton>
         )}
       </Box>
 
-      <Divider sx={{ borderColor: colors.backgroundMedium }} />
+      <Divider sx={{ borderColor: 'rgba(255,255,255,0.2)' }} />
 
       <List>
         {navItems.map(({ label, to, icon }) => {
@@ -95,11 +95,10 @@ export default function ReaderSidebar({ open, onToggle }) {
                 px: 2.5,
                 mx: 1,
                 borderRadius: 2,
-                color: isActive ? '#fff' : colors.textDark,
-                backgroundColor: isActive ? colors.accentMedium : 'transparent',
+                color: 'white',
+                backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : 'transparent',
                 '&:hover': {
-                  backgroundColor: colors.accentLight,
-                  color: '#fff',
+                  backgroundColor: 'rgba(255,255,255,0.1)',
                 },
               })}
             >
@@ -131,5 +130,6 @@ export default function ReaderSidebar({ open, onToggle }) {
         })}
       </List>
     </Drawer>
+
   );
 }

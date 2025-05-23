@@ -12,6 +12,7 @@ import SingleBookDisplayPage from '../components/SingleBookDisplayPage';
 import SubmitReviewPage from '../pages/SubmitReviewPage';
 import BookUploadForm from '../components/BookUploadForm';
 import Footer from '../components/Footer';
+import ProtectedLayout from '../ProtectedLayout';
 
 
 
@@ -28,48 +29,50 @@ export default function AuthorDashboard() {
       <Header />
       <Toolbar />
 
+      <Box >
+        <Box sx={{ display: 'flex', flexGrow: 1, minHeight: '100vh' }}>
 
-      <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
-
-        <AuthorSidebar open={open} onToggle={() => setOpen(o => !o)} />
+          <AuthorSidebar open={open} onToggle={() => setOpen(o => !o)} />
 
 
-        <Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100%',
-          }}
-        >
           <Box
+            component="main"
             sx={{
               flexGrow: 1,
-              overflowY: 'auto',
-              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
               height: '100%',
-              px: 0,
-              py: 0,
             }}
           >
-            <Routes>
-              <Route index element={<AuthorHomePage />} />
-              <Route path="profile" element={<Profile />} />
-              <Route path="books" element={<BookListPage />} />
-              <Route path="books/:bookId" element={<SingleBookDisplayPage />} />
-              <Route
-                path="books/:bookId/submit-review"
-                element={<SubmitReviewPage />}
-              />
-              <Route path="upload" element={<BookUploadForm />} />
+            <Box
+              sx={{
+                flexGrow: 1,
 
-              <Route path="*" element={<Navigate to="" replace />} />
-            </Routes>
+                width: '100%',
+                height: '100%',
+                px: 0,
+                py: 0,
+              }}
+            >
+              <Routes element={<ProtectedLayout />}>
+                <Route index element={<AuthorHomePage />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="books" element={<BookListPage />} />
+                <Route path="books/:bookId" element={<SingleBookDisplayPage />} />
+                <Route
+                  path="books/:bookId/submit-review"
+                  element={<SubmitReviewPage />}
+                />
+                <Route path="upload" element={<BookUploadForm />} />
 
+                <Route path="*" element={<Navigate to="" replace />} />
+              </Routes>
+
+            </Box>
           </Box>
         </Box>
       </Box>
+
       <Footer />
     </Box>
   );

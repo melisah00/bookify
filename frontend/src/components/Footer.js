@@ -5,16 +5,15 @@ export default function Footer() {
     <Box
       component="footer"
       sx={{
-        position: 'relative',
         bottom: 0,
         left: 0,
         width: '100%',
         py: 2,
-        zIndex: (theme) => theme.zIndex.drawer + 1,
         textAlign: "center",
-        backgroundColor: "rgb(102,178,160)",
-        color: "#ffff",
-        borderTop: "1px solid #B0C4B1",
+        backgroundColor: '#f8f9fa',
+        color: "rgb(78, 121, 107)",
+        borderTop: "1px solid rgb(167, 215, 184)",
+        boxShadow: "0 -1px 4px rgba(0,0,0,0.05)",
       }}
     >
       <Typography variant="body2">

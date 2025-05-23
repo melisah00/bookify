@@ -14,40 +14,31 @@ import {
 } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import HomeIcon from '@mui/icons-material/Home';
-import BookIcon from '@mui/icons-material/Book';
-import SchoolIcon from '@mui/icons-material/School';
 import InboxIcon from '@mui/icons-material/MoveToInbox';
 import EventIcon from '@mui/icons-material/Event';
 import ForumIcon from '@mui/icons-material/Forum';
-import HeartIcon from '@mui/icons-material/Favorite';
-import CartIcon from '@mui/icons-material/ShoppingCart';
-import UploadIcon from '@mui/icons-material/Upload';
-import { useTheme } from '@mui/material/styles';
-import MyBooksIcon from '@mui/icons-material/MenuBook';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
+import MyBooksIcon from '@mui/icons-material/MenuBook';
+import UserIcon from '@mui/icons-material/Person';
+import { useTheme } from '@mui/material/styles';
 
 const drawerWidth = 200;
 
 const colors = {
-    backgroundLight: "rgb(248,246,241)",
     accentMedium: "rgb(102,178,160)",
 };
 
 const navItems = [
-    { label: 'Home', to: '/app/author', icon: <HomeIcon /> },
-    { label: 'Browse Books', to: '/app/author/books', icon: <BookIcon /> },
-    { label: 'Student corner', icon: <SchoolIcon /> },
+    { label: 'Home', to: '/app/admin', icon: <HomeIcon /> },
+    { label: 'Users', icon: <UserIcon /> },
     { label: 'Inbox', icon: <InboxIcon /> },
     { label: 'Events', icon: <EventIcon /> },
     { label: 'Forums', icon: <ForumIcon /> },
-    { label: 'Favorites', icon: <HeartIcon /> },
-    { label: 'Shopping Cart', icon: <CartIcon /> },
-    { label: 'Upload Book', icon: <UploadIcon />, to: '/app/author/upload' },
-    { label: 'My Books', icon: <MyBooksIcon /> },
+    { label: 'Books', icon: <MyBooksIcon /> },
     { label: 'Analytics', icon: <AnalyticsIcon /> },
 ];
 
-export default function AuthorSidebar({ open, onToggle }) {
+export default function AdminSidebar({ open, onToggle }) {
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
 

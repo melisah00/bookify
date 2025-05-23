@@ -11,6 +11,7 @@ import ReaderHomePage from '../pages/ReaderHomePage';
 import Profile from '../components/Profile';
 import SubmitReviewPage from '../pages/SubmitReviewPage';
 import Footer from '../components/Footer';
+import ProtectedLayout from '../ProtectedLayout';
 
 
 export default function ReaderDashboard() {
@@ -22,50 +23,50 @@ export default function ReaderDashboard() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-
       <Header />
       <Toolbar />
+      <Box display="flex"
+        flexDirection="column"
+        minHeight="100vh">
+        <Box sx={{ display: 'flex', flexGrow: 1 }}>
 
-
-      <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
-
-        <ReaderSidebar open={open} onToggle={() => setOpen(o => !o)} />
-
-
-        <Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100%',
-          }}
-        >
+          <ReaderSidebar open={open} onToggle={() => setOpen(o => !o)} />
           <Box
+            component="main"
             sx={{
-              flexGrow: 1,
-              overflowY: 'auto',
-              width: '100%',
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
               height: '100%',
-              px: 0,
-              py: 0,
+              backgroundColor: '#f8f9fa',
             }}
           >
-            <Routes>
-              <Route path="/" element={<ReaderHomePage />} />
-              <Route path="profile" element={<Profile />} />
-              <Route path="books" element={<BookListPage />} />
-              <Route path="books/:bookId" element={<SingleBookDisplayPage />} />
-              <Route
-                path="books/:bookId/submit-review"
-                element={<SubmitReviewPage />}
-              />
-              <Route path="*" element={<Navigate to="books" replace />} />
-            </Routes>
+            <Box
+              sx={{
+                flexGrow: 1,
+                overflowY: 'auto',
+                width: '100%',
+                height: '100%',
+                px: 0,
+                py: 0,
+              }}
+            >
+              <Routes element={<ProtectedLayout />}>
+                <Route path="/" element={<ReaderHomePage />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="books" element={<BookListPage />} />
+                <Route path="books/:bookId" element={<SingleBookDisplayPage />} />
+                <Route
+                  path="books/:bookId/submit-review"
+                  element={<SubmitReviewPage />}
+                />
+                <Route path="*" element={<Navigate to="books" replace />} />
+              </Routes>
+            </Box>
           </Box>
         </Box>
+        <Footer />
       </Box>
-      <Footer />
     </Box>
   );
 }

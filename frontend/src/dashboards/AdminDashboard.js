@@ -1,63 +1,60 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import Header from '../components/Header';
+import AdminSidebar from '../components/sidebars/AdminSidebar';
+import { Box, Toolbar } from '@mui/material';
+import { Routes, Route, Navigate } from 'react-router-dom';
+
+import Profile from '../components/Profile';
+import Footer from '../components/Footer';
+import AdminHomePage from '../pages/AdminHomePage';
+import ProtectedLayout from '../ProtectedLayout';
+
 
 export default function AdminDashboard() {
   const { user, loading } = useAuth();
-  const [adminData, setAdminData] = useState(null);
-  const [fetching, setFetching] = useState(false);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (!loading && user) {
-      setFetching(true);
-      fetch('http://localhost:8000/auth/admin-only-route', {
-        credentials: 'include',
-      })
-        .then(res => {
-          if (!res.ok) throw new Error('Failed to fetch admin data');
-          return res.json();
-        })
-        .then(data => setAdminData(data))
-        .catch(err => setError(err.message))
-        .finally(() => setFetching(false));
-    }
-  }, [loading, user]);
+  const [open, setOpen] = useState(true);
 
   if (loading) return <div>Učitavanje...</div>;
   if (!user) return <div>Morate biti prijavljeni.</div>;
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>Admin Dashboard</h1>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-        {user.icon && (
-          <img
-            src={user.icon}
-            alt="Ikona korisnika"
-            style={{ width: '80px', height: '80px', borderRadius: '50%' }}
-          />
-        )}
-        <div>
-          <h2>{user.first_name} {user.last_name}</h2>
-          <p><strong>Username:</strong> {user.username}</p>
-          <p><strong>Email:</strong> {user.email}</p>
-          <p><strong>Uloge:</strong> {user.roles.join(', ')}</p>
-        </div>
-      </div>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      <Header />
+      <Toolbar />
+      <Box>
+        <Box sx={{ display: 'flex', flexGrow: 1, minHeight: '100vh' }}>
+          <AdminSidebar open={open} onToggle={() => setOpen(o => !o)} />
+          <Box
+            component="main"
+            sx={{
+              flexGrow: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100%',
+            }}
+          >
+            <Box
+              sx={{
+                flexGrow: 1,
+                // overflowY: 'auto',
+                width: '100%',
+                height: '100%',
+                px: 0,
+                py: 0,
+              }}
+            >
+              <Routes element={<ProtectedLayout />}>
+                <Route index element={<AdminHomePage />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="*" element={<Navigate to="" replace />} />
+              </Routes>
 
-      <hr style={{ margin: '20px 0' }} />
-
-      <div>
-        <h3>Specifični podaci za admina:</h3>
-        {fetching && <p>Učitavanje specifičnih podataka...</p>}
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        {adminData && (
-          <div>
-            <p>{adminData.message}</p>
-
-          </div>
-        )}
-      </div>
-    </div>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+      <Footer />
+    </Box>
   );
 }

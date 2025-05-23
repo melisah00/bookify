@@ -142,10 +142,15 @@ export default function Header() {
         sx={{
           bgcolor: 'rgb(102,178,160)',
           color: 'white',
-          boxShadow: 'none',
+          boxShadow: '0 4px 12px rgba(255, 255, 255, 0.3)',
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          borderLeft: '1px solid rgba(255,255,255,0.3)',
+
         }}
       >
         <Toolbar>
+          <Box component="img" src="/Book.png" alt="Bookify Logo" sx={{ width: 40, height: 40, mr: 1, filter: 'brightness(0) invert(1)' }} />
+
           <Typography
             variant="h6"
             noWrap

@@ -19,6 +19,8 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
+import { useAuth } from "../contexts/AuthContext";
+import { useEffect } from "react";
 
 const theme = createTheme({
   palette: {
@@ -43,6 +45,14 @@ const steps = [
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+
+  useEffect(() => {
+    if (user) {
+      navigate('/app', { replace: true });
+    }
+  }, [user, navigate]);
 
   return (
     <ThemeProvider theme={theme}>

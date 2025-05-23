@@ -1,7 +1,7 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from '../contexts/AuthContext';
+import { useParams } from "react-router-dom";
+
 
 const colors = {
   backgroundLight: "rgb(248,246,241)",
@@ -14,15 +14,17 @@ const colors = {
 };
 
 function Star({ filled, onClick, onMouseEnter, onMouseLeave }) {
+  const style = {
+    cursor: "pointer",
+    color: filled ? colors.accentMedium : colors.accentLight,
+    fontSize: "2rem",
+    marginRight: "5px",
+    transition: "color 0.2s",
+  };
+
   return (
     <span
-      style={{
-        cursor: "pointer",
-        color: filled ? colors.accentMedium : colors.accentLight,
-        fontSize: "2rem",
-        marginRight: "5px",
-        transition: "color 0.2s",
-      }}
+      style={style}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -32,174 +34,133 @@ function Star({ filled, onClick, onMouseEnter, onMouseLeave }) {
   );
 }
 
-function ReviewForm({ bookId, onReviewSubmitted }) {
+
+export default function ReviewForm({ onReviewSubmitted }) {
   const { user } = useAuth();
+  const { bookId } = useParams();
+
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState("");
+  const [bookTitle, setBookTitle] = useState("");
+  const [loadingTitle, setLoadingTitle] = useState(true);
+  const [errorTitle, setErrorTitle] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+
 
   useEffect(() => {
-    setError(null);
-    setSuccessMessage("");
-    setRating(0);
-    setComment("");
+    async function fetchTitle() {
+      if (!bookId) return;
+      setLoadingTitle(true);
+      setErrorTitle(null);
+      try {
+        const res = await fetch(`http://localhost:8000/books/${bookId}`);
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+        const data = await res.json();
+        setBookTitle(data.title || "");
+      } catch (err) {
+        console.error(err);
+        setErrorTitle("Nije moguće učitati naslov.");
+      } finally {
+        setLoadingTitle(false);
+      }
+    }
+    fetchTitle();
   }, [bookId]);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setError(null);
-    setSuccessMessage("");
+
+  useEffect(() => {
+    setRating(0);
+    setHoverRating(0);
+    setComment("");
+    setFormError(null);
+    setSuccessMessage(null);
+  }, [bookId]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setFormError(null);
+    setSuccessMessage(null);
 
     if (rating === 0) {
-      setError("Please select a rating (1-5).");
+      setFormError("Odaberi ocjenu od 1 do 5.");
+      return;
+    }
+    if (!user?.id) {
+      setFormError("Morate biti prijavljeni.");
       return;
     }
 
-    if (!user || !user.id) {
-      setError("Korisnik nije autentifikovan.");
-      return;
-    }
-
-    setIsLoading(true);
-
-    const reviewData = {
-      rating,
-      comment: comment || null,
-      user_id: user.id,
-    };
-
+    setIsSubmitting(true);
     try {
-      const apiUrl = `http://localhost:8000/reviews/${bookId}`;
-      const response = await fetch(apiUrl, {
+      const res = await fetch(`http://localhost:8000/reviews/${bookId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(reviewData),
+        body: JSON.stringify({ rating, comment: comment || null, user_id: user.id }),
       });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || `Status ${res.status}`);
 
-      const responseData = await response.json();
-      if (!response.ok) {
-        throw new Error(responseData.detail || `Error ${response.status}`);
-      }
-
-      setSuccessMessage("Review submitted successfully!");
+      setSuccessMessage("Uspješno poslano!");
       setRating(0);
       setComment("");
-
-      if (onReviewSubmitted) onReviewSubmitted(responseData);
+      if (onReviewSubmitted) onReviewSubmitted(data);
     } catch (err) {
-      setError(err.message || "Došlo je do greške pri slanju recenzije.");
+      console.error(err);
+      setFormError(err.message || "Greška pri slanju.");
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
+
   return (
-    <div
-      style={{
-        backgroundColor: colors.backgroundMedium,
-        padding: "25px",
-        borderRadius: "10px",
-        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-        maxWidth: "500px",
-        margin: "20px auto",
-      }}
-    >
-      <h3
-        style={{
-          color: colors.textDark,
-          marginBottom: "20px",
-          textAlign: "center",
-          fontWeight: "600",
-        }}
-      >
-        Leave a Review for Book ID: {bookId}
+    <div style={{ backgroundColor: 'colors.backgroundMedium', padding: "25px", borderRadius: "10px", boxShadow: "0 4px 8px rgba(0,0,0,0.1)", maxWidth: "500px", margin: "20px auto" }}>
+      <h3 style={{ color: colors.textDark, marginBottom: "20px", textAlign: "center", fontWeight: 600 }}>
+        {loadingTitle ? "Učitavanje naslova..." : errorTitle ? errorTitle : `Recenzija za: ${bookTitle}`}
       </h3>
+
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: "20px", textAlign: "center" }}>
-          <label
-            style={{
-              display: "block",
-              marginBottom: "10px",
-              color: colors.textDark,
-              fontWeight: "500",
-            }}
-          >
-            Ocjena:
-          </label>
-          <div>
-            {[1, 2, 3, 4, 5].map((val) => (
-              <Star
-                key={val}
-                filled={val <= (hoverRating || rating)}
-                onClick={() => setRating(val)}
-                onMouseEnter={() => setHoverRating(val)}
-                onMouseLeave={() => setHoverRating(0)}
-              />
-            ))}
-          </div>
+          <label style={{ display: "block", marginBottom: "10px", color: colors.textDark, fontWeight: 500 }}>Ocjena:</label>
+          {[1, 2, 3, 4, 5].map((val) => (
+            <Star
+              key={val}
+              filled={val <= (hoverRating || rating)}
+              onClick={() => setRating(val)}
+              onMouseEnter={() => setHoverRating(val)}
+              onMouseLeave={() => setHoverRating(0)}
+            />
+          ))}
         </div>
 
         <div style={{ marginBottom: "25px" }}>
-          <label
-            htmlFor="commentInput"
-            style={{ display: "block", marginBottom: "5px", color: colors.textDark, fontWeight: "500" }}
-          >
+          <label htmlFor="comment" style={{ display: "block", marginBottom: "5px", color: colors.textDark, fontWeight: 500 }}>
             Komentar (opcionalno):
           </label>
           <textarea
-            id="commentInput"
+            id="comment"
             value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            rows="4"
-            placeholder="Tvoji utisci o knjizi..."
-            style={{
-              width: "calc(100% - 20px)",
-              padding: "10px",
-              border: `1px solid ${colors.accentLight}`,
-              borderRadius: "5px",
-              backgroundColor: colors.backgroundLight,
-              color: colors.textDark,
-              fontSize: "1rem",
-              resize: "vertical",
-            }}
+            onChange={e => setComment(e.target.value)}
+            rows={4}
+            placeholder="Podijeli svoje mišljenje..."
+            style={{ width: "100%", padding: "10px", border: `1px solid ${colors.accentLight}`, borderRadius: "5px", backgroundColor: colors.backgroundLight, color: colors.textDark, fontSize: "1rem", resize: "vertical" }}
           />
         </div>
 
-        {error && (
-          <p style={{ color: colors.errorRed, marginBottom: "15px", textAlign: "center", fontWeight: "500" }}>
-            Greška: {error}
-          </p>
-        )}
-        {successMessage && (
-          <p style={{ color: colors.successGreen, marginBottom: "15px", textAlign: "center", fontWeight: "500" }}>
-            {successMessage}
-          </p>
-        )}
+        {formError && <p style={{ color: colors.errorRed, textAlign: "center", marginBottom: "15px", fontWeight: 500 }}>Greška: {formError}</p>}
+        {successMessage && <p style={{ color: colors.successGreen, textAlign: "center", marginBottom: "15px", fontWeight: 500 }}>{successMessage}</p>}
+
         <button
           type="submit"
-          disabled={isLoading}
-          style={{
-            width: "100%",
-            padding: "12px 15px",
-            backgroundColor: isLoading ? colors.accentLight : colors.accentMedium,
-            color: colors.backgroundLight,
-            border: "none",
-            borderRadius: "5px",
-            fontSize: "1.1rem",
-            fontWeight: "bold",
-            cursor: isLoading ? "not-allowed" : "pointer",
-            transition: "background-color 0.3s ease",
-            opacity: isLoading ? 0.7 : 1,
-          }}
+          disabled={isSubmitting}
+          style={{ width: "100%", padding: "12px", backgroundColor: isSubmitting ? colors.accentLight : colors.accentMedium, color: colors.backgroundLight, border: "none", borderRadius: "5px", fontSize: "1.1rem", fontWeight: "bold", cursor: isSubmitting ? "not-allowed" : "pointer", transition: "background-color 0.3s", opacity: isSubmitting ? 0.7 : 1 }}
         >
-          {isLoading ? "Slanje..." : "Pošalji recenziju"}
+          {isSubmitting ? "Slanje..." : "Pošalji recenziju"}
         </button>
       </form>
     </div>
   );
 }
-
-export default ReviewForm;
