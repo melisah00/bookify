@@ -14,13 +14,26 @@ export function AuthProvider({ children }) {
         if (!res.ok) throw new Error("Not authenticated");
         return res.json();
       })
-      .then((data) => setUser(data))
+      .then((data) => {
+
+        if (!data.roles || !Array.isArray(data.roles)) {
+          data.roles = ['reader'];
+        }
+        setUser(data);
+      })
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
   }, []);
 
+  const value = {
+    user,
+    setUser,
+    loading,
+    hasRole: (role) => user?.roles?.includes(role)
+  };
+
   return (
-    <AuthContext.Provider value={{ user, setUser, loading }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
@@ -29,4 +42,3 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
-export { AuthContext }; // Dodajte ovaj red

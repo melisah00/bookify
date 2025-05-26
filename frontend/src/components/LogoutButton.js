@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { Typography } from "@mui/material";
 
 export default function LogoutButton() {
   const { setUser } = useAuth();
@@ -20,20 +21,11 @@ export default function LogoutButton() {
   };
 
   return (
-    <button
+    <Typography
       onClick={handleLogout}
-      style={{
-        backgroundColor: "#d9534f",
-        color: "white",
-        padding: "8px 12px",
-        border: "none",
-        borderRadius: "4px",
-        fontWeight: "bold",
-        cursor: "pointer",
-        marginLeft: "20px",
-      }}
+      
     >
       Logout
-    </button>
+    </Typography>
   );
 }

@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import ReviewForm from '../components/ReviewForm'; // Prilagodite putanju do ReviewForm komponente
+import ReviewForm from '../components/ReviewForm';
 
-const pageColors = { // Možete koristiti iste boje ili definirati nove za stranicu
-  backgroundLight: "rgb(248,246,241)",
+const pageColors = {
+  backgroundLight: "#f8f9fa",
   textDark: "rgb(78,121,107)",
 };
 
@@ -39,10 +39,10 @@ const pageStyles = {
 function SubmitReviewPage() {
   const { bookId } = useParams();
   const [bookTitle, setBookTitle] = useState('');
-  const [isLoadingTitle, setIsLoadingTitle] = useState(false); // Ne želimo da blokira formu
+  const [isLoadingTitle, setIsLoadingTitle] = useState(false);
   const [errorTitle, setErrorTitle] = useState('');
 
-  // Opciono: Dohvatiti naslov knjige za prikaz na stranici
+
   useEffect(() => {
     if (bookId) {
       setIsLoadingTitle(true);
@@ -58,7 +58,7 @@ function SubmitReviewPage() {
         .catch(err => {
           console.error("Greška pri dohvaćanju naslova knjige:", err);
           setErrorTitle('Nije moguće učitati naslov knjige.');
-          setBookTitle(''); // Osiguraj da nema starog naslova
+          setBookTitle('');
         })
         .finally(() => setIsLoadingTitle(false));
     }
@@ -68,13 +68,12 @@ function SubmitReviewPage() {
     <div style={pageStyles.pageContainer}>
       {isLoadingTitle && <p style={pageStyles.loadingText}>Učitavanje naslova knjige...</p>}
       {errorTitle && <p style={pageStyles.errorText}>{errorTitle}</p>}
-      {bookTitle && <h2 style={pageStyles.bookTitleHeader}>Recenzija za knjigu: {bookTitle}</h2>}
       {!bookTitle && !isLoadingTitle && !errorTitle && bookId &&
         <h2 style={pageStyles.bookTitleHeader}>Recenzija za knjigu (ID: {bookId})</h2>
       }
-      <ReviewForm /> 
-      {/* bookId se sada uzima iz useParams unutar ReviewForm, pa ga ne moramo explicitno slati */}
-      {/* onReviewSubmitted prop nije više neophodan ako se preusmjeravanje radi unutar ReviewForm */}
+      <ReviewForm bookId={bookId} />
+
+
     </div>
   );
 }
