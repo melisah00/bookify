@@ -1,10 +1,9 @@
-
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import AppHeader from './Header';
+import React, { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import AppHeader from "./Header";
 
 const colors = {
   backgroundLight: "#f8f9fa",
@@ -176,16 +175,18 @@ const pageStyles = {
   },
 };
 
-
 const StarRating = ({ rating }) => {
   return (
-    <div style={{ display: 'flex', gap: '3px' }}>
+    <div style={{ display: "flex", gap: "3px" }}>
       {[...Array(5)].map((_, index) => (
-        <span key={index} style={{
-          color: index < rating ? '#ffd43b' : '#adb5bd',
-          fontSize: '20px'
-        }}>
-          {index < rating ? '★' : '☆'}
+        <span
+          key={index}
+          style={{
+            color: index < rating ? "#ffd43b" : "#adb5bd",
+            fontSize: "20px",
+          }}
+        >
+          {index < rating ? "★" : "☆"}
         </span>
       ))}
     </div>
@@ -206,20 +207,25 @@ function SingleBookDisplayPage() {
       setIsLoading(true);
       setError(null);
       try {
-        const [bookResponse, reviewsResponse, avgRatingResponse] = await Promise.all([
-          fetch(`http://localhost:8000/books/${bookId}`),
-          fetch(`http://localhost:8000/books/${bookId}/reviews`),
-          fetch(`http://localhost:8000/books/${bookId}/average-rating`)
-        ]);
+        const [bookResponse, reviewsResponse, avgRatingResponse] =
+          await Promise.all([
+            fetch(`http://localhost:8000/books/${bookId}`),
+            fetch(`http://localhost:8000/books/${bookId}/reviews`),
+            fetch(`http://localhost:8000/books/${bookId}/average-rating`),
+          ]);
 
-        if (!bookResponse.ok) throw new Error(`Error ${bookResponse.status}: Could not fetch book details.`);
+        if (!bookResponse.ok)
+          throw new Error(
+            `Error ${bookResponse.status}: Could not fetch book details.`
+          );
         const bookData = await bookResponse.json();
-        console.log("BOOK DATA:", bookData);  // <-- Ovdje vidiš ima li `description`
+        console.log("BOOK DATA:", bookData); // <-- Ovdje vidiš ima li `description`
         setBook(bookData);
 
-
         if (!reviewsResponse.ok) {
-          console.warn(`Could not fetch reviews (status: ${reviewsResponse.status}).`);
+          console.warn(
+            `Could not fetch reviews (status: ${reviewsResponse.status}).`
+          );
           setReviews([]);
         } else {
           const reviewsData = await reviewsResponse.json();
@@ -227,17 +233,23 @@ function SingleBookDisplayPage() {
         }
 
         if (!avgRatingResponse.ok) {
-          console.warn(`Could not fetch average rating (status: ${avgRatingResponse.status}).`);
+          console.warn(
+            `Could not fetch average rating (status: ${avgRatingResponse.status}).`
+          );
           setAverageRating(null);
         } else {
           const avgRatingData = await avgRatingResponse.json();
-          if (avgRatingData && typeof avgRatingData.average_rating === 'number') {
-            setAverageRating(parseFloat(avgRatingData.average_rating).toFixed(1));
+          if (
+            avgRatingData &&
+            typeof avgRatingData.average_rating === "number"
+          ) {
+            setAverageRating(
+              parseFloat(avgRatingData.average_rating).toFixed(1)
+            );
           } else {
             setAverageRating(null);
           }
         }
-
       } catch (err) {
         console.error("Error fetching data:", err);
         setError(err.message || "An error occurred while loading data.");
@@ -259,7 +271,9 @@ function SingleBookDisplayPage() {
       <>
         <AppHeader />
         <div style={pageStyles.page}>
-          <div style={pageStyles.loading}>{authLoading ? "Authenticating..." : "Loading book details..."}</div>
+          <div style={pageStyles.loading}>
+            {authLoading ? "Authenticating..." : "Loading book details..."}
+          </div>
         </div>
       </>
     );
@@ -321,25 +335,30 @@ function SingleBookDisplayPage() {
                 <button
                   style={{
                     ...pageStyles.downloadButton,
-                    marginBottom: '20px',
-                    cursor: 'pointer',
-                    border: 'none'
+                    marginBottom: "20px",
+                    cursor: "pointer",
+                    border: "none",
                   }}
                   onClick={async () => {
                     try {
-                      await fetch(`http://localhost:8000/books/${bookId}/increment-download`, {
-                        method: "POST",
-                      });
+                      await fetch(
+                        `http://localhost:8000/books/${bookId}/increment-download`,
+                        {
+                          method: "POST",
+                        }
+                      );
 
-                      const link = document.createElement('a');
+                      const link = document.createElement("a");
                       link.href = `http://localhost:8000${book.path}`;
-                      link.setAttribute('download', '');
+                      link.setAttribute("download", "");
                       document.body.appendChild(link);
                       link.click();
                       document.body.removeChild(link);
                     } catch (err) {
                       console.error("Error downloading book:", err);
-                      alert("An error occurred while trying to download the book.");
+                      alert(
+                        "An error occurred while trying to download the book."
+                      );
                     }
                   }}
                 >
@@ -349,7 +368,14 @@ function SingleBookDisplayPage() {
             </div>
 
             <div style={pageStyles.reviewSection}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "30px",
+                }}
+              >
                 <h2 style={{ margin: 0 }}>Reviews</h2>
                 {user ? (
                   <Link
@@ -372,28 +398,46 @@ function SingleBookDisplayPage() {
                       }}
                     >
                       Log in
-                    </Link> to leave a review
+                    </Link>{" "}
+                    to leave a review
                   </div>
                 )}
               </div>
 
               {reviews.length > 0 ? (
-                reviews.map((review) => (
-                  <div key={review.id} style={pageStyles.reviewCard}>
-                    <div style={pageStyles.reviewMeta}>
-                      <div>
-                        <span style={pageStyles.reviewAuthor}>
-                          {review.user?.username || "Anonymous user"}
+                <div
+                  style={{
+                    height: "160px",
+                    overflowY: "auto",
+                    paddingRight: "10px",
+                    scrollSnapType: "y mandatory",
+                  }}
+                >
+                  {reviews.map((review) => (
+                    <div
+                      key={review.id}
+                      style={{
+                        ...pageStyles.reviewCard,
+                        scrollSnapAlign: "start",
+                        minHeight: "140px",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      <div style={pageStyles.reviewMeta}>
+                        <div>
+                          <span style={pageStyles.reviewAuthor}>
+                            {review.user?.username || "Anonymous user"}
+                          </span>
+                          <StarRating rating={review.rating} />
+                        </div>
+                        <span style={pageStyles.reviewDate}>
+                          {new Date(review.created_at).toLocaleDateString()}
                         </span>
-                        <StarRating rating={review.rating} />
                       </div>
-                      <span style={pageStyles.reviewDate}>
-                        {new Date(review.created_at).toLocaleDateString()}
-                      </span>
+                      <p style={pageStyles.reviewComment}>{review.comment}</p>
                     </div>
-                    <p style={pageStyles.reviewComment}>{review.comment}</p>
-                  </div>
-                ))
+                  ))}
+                </div>
               ) : (
                 <div style={pageStyles.emptyState}>
                   📭 No reviews yet for this book

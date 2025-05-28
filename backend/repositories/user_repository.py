@@ -2,9 +2,16 @@ from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from models import User
+from sqlalchemy.orm import selectinload
 
 async def get_user_by_id(user_id: int, db: AsyncSession) -> Optional[User]:
     return await db.get(User, user_id)
+
+async def get_user_with_roles_by_id(user_id: int, db: AsyncSession) -> Optional[User]:
+    result = await db.execute(
+        select(User).options(selectinload(User.roles)).where(User.id == user_id)
+    )
+    return result.scalars().first()
 
 async def get_all_users(db: AsyncSession) -> List[User]:
     result = await db.execute(select(User))

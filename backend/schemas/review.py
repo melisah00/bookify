@@ -2,6 +2,8 @@ from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field
 
+from schemas.user import UserDisplay
+
 class ReviewBase(BaseModel):
     rating: int = Field(..., ge=1, le=5, description="Ocena od 1 do 5")
     comment: Optional[str] = None
@@ -18,4 +20,4 @@ class ReviewDisplay(ReviewBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
     book_id: int
-    user_id: int
+    user: UserDisplay

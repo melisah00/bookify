@@ -7,7 +7,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:8000/auth/user-info", {
+    fetch("http://localhost:8000/users/profile", {
       credentials: "include",
     })
       .then((res) => {
@@ -15,9 +15,8 @@ export function AuthProvider({ children }) {
         return res.json();
       })
       .then((data) => {
-
         if (!data.roles || !Array.isArray(data.roles)) {
-          data.roles = ['reader'];
+          data.roles = ["reader"];
         }
         setUser(data);
       })
@@ -29,14 +28,10 @@ export function AuthProvider({ children }) {
     user,
     setUser,
     loading,
-    hasRole: (role) => user?.roles?.includes(role)
+    hasRole: (role) => user?.roles?.includes(role),
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

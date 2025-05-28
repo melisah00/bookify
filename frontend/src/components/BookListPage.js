@@ -32,49 +32,50 @@ function BookListPage() {
   const currentBooks = books.slice(indexOfFirstBook, indexOfLastBook);
 
   useEffect(() => {
-  const fetchBooks = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await fetch("http://localhost:8000/books");
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: Unable to fetch books.`);
+    const fetchBooks = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await fetch("http://localhost:8000/books");
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: Unable to fetch books.`);
+        }
+
+        const booksData = await response.json();
+
+        const booksWithRatings = await Promise.all(
+          booksData.map(async (book) => {
+            try {
+              const ratingRes = await fetch(
+                `http://localhost:8000/books/${book.id}/average-rating`
+              );
+              if (!ratingRes.ok) throw new Error();
+              const ratingData = await ratingRes.json();
+              return {
+                ...book,
+                average_rating: ratingData.average_rating,
+                reviewCount: ratingData.review_count || 0, // ako dodate u response
+              };
+            } catch {
+              return {
+                ...book,
+                average_rating: null,
+                reviewCount: 0,
+              };
+            }
+          })
+        );
+
+        setBooks(booksWithRatings);
+      } catch (err) {
+        setError(err.message || "An error occurred.");
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      const booksData = await response.json();
-
-      const booksWithRatings = await Promise.all(
-        booksData.map(async (book) => {
-          try {
-            const ratingRes = await fetch(`http://localhost:8000/books/${book.id}/average-rating`);
-            if (!ratingRes.ok) throw new Error();
-            const ratingData = await ratingRes.json();
-            return {
-              ...book,
-              average_rating: ratingData.average_rating,
-              reviewCount: ratingData.review_count || 0, // ako dodate u response
-            };
-          } catch {
-            return {
-              ...book,
-              average_rating: null,
-              reviewCount: 0,
-            };
-          }
-        })
-      );
-
-      setBooks(booksWithRatings);
-    } catch (err) {
-      setError(err.message || "An error occurred.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  fetchBooks();
-}, []);
-
+    fetchBooks();
+  }, []);
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
@@ -142,7 +143,7 @@ function BookListPage() {
                 >
                   <CardHeader
                     avatar={
-                      <Avatar sx={{ bgcolor: '#66b2a0' }}>
+                      <Avatar sx={{ bgcolor: "#66b2a0" }}>
                         {book.author?.username?.[0]?.toUpperCase() || "A"}
                       </Avatar>
                     }
@@ -157,23 +158,31 @@ function BookListPage() {
                     sx={{ objectFit: "cover" }}
                   />
                   <CardContent>
-  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-    {[1, 2, 3, 4, 5].map((star) => (
-      <Typography
-        key={star}
-        sx={{
-          color: star <= Math.round(book.average_rating || 0) ? '#ffc107' : '#e0e0e0',
-          fontSize: '1.2rem'
-        }}
-      >
-        ★
-      </Typography>
-    ))}
-    <Typography variant="caption" sx={{ ml: 1, color: 'text.secondary' }}>
-      {book.average_rating !== null ? `(${book.average_rating.toFixed(1)})` : '(N/A)'}
-    </Typography>
-  </Box>
-</CardContent>
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Typography
+                          key={star}
+                          sx={{
+                            color:
+                              star <= Math.round(book.average_rating || 0)
+                                ? "#ffc107"
+                                : "#e0e0e0",
+                            fontSize: "1.2rem",
+                          }}
+                        >
+                          ★
+                        </Typography>
+                      ))}
+                      <Typography
+                        variant="caption"
+                        sx={{ ml: 1, color: "text.secondary" }}
+                      >
+                        {book.average_rating != null
+                          ? `(${book.average_rating.toFixed(1)})`
+                          : "(N/A)"}
+                      </Typography>
+                    </Box>
+                  </CardContent>
 
                   <CardActions sx={{ px: 2, pb: 2 }}>
                     <IconButton aria-label="add to favorites">
@@ -183,7 +192,10 @@ function BookListPage() {
                       <ShoppingCartIcon />
                     </IconButton>
                     <Box sx={{ marginLeft: "auto" }}>
-                      <Link to={`${book.id}`} style={{ textDecoration: "none" }}>
+                      <Link
+                        to={`${book.id}`}
+                        style={{ textDecoration: "none" }}
+                      >
                         <Typography
                           variant="button"
                           sx={{
@@ -202,7 +214,6 @@ function BookListPage() {
             ))}
           </Grid>
 
-
           <Box sx={{ mt: 6, display: "flex", justifyContent: "center" }}>
             <Pagination
               count={totalPages}
@@ -210,7 +221,6 @@ function BookListPage() {
               onChange={handlePageChange}
               color="primary"
               size="medium"
-
             />
           </Box>
         </>

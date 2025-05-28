@@ -47,9 +47,14 @@ async def get_book_by_id(book_id: int, db: AsyncSession) -> Optional[Book]:
     )
     return result.scalars().first()
 
+
 async def get_book_reviews(book_id: int, db: AsyncSession) -> List[Review]:
     result = await db.execute(
-        select(Review).where(Review.book_id == book_id)
+        select(Review)
+        .where(Review.book_id == book_id)
+        .options(
+            selectinload(Review.user).selectinload(User.roles)  
+        )
     )
     return result.scalars().all()
 

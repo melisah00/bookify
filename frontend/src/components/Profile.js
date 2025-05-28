@@ -1,17 +1,27 @@
-import React from 'react';
+import React from "react";
 import {
-  Box, Card, CardContent, Avatar, Typography, CircularProgress,
-  Button, Divider, Chip, Stack
-} from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import { useAuth } from '../contexts/AuthContext';
+  Box,
+  Card,
+  CardContent,
+  Avatar,
+  Typography,
+  CircularProgress,
+  Button,
+  Divider,
+  Chip,
+  Stack,
+} from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import { useAuth } from "../contexts/AuthContext";
+import EditProfileDialog from "./EditProfileDialog";
 
 export default function Profile() {
   const { user, loading } = useAuth();
+  const [editOpen, setEditOpen] = React.useState(false);
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 6 }}>
         <CircularProgress />
       </Box>
     );
@@ -19,23 +29,31 @@ export default function Profile() {
 
   if (!user) {
     return (
-      <Typography variant="h6" sx={{ mt: 6, textAlign: 'center' }}>
+      <Typography variant="h6" sx={{ mt: 6, textAlign: "center" }}>
         Could not load user info.
       </Typography>
     );
   }
 
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6, mb: 4 }}>
-      <Card sx={{ maxWidth: 600, width: '100%', p: 3, borderRadius: 4, boxShadow: 4 }}>
-        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+    <Box sx={{ display: "flex", justifyContent: "center", mt: 6, mb: 4 }}>
+      <Card
+        sx={{
+          maxWidth: 600,
+          width: "100%",
+          p: 3,
+          borderRadius: 4,
+          boxShadow: 4,
+        }}
+      >
+        <CardContent sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
             <Avatar
               src={user.icon || undefined}
-              sx={{ width: 80, height: 80, bgcolor: '#66b2a0', fontSize: 32 }}
+              sx={{ width: 80, height: 80, bgcolor: "#66b2a0", fontSize: 32 }}
             >
-              {user.first_name?.[0]}{user.last_name?.[0]}
+              {user.first_name?.[0]}
+              {user.last_name?.[0]}
             </Avatar>
             <Box>
               <Typography variant="h5" fontWeight="bold">
@@ -47,15 +65,16 @@ export default function Profile() {
             </Box>
           </Box>
 
-
-          <Box sx={{
-            p: 2,
-            border: '1px solid #e0e0e0',
-            borderRadius: 2,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 2
-          }}>
+          <Box
+            sx={{
+              p: 2,
+              border: "1px solid #e0e0e0",
+              borderRadius: 2,
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+            }}
+          >
             <Typography variant="subtitle1" fontWeight="bold">
               Personal Information
             </Typography>
@@ -65,22 +84,34 @@ export default function Profile() {
               <InfoRow label="Last Name" value={user.last_name} />
               <InfoRow label="Username" value={user.username} />
               <InfoRow label="Email" value={user.email} />
-              <InfoRow label="Date of Birth" value={user.dob || 'Not specified'} />
-              <InfoRow label="Age" value={user.dob ? calculateAge(user.dob) + ' years' : 'Not specified'} />
+              <InfoRow
+                label="Date of Birth"
+                value={user.date_of_birth || "Not specified"}
+              />
+              <InfoRow
+                label="Age"
+                value={
+                  user.date_of_birth
+                    ? calculateAge(user.date_of_birth) + " years"
+                    : "Not specified"
+                }
+              />
             </Stack>
 
-            <Box sx={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              pt: 1,
-              borderTop: '1px solid #f0f0f0',
-              marginTop: 'auto'
-            }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                pt: 1,
+                borderTop: "1px solid #f0f0f0",
+                marginTop: "auto",
+              }}
+            >
               <Button
                 variant="outlined"
                 size="small"
                 startIcon={<EditIcon />}
-                onClick={() => console.log('Edit personal information')}
+                onClick={() => setEditOpen(true)}
                 sx={{ mt: 1 }}
               >
                 Edit Personal Info
@@ -88,47 +119,20 @@ export default function Profile() {
             </Box>
           </Box>
 
-
-          <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 2 }}>
-            <Typography variant="subtitle1" fontWeight="bold" mb={2}>
-              Account Information
-            </Typography>
-
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Box>
-                <Typography variant="body2" color="text.secondary">
-                  Role
-                </Typography>
-                <Typography variant="body1">
-                  {user.roles?.join(', ') || 'No role assigned'}
-                </Typography>
-              </Box>
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<EditIcon />}
-                onClick={() => console.log('Change role')}
-              >
-                Change Role
-              </Button>
-            </Box>
-          </Box>
-
-
-          <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 2 }}>
+          <Box sx={{ p: 2, border: "1px solid #e0e0e0", borderRadius: 2 }}>
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>
               Profile Picture
             </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
               <Avatar
                 src={user.icon || undefined}
-                sx={{ width: 60, height: 60, bgcolor: '#66b2a0', fontSize: 24 }}
+                sx={{ width: 60, height: 60, bgcolor: "#66b2a0", fontSize: 24 }}
               />
               <Button
                 variant="outlined"
                 size="small"
                 startIcon={<EditIcon />}
-                onClick={() => console.log('Edit profile picture')}
+                onClick={() => console.log("Edit profile picture")}
               >
                 Change Picture
               </Button>
@@ -136,20 +140,54 @@ export default function Profile() {
           </Box>
         </CardContent>
       </Card>
+      <EditProfileDialog
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        user={user}
+        onSave={async (formData) => {
+          const finalData = {
+            first_name: formData.first_name || user.first_name,
+            last_name: formData.last_name || user.last_name,
+            email: formData.email || user.email,
+            date_of_birth: formData.date_of_birth || user.date_of_birth,
+          };
+
+          try {
+            const response = await fetch(
+              "http://localhost:8000/users/profile",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify(finalData),
+              }
+            );
+            window.location.reload();
+          } catch (err) {
+            console.error("Error updating profile:", err);
+          }
+        }}
+      />
     </Box>
   );
 }
 
 function InfoRow({ label, value, onEdit }) {
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
+    >
       <Box>
         <Typography variant="body2" color="text.secondary">
           {label}
         </Typography>
-        <Typography variant="body1">
-          {value}
-        </Typography>
+        <Typography variant="body1">{value}</Typography>
       </Box>
       {onEdit && (
         <Button
@@ -166,7 +204,7 @@ function InfoRow({ label, value, onEdit }) {
 }
 
 function calculateAge(dob) {
-  if (!dob) return 'N/A';
+  if (!dob) return "N/A";
   const birthDate = new Date(dob);
   const diff = Date.now() - birthDate.getTime();
   const ageDate = new Date(diff);

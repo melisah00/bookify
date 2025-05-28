@@ -1,6 +1,8 @@
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, EmailStr
-from models.user import RoleNameEnum  # koristi Enum iz modela
+from models.user import RoleNameEnum 
+from datetime import date
+
 
 class Role(BaseModel):
     id: int
@@ -17,6 +19,12 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
     roles: Optional[List[RoleNameEnum]] = [RoleNameEnum.reader]
+
+class UserUpdateRequest(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    date_of_birth: Optional[str] = None
 
 class UserDisplay(UserBase):
     id: int
