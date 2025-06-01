@@ -20,7 +20,7 @@ const items = [
   { label: 'Inbox', icon: <InboxIcon /> },
   { label: 'Events', icon: <EventIcon /> },
   { label: 'Forums', icon: <ForumIcon /> },
-  { label: 'Favorites', icon: <HeartIcon /> },
+  { label: 'Favorites', icon: <HeartIcon />, to: '/app/reader/favourites'  },
   { label: 'Shopping Cart', icon: <CartIcon /> },
 ];
 

@@ -12,18 +12,23 @@ import MailIcon from '@mui/icons-material/Mail';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import MoreIcon from '@mui/icons-material/MoreVert';
 import LogoutButton from './LogoutButton';
+import TextField from '@mui/material/TextField';
+import Autocomplete from '@mui/material/Autocomplete';
+import CircularProgress from '@mui/material/CircularProgress';
 import { useNavigate, NavLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Header() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
+  const [options, setOptions] = React.useState([]);
+  const [inputValue, setInputValue] = React.useState('');
+  const [loadingUsers, setLoadingUsers] = React.useState(false);
+  const navigate = useNavigate();
+  const { user, loading } = useAuth();
 
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
-  //const navigate = useNavigate();
-
-  const { user, loading } = useAuth();
 
   const getRolePath = (user) => {
     if (!user) return 'reader';
@@ -34,7 +39,6 @@ export default function Header() {
 
   const role = !loading ? getRolePath(user) : 'reader';
   const profilePath = `/app/${role}/profile`;
-
 
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -53,27 +57,54 @@ export default function Header() {
     setMobileMoreAnchorEl(event.currentTarget);
   };
 
+  React.useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      if (inputValue.trim().length > 0) {
+        setLoadingUsers(true);
+        console.log("Searching users with query:", inputValue);
+
+        fetch(`http://localhost:8000/users/search-users?query=${inputValue}`, {
+            credentials: 'include'
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then(data => {
+            console.log("API response:", data);
+            setOptions(data);
+          })
+          .catch(error => {
+            console.error("Search error:", error);
+            setOptions([]);
+          })
+          .finally(() => {
+            setLoadingUsers(false);
+          });
+      } else {
+        console.log("Clearing search (input empty)");
+        setOptions([]);
+      }
+    }, 300);
+    return () => clearTimeout(delayDebounce);
+  }, [inputValue]);
+
   const menuId = 'primary-search-account-menu';
   const renderMenu = (
     <Menu
       anchorEl={anchorEl}
-      anchorOrigin={{
-        vertical: 'top',
-        horizontal: 'right',
-      }}
+      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       id={menuId}
       keepMounted
-      transformOrigin={{
-        vertical: 'top',
-        horizontal: 'right',
-      }}
+      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
       <MenuItem onClick={handleMenuClose}>
         <NavLink
           to={profilePath}
-          end
           style={({ isActive }) => ({
             textDecoration: 'none',
             color: isActive ? '#66b2a0' : 'inherit',
@@ -91,21 +122,15 @@ export default function Header() {
   const renderMobileMenu = (
     <Menu
       anchorEl={mobileMoreAnchorEl}
-      anchorOrigin={{
-        vertical: 'top',
-        horizontal: 'right',
-      }}
+      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       id={mobileMenuId}
       keepMounted
-      transformOrigin={{
-        vertical: 'top',
-        horizontal: 'right',
-      }}
+      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       open={isMobileMenuOpen}
       onClose={handleMobileMenuClose}
     >
       <MenuItem>
-        <IconButton size="large" aria-label="show 4 new mails" color="inherit">
+        <IconButton size="large" color="inherit">
           <Badge badgeContent={4} color="error">
             <MailIcon />
           </Badge>
@@ -113,7 +138,7 @@ export default function Header() {
         <p>Messages</p>
       </MenuItem>
       <MenuItem>
-        <IconButton size="large" aria-label="show 17 new notifications" color="inherit">
+        <IconButton size="large" color="inherit">
           <Badge badgeContent={17} color="error">
             <NotificationsIcon />
           </Badge>
@@ -121,13 +146,7 @@ export default function Header() {
         <p>Notifications</p>
       </MenuItem>
       <MenuItem onClick={handleProfileMenuOpen}>
-        <IconButton
-          size="large"
-          aria-label="account of current user"
-          aria-controls="primary-search-account-menu"
-          aria-haspopup="true"
-          color="inherit"
-        >
+        <IconButton size="large" color="inherit">
           <AccountCircle />
         </IconButton>
         <p>Profile</p>
@@ -145,11 +164,11 @@ export default function Header() {
           boxShadow: '0 4px 12px rgba(255, 255, 255, 0.3)',
           zIndex: (theme) => theme.zIndex.drawer + 1,
           borderLeft: '1px solid rgba(255,255,255,0.3)',
-
         }}
       >
         <Toolbar>
-          <Box component="img" src="/Book.png" alt="Bookify Logo" sx={{ width: 40, height: 40, mr: 1, filter: 'brightness(0) invert(1)' }} />
+          <Box component="img" src="/Book.png" alt="Bookify Logo"
+            sx={{ width: 40, height: 40, mr: 1, filter: 'brightness(0) invert(1)' }} />
 
           <Typography
             variant="h6"
@@ -165,6 +184,55 @@ export default function Header() {
           </Typography>
 
           <Box sx={{ flexGrow: 1 }} />
+
+          <Autocomplete
+            options={options}
+            loading={loadingUsers}
+            inputValue={inputValue}
+            onInputChange={(event, newInputValue) => {
+              console.log("Input changed:", newInputValue);
+              setInputValue(newInputValue);
+            }}
+            onChange={(event, selectedUser) => {
+              console.log("User selected:", selectedUser);
+              if (selectedUser) {
+                setInputValue('');
+                setOptions([]);
+                navigate(`/app/${role}/user/${selectedUser.id}`);
+              }
+            }}
+
+            getOptionLabel={(option) => {
+              if (typeof option === 'string') return option;
+              return option.username
+                ? `${option.first_name && option.first_name !== "N/A" ? option.first_name : ''} ${option.last_name && option.last_name !== "N/A" ? option.last_name : ''} (@${option.username})`.trim()
+                : '';
+            }}
+            renderOption={(props, option) => (
+              <li {...props} key={option.id}>
+                <strong>@{option.username}</strong>
+                &nbsp;– {option.first_name !== "N/A" ? option.first_name : ''} {option.last_name !== "N/A" ? option.last_name : ''}
+              </li>
+            )}
+            noOptionsText="No users found"
+            sx={{ minWidth: 250, bgcolor: 'white', borderRadius: 1, mr: 2 }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Search users"
+                size="small"
+                InputProps={{
+                  ...params.InputProps,
+                  endAdornment: (
+                    <>
+                      {loadingUsers ? <CircularProgress color="inherit" size={20} /> : null}
+                      {params.InputProps.endAdornment}
+                    </>
+                  ),
+                }}
+              />
+            )}
+          />
 
           <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
             <IconButton size="large" color="inherit">

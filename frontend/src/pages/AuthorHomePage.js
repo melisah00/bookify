@@ -23,7 +23,7 @@ const items = [
   { label: 'Inbox', icon: <InboxIcon /> },
   { label: 'Events', icon: <EventIcon /> },
   { label: 'Forums', icon: <ForumIcon /> },
-  { label: 'Favorites', icon: <HeartIcon /> },
+  { label: 'Favorites', icon: <HeartIcon />, to: '/app/author/favourites' }, 
   { label: 'Shopping Cart', icon: <CartIcon /> },
   { label: 'Upload Book', icon: <UploadIcon />, to: '/app/author/upload' },
   { label: 'My Books', icon: <MyBooksIcon /> },

@@ -33,3 +33,35 @@ class UserDisplay(UserBase):
     class Config:
         model_config = ConfigDict(from_attributes=True)
 
+class UserOut(BaseModel):
+    id: int
+    username: str
+    first_name: str | None
+    last_name: str | None
+
+    class Config:
+        orm_mode = True
+
+class RoleDisplay(BaseModel):
+    id: int
+    name: RoleNameEnum
+
+    model_config = ConfigDict(from_attributes=True)
+
+class FollowerDisplay(BaseModel):
+    id: int
+    username: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class UserDisplay2(BaseModel):
+    id: int
+    username: str
+    first_name: Optional[str]
+    last_name: Optional[str]
+    email: str
+    roles: List[RoleDisplay]
+    followers: List[FollowerDisplay]
+    following: List[FollowerDisplay]
+
+    model_config = ConfigDict(from_attributes=True)
