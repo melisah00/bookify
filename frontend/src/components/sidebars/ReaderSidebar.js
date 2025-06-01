@@ -5,7 +5,6 @@ import {
   IconButton,
   List,
   ListItem,
-  ListItemButton,
   ListItemIcon,
   ListItemText,
   Divider,
@@ -41,15 +40,13 @@ const navItems = [
   { label: 'Inbox', icon: <InboxIcon /> },
   { label: 'Events', icon: <EventIcon /> },
   { label: 'Forums', icon: <ForumIcon /> },
-  { label: 'Favorites', icon: <HeartIcon /> },
+  { label: 'Favorites', to: '/app/reader/favourites', icon: <HeartIcon /> },
   { label: 'Shopping Cart', icon: <CartIcon /> },
 ];
 
 export default function ReaderSidebar({ open, onToggle }) {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
-
-
   const effectiveOpen = !isSmallScreen && open;
   const widthToUse = effectiveOpen ? drawerWidth : 60;
 
@@ -83,53 +80,70 @@ export default function ReaderSidebar({ open, onToggle }) {
       <Divider sx={{ borderColor: 'rgba(255,255,255,0.2)' }} />
 
       <List>
-        {navItems.map(({ label, to, icon }) => {
-          const listItem = (
-            <ListItemButton
-              component={to ? NavLink : 'div'}
-              to={to}
-              end
-              sx={({ isActive }) => ({
-                minHeight: 48,
-                justifyContent: effectiveOpen ? 'initial' : 'center',
-                px: 2.5,
-                mx: 1,
-                borderRadius: 2,
-                color: 'white',
-                backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : 'transparent',
-                '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.1)',
-                },
-              })}
-            >
-              <ListItemIcon
-                sx={{
-                  minWidth: 0,
-                  mr: effectiveOpen ? 3 : 'auto',
-                  justifyContent: 'center',
-                  color: 'inherit',
-                }}
-              >
-                {icon}
-              </ListItemIcon>
-              <ListItemText primary={label} sx={{ opacity: effectiveOpen ? 1 : 0 }} />
-            </ListItemButton>
-          );
-
-          return (
-            <ListItem key={label} disablePadding sx={{ display: 'block' }}>
-              {effectiveOpen ? (
-                listItem
-              ) : (
-                <Tooltip title={label} placement="right">
-                  {listItem}
-                </Tooltip>
-              )}
-            </ListItem>
-          );
-        })}
+        {navItems.map(({ label, to, icon }) => (
+          <ListItem key={label} disablePadding sx={{ display: 'block' }}>
+            {to ? (
+              <NavLink to={to} end style={{ textDecoration: 'none' }}>
+                {({ isActive }) => (
+                  <ListItemIconWrapper
+                    icon={icon}
+                    label={label}
+                    isActive={isActive}
+                    effectiveOpen={effectiveOpen}
+                  />
+                )}
+              </NavLink>
+            ) : (
+              <Tooltip title={label} placement="right">
+                <Box>
+                  <ListItemIconWrapper
+                    icon={icon}
+                    label={label}
+                    isActive={false}
+                    effectiveOpen={effectiveOpen}
+                  />
+                </Box>
+              </Tooltip>
+            )}
+          </ListItem>
+        ))}
       </List>
     </Drawer>
+  );
+}
 
+function ListItemIconWrapper({ icon, label, isActive, effectiveOpen }) {
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        px: 2.5,
+        mx: 1,
+        borderRadius: 2,
+        minHeight: 48,
+        justifyContent: effectiveOpen ? 'initial' : 'center',
+        backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : 'transparent',
+        '&:hover': {
+          backgroundColor: 'rgba(255,255,255,0.1)',
+        },
+        color: 'white',
+      }}
+    >
+      <ListItemIcon
+        sx={{
+          minWidth: 0,
+          mr: effectiveOpen ? 3 : 'auto',
+          justifyContent: 'center',
+          color: 'inherit',
+        }}
+      >
+        {icon}
+      </ListItemIcon>
+      <ListItemText
+        primary={label}
+        sx={{ opacity: effectiveOpen ? 1 : 0, color: 'inherit' }}
+      />
+    </Box>
   );
 }

@@ -5,8 +5,11 @@ from models import User
 from sqlalchemy.orm import selectinload
 
 async def get_user_by_id(user_id: int, db: AsyncSession) -> Optional[User]:
-    return await db.get(User, user_id)
-
+    stmt = select(User).where(User.id == user_id).options(selectinload(User.roles))
+    result = await db.execute(stmt)
+    user = result.scalars().first()
+    return user
+    
 async def get_user_with_roles_by_id(user_id: int, db: AsyncSession) -> Optional[User]:
     result = await db.execute(
         select(User).options(selectinload(User.roles)).where(User.id == user_id)

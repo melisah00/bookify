@@ -10,6 +10,7 @@ from schemas.book import BookResponseSchema
 from services.auth_service import *
 from services.book_service import *
 
+
 router = APIRouter(prefix="/books", tags=["Books"])
 
 
@@ -27,6 +28,68 @@ async def get_all_books(
     db: AsyncSession = Depends(get_db)
 ):
     return await book_service.get_all_books_service(db, genre, author, keywords, sort, direction)
+
+
+
+@router.get("/favourites")
+async def get_favourites(
+    db: AsyncSession = Depends(get_async_db),
+    current_user: User = Depends(get_current_user_for_favourites)
+):
+    result = await db.execute(
+        select(User).options(selectinload(User.favourite_books)).where(User.id == current_user.id)
+    )
+    user = result.scalar_one()
+    return [book.id for book in user.favourite_books]
+
+
+@router.post("/favourites/{book_id}")
+async def add_to_favourites(
+    book_id: int,
+    db: AsyncSession = Depends(get_async_db),
+    current_user: User = Depends(get_current_user_for_favourites)
+):
+    result = await db.execute(
+        select(User).options(selectinload(User.favourite_books)).where(User.id == current_user.id)
+    )
+    user = result.scalar_one()
+
+    book_result = await db.execute(select(Book).where(Book.id == book_id))
+    book = book_result.scalar_one_or_none()
+    if not book:
+        raise HTTPException(status_code=404, detail="Book not found")
+
+    if any(b.id == book_id for b in user.favourite_books):
+        return {"detail": "Book already in favourites"}
+
+    user.favourite_books.append(book)
+    await db.commit()
+    return {"detail": "Book added to favourites"}
+
+
+@router.delete("/favourites/{book_id}")
+async def remove_from_favourites(
+    book_id: int,
+    db: AsyncSession = Depends(get_async_db),
+    current_user: User = Depends(get_current_user_for_favourites)
+):
+    result = await db.execute(
+        select(User).options(selectinload(User.favourite_books)).where(User.id == current_user.id)
+    )
+    user = result.scalar_one()
+
+    book_result = await db.execute(select(Book).where(Book.id == book_id))
+    book = book_result.scalar_one_or_none()
+    if not book:
+        raise HTTPException(status_code=404, detail="Book not found")
+
+    if not any(b.id == book_id for b in user.favourite_books):
+        raise HTTPException(status_code=400, detail="Book not in favourites")
+
+    user.favourite_books = [b for b in user.favourite_books if b.id != book_id]
+    await db.commit()
+    return {"detail": "Book removed from favourites"}
+
 
 @router.get("/{book_id}", response_model=BookDisplay)
 async def get_book(book_id: int, db: AsyncSession = Depends(get_db)):

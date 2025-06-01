@@ -18,6 +18,7 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { red } from "@mui/material/colors";
 import BookFilter from "./BookFilter";
+import { useAuth } from "../contexts/AuthContext";
 
 function BookListPage() {
   const [books, setBooks] = useState([]);
@@ -74,13 +75,66 @@ function BookListPage() {
       }
     };
 
+const fetchFavourites = async () => {
+  if (!user) return;
+
+  try {
+    const res = await fetch("http://localhost:8000/books/favourites", {
+      credentials: "include",
+    });
+    const data = await res.json();
+
+    console.log("Fetched favourites:", data); // ✅ OVDE DODAJ LOG
+
+    if (!Array.isArray(data)) {
+      console.error("Unexpected response:", data);
+      setFavouriteBookIds([]); // fallback prazno
+      return;
+    }
+
+    setFavouriteBookIds(data);
+  } catch (err) {
+    console.error("Failed to fetch favourites", err);
+    setFavouriteBookIds([]); // fallback
+  }
+};
+
     fetchBooks();
+    fetchFavourites();
   }, []);
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  const { user } = useAuth();
+const [favouriteBookIds, setFavouriteBookIds] = useState([]);
+
+const toggleFavourite = async (bookId) => {
+  if (!user) {
+    alert("Please login to use favourites.");
+    return;
+  }
+
+  const isFavourite = favouriteBookIds.includes(bookId);
+
+  try {
+    const response = await fetch(`http://localhost:8000/books/favourites/${bookId}`, {
+      method: isFavourite ? "DELETE" : "POST",
+      credentials: "include",
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail);
+
+    setFavouriteBookIds((prev) =>
+      isFavourite ? prev.filter((id) => id !== bookId) : [...prev, bookId]
+    );
+  } catch (err) {
+    alert(err.message || "Something went wrong.");
+  }
+};
 
   if (isLoading) {
     return (
@@ -185,9 +239,18 @@ function BookListPage() {
                   </CardContent>
 
                   <CardActions sx={{ px: 2, pb: 2 }}>
-                    <IconButton aria-label="add to favorites">
-                      <FavoriteIcon />
-                    </IconButton>
+                  <IconButton
+                    aria-label="add to favorites"
+                    onClick={() => toggleFavourite(book.id)}
+                  >
+                  <FavoriteIcon
+                     sx={{
+                      color: Array.isArray(favouriteBookIds) && favouriteBookIds.includes(book.id)
+                        ? "red"
+                        : "inherit",
+                    }}
+                  />
+                  </IconButton>
                     <IconButton aria-label="shopping cart">
                       <ShoppingCartIcon />
                     </IconButton>

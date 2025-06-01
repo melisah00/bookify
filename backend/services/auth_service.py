@@ -8,6 +8,7 @@ from fastapi import HTTPException, status, Depends, Cookie
 from models import User
 from typing import List
 from sqlalchemy.orm import selectinload
+from database import get_async_db
 import os
 
 SECRET_KEY = os.getenv("SECRET_KEY", "changeme")
@@ -68,3 +69,25 @@ class RoleChecker:
         if not any(role in self.allowed_roles for role in current_user.get("roles", [])):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
         return current_user
+
+async def get_current_user_for_favourites(
+    token: str = Cookie(default=None),
+    db: AsyncSession = Depends(get_async_db)
+) -> User:
+    if not token:
+        raise credentials_exception
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("id")
+        if not user_id:
+            raise credentials_exception
+
+        user = await db.get(User, user_id)
+        if not user:
+            raise credentials_exception
+
+        return user  # direktan SQLAlchemy model s pristupom favourite_books
+
+    except JWTError:
+        raise credentials_exception

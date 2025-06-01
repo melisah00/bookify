@@ -1,16 +1,20 @@
 from datetime import datetime
 from sqlalchemy.future import select 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List
 
-from models.user import User
+from models.user import User, Role, RoleNameEnum
 from services.auth_service import get_current_user
 from schemas import UserCreate, UserDisplay
-from database import get_db, engine
+from schemas.user import UserOut, UserDisplay2
+from database import get_db, engine, get_async_db
 from services import user_service
 from sqlalchemy.orm import selectinload
 from schemas.user import UserUpdateRequest
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -43,6 +47,168 @@ async def update_user_profile(
 ):
     user_id = int(token_user["id"])
     return await user_service.update_user_profile(user_id, update, db)
+
+@router.get("/search-users", response_model=list[UserOut])
+async def search_users(
+    query: str = Query(...),
+    token_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db)
+):
+    current_user_id = int(token_user["id"])
+
+    stmt = (
+        select(User)
+        .join(User.roles)
+        .where(
+            User.id != current_user_id,  # ← isključi trenutno logovanog
+            Role.name.in_([RoleNameEnum.author.value, RoleNameEnum.reader.value]),
+            (
+                User.first_name.ilike(f"{query}%") |
+                User.last_name.ilike(f"{query}%") |
+                User.username.ilike(f"{query}%")
+            )
+        )
+        .limit(5)
+    )
+
+    result = await db.execute(stmt)
+    users = result.scalars().all()
+    return users
+
+
 @router.get("/{user_id}", response_model=UserDisplay)
-async def get_user(user_id: int, db: Session = Depends(get_session)):
+async def get_user(user_id: int, db: AsyncSession = Depends(get_async_db)):
     return await user_service.get_user_by_id_service(user_id, db)
+ 
+@router.get("/fe/{user_id}", response_model=UserDisplay2)
+async def get_user(user_id: int, db: AsyncSession = Depends(get_async_db)):
+    stmt = select(User).where(User.id == user_id).options(
+        selectinload(User.roles),
+        selectinload(User.followers),
+        selectinload(User.following)
+    )
+    result = await db.execute(stmt)
+    user = result.scalars().first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return user
+
+@router.get("/favourites")
+async def get_user_favourites(db: AsyncSession = Depends(get_async_db), current_user: User = Depends(get_current_user)):
+    await db.refresh(current_user)
+    return current_user.favourite_books
+
+@router.post("/follow/{user_id}")
+async def follow_user(
+    user_id: int,
+    token_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db)
+):
+    current_user_id = int(token_user["id"])
+
+    # Učitavamo korisnika zajedno sa `following`
+    result = await db.execute(
+        select(User)
+        .options(selectinload(User.following))
+        .where(User.id == current_user_id)
+    )
+    current_user = result.scalars().first()
+
+    if not current_user:
+        raise HTTPException(status_code=404, detail="Authenticated user not found")
+
+    # Dohvati korisnika kojeg želiš pratiti
+    result = await db.execute(select(User).where(User.id == user_id))
+    user_to_follow = result.scalars().first()
+
+    if not user_to_follow:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user_to_follow in current_user.following:
+        raise HTTPException(status_code=400, detail="Already following this user")
+
+    current_user.following.append(user_to_follow)
+    await db.commit()
+
+    return {"detail": "Followed successfully"}
+
+
+@router.delete("/unfollow/{user_id}")
+async def unfollow_user(
+    user_id: int,
+    token_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db)
+):
+    current_user_id = int(token_user["id"])
+
+    # Učitaj current_user zajedno sa following relacijom
+    result = await db.execute(
+        select(User)
+        .options(selectinload(User.following))
+        .where(User.id == current_user_id)
+    )
+    current_user = result.scalars().first()
+
+    if not current_user:
+        raise HTTPException(status_code=404, detail="Authenticated user not found")
+
+    # Učitaj usera kojeg želiš da "unfollowaš"
+    result = await db.execute(select(User).where(User.id == user_id))
+    user_to_unfollow = result.scalars().first()
+
+    if not user_to_unfollow:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user_to_unfollow not in current_user.following:
+        raise HTTPException(status_code=400, detail="Not following this user")
+
+    current_user.following.remove(user_to_unfollow)
+    await db.commit()
+
+    return {"detail": "Unfollowed successfully"}
+
+@router.get("/is-following/{user_id}")
+async def is_following(
+    user_id: int,
+    token_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db)
+):
+    current_user_id = int(token_user["id"])
+
+    result = await db.execute(
+        select(User)
+        .options(selectinload(User.following))
+        .where(User.id == current_user_id)
+    )
+    current_user = result.scalars().first()
+
+    if not current_user:
+        raise HTTPException(status_code=404, detail="Authenticated user not found")
+
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalars().first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {"following": user in current_user.following}
+
+@router.get("/count-followers/{user_id}")
+async def count_followers(user_id: int, db: AsyncSession = Depends(get_async_db)):
+    stmt = select(User).where(User.id == user_id).options(selectinload(User.followers))
+    result = await db.execute(stmt)
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"followers_count": len(user.followers)}
+
+@router.get("/count-following/{user_id}")
+async def count_following(user_id: int, db: AsyncSession = Depends(get_async_db)):
+    stmt = select(User).where(User.id == user_id).options(selectinload(User.following))
+    result = await db.execute(stmt)
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"following_count": len(user.following)}
