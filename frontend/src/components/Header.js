@@ -15,8 +15,12 @@ import LogoutButton from './LogoutButton';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import CircularProgress from '@mui/material/CircularProgress';
-import { useNavigate, NavLink } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import UserProfile from './UserProfile';
+import palette from '../theme/palette';
+import InputAdornment from '@mui/material/InputAdornment';
+import SearchIcon from '@mui/icons-material/Search';
 
 export default function Header() {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -24,7 +28,9 @@ export default function Header() {
   const [options, setOptions] = React.useState([]);
   const [inputValue, setInputValue] = React.useState('');
   const [loadingUsers, setLoadingUsers] = React.useState(false);
-  const navigate = useNavigate();
+  const [selectedUser, setSelectedUser] = React.useState(null);
+  const [modalOpen, setModalOpen] = React.useState(false);
+
   const { user, loading } = useAuth();
 
   const isMenuOpen = Boolean(anchorEl);
@@ -64,8 +70,8 @@ export default function Header() {
         console.log("Searching users with query:", inputValue);
 
         fetch(`http://localhost:8000/users/search-users?query=${inputValue}`, {
-            credentials: 'include'
-          })
+          credentials: 'include'
+        })
           .then(response => {
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
@@ -167,8 +173,12 @@ export default function Header() {
         }}
       >
         <Toolbar>
-          <Box component="img" src="/Book.png" alt="Bookify Logo"
-            sx={{ width: 40, height: 40, mr: 1, filter: 'brightness(0) invert(1)' }} />
+          <Box
+            component="img"
+            src="/Book.png"
+            alt="Bookify Logo"
+            sx={{ width: 40, height: 40, mr: 1, filter: 'brightness(0) invert(1)' }}
+          />
 
           <Typography
             variant="h6"
@@ -183,56 +193,118 @@ export default function Header() {
             BOOKIFY
           </Typography>
 
-          <Box sx={{ flexGrow: 1 }} />
-
-          <Autocomplete
-            options={options}
-            loading={loadingUsers}
-            inputValue={inputValue}
-            onInputChange={(event, newInputValue) => {
-              console.log("Input changed:", newInputValue);
-              setInputValue(newInputValue);
+          <Box
+            sx={{
+              flexGrow: 1,
+              display: 'flex',
+              justifyContent: 'center',
+              mx: 4,
             }}
-            onChange={(event, selectedUser) => {
-              console.log("User selected:", selectedUser);
-              if (selectedUser) {
-                setInputValue('');
-                setOptions([]);
-                navigate(`/app/${role}/user/${selectedUser.id}`);
-              }
-            }}
-
-            getOptionLabel={(option) => {
-              if (typeof option === 'string') return option;
-              return option.username
-                ? `${option.first_name && option.first_name !== "N/A" ? option.first_name : ''} ${option.last_name && option.last_name !== "N/A" ? option.last_name : ''} (@${option.username})`.trim()
-                : '';
-            }}
-            renderOption={(props, option) => (
-              <li {...props} key={option.id}>
-                <strong>@{option.username}</strong>
-                &nbsp;– {option.first_name !== "N/A" ? option.first_name : ''} {option.last_name !== "N/A" ? option.last_name : ''}
-              </li>
-            )}
-            noOptionsText="No users found"
-            sx={{ minWidth: 250, bgcolor: 'white', borderRadius: 1, mr: 2 }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Search users"
-                size="small"
-                InputProps={{
-                  ...params.InputProps,
-                  endAdornment: (
-                    <>
-                      {loadingUsers ? <CircularProgress color="inherit" size={20} /> : null}
-                      {params.InputProps.endAdornment}
-                    </>
-                  ),
-                }}
-              />
-            )}
-          />
+          >
+            <Autocomplete
+              options={options}
+              loading={loadingUsers}
+              inputValue={inputValue}
+              onInputChange={(event, newInputValue) => {
+                setInputValue(newInputValue);
+              }}
+              onChange={(event, selectedUser) => {
+                if (selectedUser) {
+                  setSelectedUser(selectedUser);
+                  setModalOpen(true);
+                  setInputValue('');
+                  setOptions([]);
+                }
+              }}
+              getOptionLabel={(option) => {
+                if (typeof option === 'string') return option;
+                return option.username
+                  ? `${option.first_name && option.first_name !== 'N/A' ? option.first_name : ''} ${option.last_name && option.last_name !== 'N/A' ? option.last_name : ''} (@${option.username})`.trim()
+                  : '';
+              }}
+              renderOption={(props, option) => (
+                <Box
+                  component="li"
+                  {...props}
+                  key={option.id}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '6px 10px',
+                    fontSize: 14,
+                    bgcolor: 'white',
+                    transition: 'background-color 0.2s',
+                    '&:hover': {
+                      bgcolor: 'rgba(0, 0, 0, 0.05)',
+                    },
+                  }}
+                >
+                  <strong>@{option.username}</strong>
+                  <span style={{ marginLeft: 8 }}>
+                    {option.first_name !== 'N/A' ? option.first_name : ''}{' '}
+                    {option.last_name !== 'N/A' ? option.last_name : ''}
+                  </span>
+                </Box>
+              )}
+              noOptionsText="No users found"
+              sx={{
+                width: { xs: 200, sm: 300, md: 400 },
+                bgcolor: '#f8f9fa',
+                borderRadius: '8px',
+                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
+                '& .MuiOutlinedInput-root': {
+                  minHeight: 32,
+                  '& fieldset': {
+                    borderColor: 'transparent',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: palette.accentMedium,
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: palette.accentMedium,
+                  },
+                },
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder="Search users..."
+                  size="small"
+                  variant="outlined"
+                  InputProps={{
+                    ...params.InputProps,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon sx={{ fontSize: 18 }} />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <>
+                        {loadingUsers && (
+                          <CircularProgress
+                            color="inherit"
+                            size={16}
+                            sx={{ mr: 1 }}
+                          />
+                        )}
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
+                    sx: {
+                      height: 32,
+                      px: 1,
+                      fontSize: 14,
+                      bgcolor: '#f8f9fa',
+                      borderRadius: '8px',
+                      '& input': {
+                        padding: '4px 6px',
+                      },
+                    },
+                  }}
+                />
+              )}
+            />
+          </Box>
 
           <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
             <IconButton size="large" color="inherit">
@@ -275,6 +347,13 @@ export default function Header() {
 
       {renderMobileMenu}
       {renderMenu}
+      {selectedUser && (
+        <UserProfile
+          open={modalOpen}
+          handleClose={() => setModalOpen(false)}
+          userId={selectedUser.id}
+        />
+      )}
     </Box>
   );
 }
