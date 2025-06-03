@@ -3,6 +3,7 @@ import { Box, Typography, Grid, Card, CardContent, Stack } from '@mui/material';
 import { Group, CreditCard, ShoppingCart } from '@mui/icons-material';
 import { Line } from "react-chartjs-2";
 import axios from 'axios';
+
 import {
     Chart as ChartJS,
     LineElement,

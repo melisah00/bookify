@@ -32,7 +32,7 @@ const navItems = [
     { label: 'Home', to: '/app/admin', icon: <HomeIcon /> },
     { label: 'Users', icon: <UserIcon /> },
     { label: 'Inbox', icon: <InboxIcon /> },
-    { label: 'Events', icon: <EventIcon /> },
+    { label: 'Events', to: '/app/events', icon: <EventIcon /> },
     { label: 'Forums', icon: <ForumIcon /> },
     { label: 'Books', icon: <MyBooksIcon /> },
     { label: 'Analytics', icon: <AnalyticsIcon /> },
