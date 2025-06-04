@@ -41,7 +41,7 @@ const navItems = [
   { label: "Forums", icon: <ForumIcon /> },
   { label: "Favorites", icon: <HeartIcon />, to: "/app/author/favourites" },
   { label: "Upload Book", icon: <UploadIcon />, to: "/app/author/upload" },
-  { label: "My Books", icon: <MyBooksIcon /> },
+  { label: "My Books", icon: <MyBooksIcon />, to: "/app/author/my-books" },
   { label: "Analytics", icon: <AnalyticsIcon /> },
 ];
 

@@ -219,7 +219,6 @@ function SingleBookDisplayPage() {
             `Error ${bookResponse.status}: Could not fetch book details.`
           );
         const bookData = await bookResponse.json();
-        console.log("BOOK DATA:", bookData); // <-- Ovdje vidiš ima li `description`
         setBook(bookData);
 
         if (!reviewsResponse.ok) {
@@ -348,12 +347,10 @@ function SingleBookDisplayPage() {
                         }
                       );
 
-                      const link = document.createElement("a");
-                      link.href = `http://localhost:8000${book.path}`;
-                      link.setAttribute("download", "");
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
+                      window.open(
+                        `http://localhost:8000${book.path}`,
+                        "_blank"
+                      );
                     } catch (err) {
                       console.error("Error downloading book:", err);
                       alert(
