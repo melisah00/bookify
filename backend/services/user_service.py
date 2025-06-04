@@ -1,5 +1,5 @@
 from datetime import datetime
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List
@@ -9,6 +9,10 @@ from models import User, Role, RoleNameEnum
 from schemas import UserCreate
 from repositories import user_repository
 from sqlalchemy.orm import selectinload
+
+import os
+import shutil
+import uuid
 
 async def create_user_service(user_data: UserCreate, db: AsyncSession) -> User:
     existing_user = await user_repository.get_user_by_email(user_data.email, db)
@@ -82,3 +86,52 @@ async def update_user_profile(user_id: int, update: UserUpdateRequest, db: Async
     await db.refresh(user)
 
     return {"message": "Profile updated successfully"}
+
+async def upload_avatar_service(file: UploadFile, db: AsyncSession, current_user: dict):
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Only image uploads allowed.")
+
+    stmt = select(User).where(User.id == current_user["id"])
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    if user.icon and user.icon.startswith("/avatars/"):
+        old_filename = user.icon.replace("/avatars/", "")
+        old_path = os.path.join("avatar", old_filename)
+        if os.path.exists(old_path):
+            os.remove(old_path)
+
+    filename = f"{uuid.uuid4().hex}_{file.filename}"
+    save_path = os.path.join("avatar", filename)
+
+    with open(save_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    user.icon = f"/avatars/{filename}"
+    await db.commit()
+    await db.refresh(user)
+
+    return user
+
+async def delete_avatar_service(db: AsyncSession, current_user: dict):
+    from models.user import User  # ensure you import your User model
+
+    result = await db.execute(select(User).where(User.id == current_user["id"]))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user.icon and user.icon.startswith("/avatars/"):
+        old_path = os.path.join("avatar", os.path.basename(user.icon))
+        if os.path.exists(old_path):
+            os.remove(old_path)
+
+    user.icon = None
+    await db.commit()
+    await db.refresh(user)
+
+    return {"message": "Avatar deleted"}

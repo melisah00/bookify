@@ -22,6 +22,7 @@ app = FastAPI(
 )
 
 app.mount("/book_files", StaticFiles(directory="book_files"), name="book_files")
+app.mount("/avatars", StaticFiles(directory="avatar"), name="avatars")
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):

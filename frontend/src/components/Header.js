@@ -1,32 +1,33 @@
-import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import Badge from '@mui/material/Badge';
-import MenuItem from '@mui/material/MenuItem';
-import Menu from '@mui/material/Menu';
-import AccountCircle from '@mui/icons-material/AccountCircle';
-import MailIcon from '@mui/icons-material/Mail';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import MoreIcon from '@mui/icons-material/MoreVert';
-import LogoutButton from './LogoutButton';
-import TextField from '@mui/material/TextField';
-import Autocomplete from '@mui/material/Autocomplete';
-import CircularProgress from '@mui/material/CircularProgress';
-import { NavLink } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import UserProfile from './UserProfile';
-import palette from '../theme/palette';
-import InputAdornment from '@mui/material/InputAdornment';
-import SearchIcon from '@mui/icons-material/Search';
+import * as React from "react";
+import AppBar from "@mui/material/AppBar";
+import Box from "@mui/material/Box";
+import Toolbar from "@mui/material/Toolbar";
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
+import Badge from "@mui/material/Badge";
+import MenuItem from "@mui/material/MenuItem";
+import Menu from "@mui/material/Menu";
+import AccountCircle from "@mui/icons-material/AccountCircle";
+import MailIcon from "@mui/icons-material/Mail";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import MoreIcon from "@mui/icons-material/MoreVert";
+import LogoutButton from "./LogoutButton";
+import TextField from "@mui/material/TextField";
+import Autocomplete from "@mui/material/Autocomplete";
+import CircularProgress from "@mui/material/CircularProgress";
+import { NavLink } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import UserProfile from "./UserProfile";
+import palette from "../theme/palette";
+import InputAdornment from "@mui/material/InputAdornment";
+import SearchIcon from "@mui/icons-material/Search";
+import Avatar from "@mui/material/Avatar";
 
 export default function Header() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
   const [options, setOptions] = React.useState([]);
-  const [inputValue, setInputValue] = React.useState('');
+  const [inputValue, setInputValue] = React.useState("");
   const [loadingUsers, setLoadingUsers] = React.useState(false);
   const [selectedUser, setSelectedUser] = React.useState(null);
   const [modalOpen, setModalOpen] = React.useState(false);
@@ -37,13 +38,13 @@ export default function Header() {
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
 
   const getRolePath = (user) => {
-    if (!user) return 'reader';
-    if (user.roles.includes('admin')) return 'admin';
-    if (user.roles.includes('author')) return 'author';
-    return 'reader';
+    if (!user) return "reader";
+    if (user.roles.includes("admin")) return "admin";
+    if (user.roles.includes("author")) return "author";
+    return "reader";
   };
 
-  const role = !loading ? getRolePath(user) : 'reader';
+  const role = !loading ? getRolePath(user) : "reader";
   const profilePath = `/app/${role}/profile`;
 
   const handleProfileMenuOpen = (event) => {
@@ -70,19 +71,19 @@ export default function Header() {
         console.log("Searching users with query:", inputValue);
 
         fetch(`http://localhost:8000/users/search-users?query=${inputValue}`, {
-          credentials: 'include'
+          credentials: "include",
         })
-          .then(response => {
+          .then((response) => {
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
           })
-          .then(data => {
+          .then((data) => {
             console.log("API response:", data);
             setOptions(data);
           })
-          .catch(error => {
+          .catch((error) => {
             console.error("Search error:", error);
             setOptions([]);
           })
@@ -97,14 +98,14 @@ export default function Header() {
     return () => clearTimeout(delayDebounce);
   }, [inputValue]);
 
-  const menuId = 'primary-search-account-menu';
+  const menuId = "primary-search-account-menu";
   const renderMenu = (
     <Menu
       anchorEl={anchorEl}
-      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      anchorOrigin={{ vertical: "top", horizontal: "right" }}
       id={menuId}
       keepMounted
-      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      transformOrigin={{ vertical: "top", horizontal: "right" }}
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
@@ -112,26 +113,28 @@ export default function Header() {
         <NavLink
           to={profilePath}
           style={({ isActive }) => ({
-            textDecoration: 'none',
-            color: isActive ? '#66b2a0' : 'inherit',
-            fontWeight: isActive ? 'bold' : 'normal',
+            textDecoration: "none",
+            color: isActive ? "#66b2a0" : "inherit",
+            fontWeight: isActive ? "bold" : "normal",
           })}
         >
           Profile
         </NavLink>
       </MenuItem>
-      <MenuItem onClick={handleMenuClose}><LogoutButton /></MenuItem>
+      <MenuItem onClick={handleMenuClose}>
+        <LogoutButton />
+      </MenuItem>
     </Menu>
   );
 
-  const mobileMenuId = 'primary-search-account-menu-mobile';
+  const mobileMenuId = "primary-search-account-menu-mobile";
   const renderMobileMenu = (
     <Menu
       anchorEl={mobileMoreAnchorEl}
-      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      anchorOrigin={{ vertical: "top", horizontal: "right" }}
       id={mobileMenuId}
       keepMounted
-      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      transformOrigin={{ vertical: "top", horizontal: "right" }}
       open={isMobileMenuOpen}
       onClose={handleMobileMenuClose}
     >
@@ -161,15 +164,15 @@ export default function Header() {
   );
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box sx={{ width: "100%" }}>
       <AppBar
         position="fixed"
         sx={{
-          bgcolor: 'rgb(102,178,160)',
-          color: 'white',
-          boxShadow: '0 4px 12px rgba(255, 255, 255, 0.3)',
+          bgcolor: "rgb(102,178,160)",
+          color: "white",
+          boxShadow: "0 4px 12px rgba(255, 255, 255, 0.3)",
           zIndex: (theme) => theme.zIndex.drawer + 1,
-          borderLeft: '1px solid rgba(255,255,255,0.3)',
+          borderLeft: "1px solid rgba(255,255,255,0.3)",
         }}
       >
         <Toolbar>
@@ -177,7 +180,12 @@ export default function Header() {
             component="img"
             src="/Book.png"
             alt="Bookify Logo"
-            sx={{ width: 40, height: 40, mr: 1, filter: 'brightness(0) invert(1)' }}
+            sx={{
+              width: 40,
+              height: 40,
+              mr: 1,
+              filter: "brightness(0) invert(1)",
+            }}
           />
 
           <Typography
@@ -185,9 +193,9 @@ export default function Header() {
             noWrap
             component="div"
             sx={{
-              display: { xs: 'none', sm: 'block' },
-              fontWeight: 'bold',
-              color: 'rgb(248,246,241)',
+              display: { xs: "none", sm: "block" },
+              fontWeight: "bold",
+              color: "rgb(248,246,241)",
             }}
           >
             BOOKIFY
@@ -196,8 +204,8 @@ export default function Header() {
           <Box
             sx={{
               flexGrow: 1,
-              display: 'flex',
-              justifyContent: 'center',
+              display: "flex",
+              justifyContent: "center",
               mx: 4,
             }}
           >
@@ -212,15 +220,23 @@ export default function Header() {
                 if (selectedUser) {
                   setSelectedUser(selectedUser);
                   setModalOpen(true);
-                  setInputValue('');
+                  setInputValue("");
                   setOptions([]);
                 }
               }}
               getOptionLabel={(option) => {
-                if (typeof option === 'string') return option;
+                if (typeof option === "string") return option;
                 return option.username
-                  ? `${option.first_name && option.first_name !== 'N/A' ? option.first_name : ''} ${option.last_name && option.last_name !== 'N/A' ? option.last_name : ''} (@${option.username})`.trim()
-                  : '';
+                  ? `${
+                      option.first_name && option.first_name !== "N/A"
+                        ? option.first_name
+                        : ""
+                    } ${
+                      option.last_name && option.last_name !== "N/A"
+                        ? option.last_name
+                        : ""
+                    } (@${option.username})`.trim()
+                  : "";
               }}
               renderOption={(props, option) => (
                 <Box
@@ -228,39 +244,39 @@ export default function Header() {
                   {...props}
                   key={option.id}
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '6px 10px',
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "6px 10px",
                     fontSize: 14,
-                    bgcolor: 'white',
-                    transition: 'background-color 0.2s',
-                    '&:hover': {
-                      bgcolor: 'rgba(0, 0, 0, 0.05)',
+                    bgcolor: "white",
+                    transition: "background-color 0.2s",
+                    "&:hover": {
+                      bgcolor: "rgba(0, 0, 0, 0.05)",
                     },
                   }}
                 >
                   <strong>@{option.username}</strong>
                   <span style={{ marginLeft: 8 }}>
-                    {option.first_name !== 'N/A' ? option.first_name : ''}{' '}
-                    {option.last_name !== 'N/A' ? option.last_name : ''}
+                    {option.first_name !== "N/A" ? option.first_name : ""}{" "}
+                    {option.last_name !== "N/A" ? option.last_name : ""}
                   </span>
                 </Box>
               )}
               noOptionsText="No users found"
               sx={{
                 width: { xs: 200, sm: 300, md: 400 },
-                bgcolor: '#f8f9fa',
-                borderRadius: '8px',
-                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
-                '& .MuiOutlinedInput-root': {
+                bgcolor: "#f8f9fa",
+                borderRadius: "8px",
+                boxShadow: "0 2px 6px rgba(0, 0, 0, 0.1)",
+                "& .MuiOutlinedInput-root": {
                   minHeight: 32,
-                  '& fieldset': {
-                    borderColor: 'transparent',
+                  "& fieldset": {
+                    borderColor: "transparent",
                   },
-                  '&:hover fieldset': {
+                  "&:hover fieldset": {
                     borderColor: palette.accentMedium,
                   },
-                  '&.Mui-focused fieldset': {
+                  "&.Mui-focused fieldset": {
                     borderColor: palette.accentMedium,
                   },
                 },
@@ -294,10 +310,10 @@ export default function Header() {
                       height: 32,
                       px: 1,
                       fontSize: 14,
-                      bgcolor: '#f8f9fa',
-                      borderRadius: '8px',
-                      '& input': {
-                        padding: '4px 6px',
+                      bgcolor: "#f8f9fa",
+                      borderRadius: "8px",
+                      "& input": {
+                        padding: "4px 6px",
                       },
                     },
                   }}
@@ -306,14 +322,20 @@ export default function Header() {
             />
           </Box>
 
-          <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+          <Box sx={{ display: { xs: "none", md: "flex" } }}>
             <IconButton size="large" color="inherit">
-              <Badge badgeContent={4} sx={{ '& .MuiBadge-badge': { backgroundColor: '#d9534f' } }}>
+              <Badge
+                badgeContent={4}
+                sx={{ "& .MuiBadge-badge": { backgroundColor: "#d9534f" } }}
+              >
                 <MailIcon />
               </Badge>
             </IconButton>
             <IconButton size="large" color="inherit">
-              <Badge badgeContent={17} sx={{ '& .MuiBadge-badge': { backgroundColor: '#d9534f' } }}>
+              <Badge
+                badgeContent={17}
+                sx={{ "& .MuiBadge-badge": { backgroundColor: "#d9534f" } }}
+              >
                 <NotificationsIcon />
               </Badge>
             </IconButton>
@@ -326,11 +348,18 @@ export default function Header() {
               onClick={handleProfileMenuOpen}
               color="inherit"
             >
-              <AccountCircle />
+              {user?.icon ? (
+                <Avatar
+                  src={`http://localhost:8000${user.icon}`}
+                  sx={{ width: 32, height: 32 }}
+                />
+              ) : (
+                <AccountCircle />
+              )}
             </IconButton>
           </Box>
 
-          <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
+          <Box sx={{ display: { xs: "flex", md: "none" } }}>
             <IconButton
               size="large"
               aria-label="show more"
