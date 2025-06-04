@@ -1,69 +1,99 @@
-// import React from "react";
-// import { Routes, Route, Link, Outlet } from "react-router-dom";
-// import BookListPage from "./components/BookListPage";
-// import BookDetailPage from "./components/BookDetailPage";
-// import "./App.css";
-// import LogoutButton from "./components/LogoutButton";
-// import DashboardSwitcher from "./components/DashboardSwitcher";
+import React, { useState } from 'react';
+import { Box, CssBaseline, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, AppBar, Toolbar, Typography, IconButton } from '@mui/material';
+import { Menu as MenuIcon, Home, Book, Event, Person, Group, Forum, Dashboard, Analytics } from '@mui/icons-material';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
+import Header from './components/Header';
 
+const drawerWidth = 240;
 
-// export default function MainAppLayout() {
-//   const styles = {
-//     navbar: {
-//       display: "flex",
-//       justifyContent: "center",
-//       alignItems: "center",
-//       padding: "15px 30px",
-//       backgroundColor: "#66b2a0",
-//       boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-//     },
-//     navLinks: {
-//       display: "flex",
-//       gap: "30px",
-//     },
-//     navLink: {
-//       color: "white",
-//       textDecoration: "none",
-//       fontSize: "1.1rem",
-//       fontWeight: "bold",
-//       borderBottom: "2px solid transparent",
-//       paddingBottom: "2px",
-//       transition: "border-bottom 0.2s",
-//     },
-//   };
+const MainAppLayout = () => {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
 
-//   return (
-//     <div className="App">
-//       <nav
-//         style={{
-//           ...styles.navbar,
-//           display: "flex",
-//           justifyContent: "space-between",
-//           alignItems: "center",
-//         }}
-//       >
-//         <div style={{ width: "120px" }} />{" "}
-//         {/* Optional left-side placeholder */}
-//         <div style={styles.navLinks}>
-//           <Link to="/app" style={styles.navLink}>
-//             Home
-//           </Link>
-//           <Link to="/app/books" style={styles.navLink}>
-//             All Books
-//           </Link>
-//         </div>
-//         <div style={{ width: "120px", textAlign: "right" }}>
-//           <LogoutButton />
-//         </div>
-//       </nav>
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
 
-//       <Routes>
-//         <Route index element={<DashboardSwitcher />} />
-//         <Route path="books" element={<BookListPage />} />
-//         <Route path="books/:bookId" element={<BookDetailPage />} />
-//       </Routes>
+  const menuItems = [
+    { text: 'Dashboard', icon: <Home />, path: '/app' },
+    { text: 'Events', icon: <Event />, path: '/app/events' },
+    { text: 'My Events', icon: <Dashboard />, path: '/app/my-events' },
+    { text: 'Event Analytics', icon: <Analytics />, path: '/app/events/analytics' }, // New!
+    { text: 'Books', icon: <Book />, path: '/app/books' },
+    { text: 'Forum', icon: <Forum />, path: '/app/forum' },
+    { text: 'Users', icon: <Group />, path: '/app/users' },
+  ];
 
-//       <Outlet />
-//     </div>
-//   );
-// }
+  const drawer = (
+    <div>
+      <Toolbar>
+        <Typography variant="h6" noWrap component="div">
+          Bookify
+        </Typography>
+      </Toolbar>
+      <List>
+        {menuItems.map((item) => (
+          <ListItem key={item.text} disablePadding>
+            <ListItemButton
+              selected={location.pathname === item.path}
+              onClick={() => navigate(item.path)}
+            >
+              <ListItemIcon>
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+    </div>
+  );
+
+  return (
+    <Box sx={{ display: 'flex' }}>
+      <CssBaseline />
+      <Header />
+      <Box
+        component="nav"
+        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+      >
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          ModalProps={{
+            keepMounted: true,
+          }}
+          sx={{
+            display: { xs: 'block', sm: 'none' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+          }}
+        >
+          {drawer}
+        </Drawer>
+        <Drawer
+          variant="permanent"
+          sx={{
+            display: { xs: 'none', sm: 'block' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+          }}
+          open
+        >
+          {drawer}
+        </Drawer>
+      </Box>
+      <Box
+        component="main"
+        sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${drawerWidth}px)` } }}
+      >
+        <Toolbar />
+        <Outlet />
+      </Box>
+    </Box>
+  );
+};
+
+export default MainAppLayout;

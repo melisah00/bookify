@@ -1,0 +1,134 @@
+.participant-stats {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e1e5e9;
+  }
+  
+  .stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .stats-header h3 {
+    margin: 0;
+    color: #1a1a1a;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  
+  .organizer-badge {
+    background: #4CAF50;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .stats-summary {
+    text-align: center;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+  }
+  
+  .total-count .count {
+    display: block;
+    font-size: 32px;
+    font-weight: 700;
+    color: #2196F3;
+    line-height: 1;
+  }
+  
+  .total-count .label {
+    font-size: 14px;
+    color: #666;
+    margin-top: 4px;
+  }
+  
+  .stats-breakdown {
+    display: grid;
+    gap: 12px;
+  }
+  
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    transition: all 0.2s ease;
+  }
+  
+  .stat-item:hover {
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .stat-icon {
+    font-size: 20px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: white;
+  }
+  
+  .stat-details {
+    flex: 1;
+  }
+  
+  .stat-label {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+  }
+  
+  .stat-count {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+  
+  .organizer-actions {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e1e5e9;
+  }
+  
+  .view-attendees-btn {
+    width: 100%;
+    padding: 12px 16px;
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .view-attendees-btn:hover {
+    background: #1976D2;
+  }
+  
+  .stats-loading,
+  .stats-error {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+    font-style: italic;
+  }
+  
+  .stats-error {
+    color: #f44336;
+  }

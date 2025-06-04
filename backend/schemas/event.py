@@ -73,3 +73,28 @@ class EventParticipantDisplay(EventParticipantBase):
 
     class Config:
         model_config = ConfigDict(from_attributes=True)
+
+class RSVPRequest(BaseModel):
+    status: EventParticipantStatusEnum
+
+class RSVPResponse(BaseModel):
+    success: bool
+    message: str
+    status: EventParticipantStatusEnum
+    participant_count: int
+    is_at_capacity: bool = False
+
+class EventParticipantStats(BaseModel):
+    total_participants: int
+    going_count: int
+    interested_count: int
+    registered_count: int
+    confirmed_count: int
+    status_breakdown: dict = {}
+
+class EventWithRSVPInfo(EventDisplay):
+    participant_stats: Optional[EventParticipantStats] = None
+    is_organizer: bool = False
+    can_manage_attendees: bool = False
+    registration_deadline: Optional[datetime] = None
+    is_registration_open: bool = True

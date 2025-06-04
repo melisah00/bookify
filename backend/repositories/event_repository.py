@@ -1,7 +1,7 @@
 from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func, and_, desc
 from models.event import Event, EventParticipant, EventTag
 from models.user import User
 
@@ -83,32 +83,22 @@ async def get_all_events(db: AsyncSession, skip: int = 0, limit: int = 100,
     
     return events
 
-async def update_event(event_id: int, event_data: dict, db: AsyncSession) -> Optional[Event]:
-    query = select(Event).where(Event.id == event_id)
+async def get_or_create_tag(tag_name: str, db: AsyncSession) -> EventTag:
+    # First try to get existing tag
+    query = select(EventTag).where(EventTag.name == tag_name)
     result = await db.execute(query)
-    event = result.scalar_one_or_none()
+    tag = result.scalar_one_or_none()
     
-    if event:
-        for key, value in event_data.items():
-            if hasattr(event, key) and value is not None:
-                setattr(event, key, value)
-        
-        await db.commit()
-        await db.refresh(event)
+    if tag:
+        return tag
     
-    return event
-
-async def delete_event(event_id: int, db: AsyncSession) -> bool:
-    query = select(Event).where(Event.id == event_id)
-    result = await db.execute(query)
-    event = result.scalar_one_or_none()
+    # Create new tag if it doesn't exist
+    new_tag = EventTag(name=tag_name)
+    db.add(new_tag)
+    await db.commit()
+    await db.refresh(new_tag)
     
-    if event:
-        await db.delete(event)
-        await db.commit()
-        return True
-    
-    return False
+    return new_tag
 
 async def get_participants_by_event(event_id: int, db: AsyncSession) -> List[EventParticipant]:
     query = select(EventParticipant).options(
@@ -154,20 +144,64 @@ async def remove_participant(event_id: int, user_id: int, db: AsyncSession) -> b
     
     return False
 
-async def get_or_create_tag(tag_name: str, db: AsyncSession) -> EventTag:
-    query = select(EventTag).where(EventTag.name == tag_name.lower())
+async def get_participant_by_user_and_event(event_id: int, user_id: int, db: AsyncSession) -> Optional[EventParticipant]:
+    query = select(EventParticipant).where(
+        and_(EventParticipant.event_id == event_id, EventParticipant.user_id == user_id)
+    )
     result = await db.execute(query)
-    tag = result.scalar_one_or_none()
-    
-    if not tag:
-        tag = EventTag(name=tag_name.lower())
-        db.add(tag)
-        await db.commit()
-        await db.refresh(tag)
-    
-    return tag
+    return result.scalar_one_or_none()
 
-async def get_event_count(db: AsyncSession) -> int:
-    query = select(func.count(Event.id))
+async def get_events_by_organizer(organizer_id: int, db: AsyncSession) -> List[Event]:
+    """Get all events organized by a specific user"""
+    query = select(Event).options(
+        selectinload(Event.organizer),
+        selectinload(Event.tags),
+        selectinload(Event.participants).selectinload(EventParticipant.user)
+    ).where(Event.organizer_id == organizer_id).order_by(desc(Event.start_date))
+    
     result = await db.execute(query)
-    return result.scalar()
+    return result.scalars().all()
+
+async def get_events_by_participant(user_id: int, db: AsyncSession) -> List[Event]:
+    """Get all events where user is a participant"""
+    query = select(Event).options(
+        selectinload(Event.organizer),
+        selectinload(Event.tags),
+        selectinload(Event.participants).selectinload(EventParticipant.user)
+    ).join(Event.participants).where(EventParticipant.user_id == user_id).order_by(desc(Event.start_date))
+    
+    result = await db.execute(query)
+    return result.scalars().all()
+
+async def update_event(event_id: int, update_data: dict, db: AsyncSession) -> Event:
+    """Update an event with new data"""
+    event = await db.get(Event, event_id)
+    if not event:
+        return None
+    
+    for field, value in update_data.items():
+        if hasattr(event, field):
+            setattr(event, field, value)
+    
+    await db.commit()
+    await db.refresh(event)
+    
+    # Reload with relationships
+    query = select(Event).options(
+        selectinload(Event.organizer),
+        selectinload(Event.tags),
+        selectinload(Event.participants).selectinload(EventParticipant.user)
+    ).where(Event.id == event_id)
+    
+    result = await db.execute(query)
+    return result.scalar_one()
+
+async def delete_event(event_id: int, db: AsyncSession) -> bool:
+    """Delete an event"""
+    event = await db.get(Event, event_id)
+    if not event:
+        return False
+    
+    await db.delete(event)
+    await db.commit()
+    return True
