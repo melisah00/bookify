@@ -15,11 +15,17 @@ async def create_review_service(book_id: int, review_data: ReviewCreate, db: Asy
     if not user:
         raise HTTPException(status_code=404, detail=f"User with ID {review_data.user_id} not found")
 
+    if book.author_id == review_data.user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Authors cannot review their own books."
+        )
+
     existing = await review_repository.check_existing_review(book_id, review_data.user_id, db)
     if existing:
         raise HTTPException(
             status_code=400,
-            detail=f"User {review_data.user_id} has already reviewed book {book_id}"
+            detail="You have already reviewed this book!"
         )
 
     return await review_repository.create_review(

@@ -16,11 +16,13 @@ import {
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useAuth } from "../contexts/AuthContext";
-import BookFilter from "../components/BookFilter"; // prilagodi putanju ako je drugačije
+import BookFilter from "../components/BookFilter";
 import { Link } from "react-router-dom";
+import DownloadForOfflineIcon from "@mui/icons-material/DownloadForOffline";
 
 function FavouriteBooksPage() {
   const [books, setBooks] = useState([]);
+  const [originalBooks, setOriginalBooks] = useState([]); // ✅ new state
   const [favouriteBookIds, setFavouriteBookIds] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -69,7 +71,8 @@ function FavouriteBooksPage() {
           })
         );
 
-        setBooks(booksWithRatings);
+        setOriginalBooks(booksWithRatings); // ✅ full unfiltered list
+        setBooks(booksWithRatings); // ✅ filtered display list
       } catch (err) {
         setError("Failed to load favourite books.");
       } finally {
@@ -84,10 +87,13 @@ function FavouriteBooksPage() {
     const isFavourite = favouriteBookIds.includes(bookId);
 
     try {
-      const response = await fetch(`http://localhost:8000/books/favourites/${bookId}`, {
-        method: isFavourite ? "DELETE" : "POST",
-        credentials: "include",
-      });
+      const response = await fetch(
+        `http://localhost:8000/books/favourites/${bookId}`,
+        {
+          method: isFavourite ? "DELETE" : "POST",
+          credentials: "include",
+        }
+      );
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail);
@@ -99,6 +105,9 @@ function FavouriteBooksPage() {
       setBooks((prevBooks) =>
         isFavourite ? prevBooks.filter((b) => b.id !== bookId) : prevBooks
       );
+      setOriginalBooks((prevBooks) =>
+        isFavourite ? prevBooks.filter((b) => b.id !== bookId) : prevBooks
+      ); // ✅ keep both in sync
     } catch (err) {
       alert("Something went wrong.");
     }
@@ -114,19 +123,28 @@ function FavouriteBooksPage() {
       <Typography
         variant="h4"
         align="center"
-        sx={{ mb: 4, color: "#4e796b", fontWeight: "bold", borderBottom: "3px solid #66b2a0", display: "inline-block", px: 2 }}
+        sx={{
+          mb: 4,
+          color: "#4e796b",
+          fontWeight: "bold",
+          borderBottom: "3px solid #66b2a0",
+          display: "inline-block",
+          px: 2,
+        }}
       >
         Favourite Books
       </Typography>
 
       <Box sx={{ my: 4 }}>
-        <BookFilter onResults={setBooks} />
+        <BookFilter baseBooks={originalBooks} onResults={setBooks} />
       </Box>
 
       {isLoading ? (
         <Typography align="center">Loading...</Typography>
       ) : error ? (
-        <Typography align="center" color="error">{error}</Typography>
+        <Typography align="center" color="error">
+          {error}
+        </Typography>
       ) : books.length === 0 ? (
         <Typography align="center">No favourites found.</Typography>
       ) : (
@@ -134,21 +152,72 @@ function FavouriteBooksPage() {
           <Grid container spacing={4} justifyContent="center">
             {currentBooks.map((book) => (
               <Grid item key={book.id} xs={12} sm={6} md={4} lg={3}>
-                <Card sx={{ height: "100%", display: "flex", flexDirection: "column", boxShadow: 3, borderRadius: 2 }}>
+                <Card
+                  sx={{
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    boxShadow: 3,
+                    borderRadius: 2,
+                  }}
+                >
                   <CardHeader
-                    avatar={<Avatar sx={{ bgcolor: "#66b2a0" }}>{book.author?.username?.[0]?.toUpperCase() || "A"}</Avatar>}
+                    avatar={
+                      <Avatar sx={{ bgcolor: "#66b2a0" }}>
+                        {book.author?.username?.[0]?.toUpperCase() || "A"}
+                      </Avatar>
+                    }
                     title={book.title}
                     subheader={book.author?.username || "Unknown Author"}
                   />
-                  <CardMedia component="img" height="180" image="/Book.png" alt="Book cover" sx={{ objectFit: "cover" }} />
+                  <CardMedia
+                    component="img"
+                    height="180"
+                    image="/Book.png"
+                    alt="Book cover"
+                    sx={{ objectFit: "cover" }}
+                  />
                   <CardContent>
                     <Box sx={{ display: "flex", alignItems: "center" }}>
                       {[1, 2, 3, 4, 5].map((star) => (
-                        <Typography key={star} sx={{ color: star <= Math.round(book.average_rating || 0) ? "#ffc107" : "#e0e0e0", fontSize: "1.2rem" }}>★</Typography>
+                        <Typography
+                          key={star}
+                          sx={{
+                            color:
+                              star <= Math.round(book.average_rating || 0)
+                                ? "#ffc107"
+                                : "#e0e0e0",
+                            fontSize: "1.2rem",
+                          }}
+                        >
+                          ★
+                        </Typography>
                       ))}
-                      <Typography variant="caption" sx={{ ml: 1, color: "text.secondary" }}>
-                        {book.average_rating != null ? `(${book.average_rating.toFixed(1)})` : "(N/A)"}
+                      <Typography
+                        variant="caption"
+                        sx={{ ml: 1, color: "text.secondary" }}
+                      >
+                        {book.average_rating != null
+                          ? `(${book.average_rating.toFixed(1)})`
+                          : "(N/A)"}
                       </Typography>
+
+                      <Box
+                        sx={{
+                          marginLeft: "auto",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px",
+                          color: "text.secondary",
+                        }}
+                      >
+                        <DownloadForOfflineIcon
+                          sx={{ fontSize: 18, color: "#6c757d" }}
+                        />
+                        <Typography variant="caption">
+                          {book.num_of_downloads}
+                        </Typography>
+                      </Box>
                     </Box>
                   </CardContent>
                   <CardActions sx={{ px: 2, pb: 2 }}>
@@ -159,8 +228,18 @@ function FavouriteBooksPage() {
                       <ShoppingCartIcon />
                     </IconButton>
                     <Box sx={{ marginLeft: "auto" }}>
-                      <Link to={`/books/${book.id}`} style={{ textDecoration: "none" }}>
-                        <Typography variant="button" sx={{ color: "#66b2a0", fontWeight: "bold", "&:hover": { textDecoration: "underline" } }}>
+                      <Link
+                        to={`/app/reader/books/${book.id}`}
+                        style={{ textDecoration: "none" }}
+                      >
+                        <Typography
+                          variant="button"
+                          sx={{
+                            color: "#66b2a0",
+                            fontWeight: "bold",
+                            "&:hover": { textDecoration: "underline" },
+                          }}
+                        >
                           View Details
                         </Typography>
                       </Link>
@@ -172,7 +251,13 @@ function FavouriteBooksPage() {
           </Grid>
 
           <Box sx={{ mt: 6, display: "flex", justifyContent: "center" }}>
-            <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="primary" size="medium" />
+            <Pagination
+              count={totalPages}
+              page={currentPage}
+              onChange={handlePageChange}
+              color="primary"
+              size="medium"
+            />
           </Box>
         </>
       )}

@@ -7,17 +7,17 @@ import {
   Typography,
   CircularProgress,
   Button,
-  Divider,
-  Chip,
   Stack,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import { useAuth } from "../contexts/AuthContext";
 import EditProfileDialog from "./EditProfileDialog";
+import ChangePictureDialog from "./ChangePictureDialog";
 
 export default function Profile() {
   const { user, loading } = useAuth();
   const [editOpen, setEditOpen] = React.useState(false);
+  const [pictureDialogOpen, setPictureDialogOpen] = React.useState(false);
 
   if (loading) {
     return (
@@ -123,19 +123,54 @@ export default function Profile() {
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>
               Profile Picture
             </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 3,
+              }}
+            >
               <Avatar
                 src={user.icon || undefined}
-                sx={{ width: 60, height: 60, bgcolor: "#66b2a0", fontSize: 24 }}
-              />
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<EditIcon />}
-                onClick={() => console.log("Edit profile picture")}
+                sx={{
+                  width: 80,
+                  height: 80,
+                  bgcolor: "#66b2a0",
+                  fontSize: 32,
+                  flexShrink: 0,
+                }}
               >
-                Change Picture
-              </Button>
+                {user.first_name?.[0]}
+                {user.last_name?.[0]}
+              </Avatar>
+
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 1,
+                  alignItems: "flex-start",
+                }}
+              >
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<EditIcon />}
+                  onClick={() => setPictureDialogOpen(true)}
+                >
+                  Change Picture
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  size="small"
+                  color="error"
+                  onClick={handleDeleteAvatar}
+                >
+                  Delete Picture
+                </Button>
+              </Box>
             </Box>
           </Box>
         </CardContent>
@@ -153,22 +188,25 @@ export default function Profile() {
           };
 
           try {
-            const response = await fetch(
-              "http://localhost:8000/users/profile",
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify(finalData),
-              }
-            );
+            await fetch("http://localhost:8000/users/profile", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify(finalData),
+            });
             window.location.reload();
           } catch (err) {
             console.error("Error updating profile:", err);
           }
         }}
+      />
+      <ChangePictureDialog
+        open={pictureDialogOpen}
+        onClose={() => setPictureDialogOpen(false)}
+        onUpload={handleUploadAvatar}
+        currentAvatar={user.icon}
       />
     </Box>
   );
@@ -210,3 +248,41 @@ function calculateAge(dob) {
   const ageDate = new Date(diff);
   return Math.abs(ageDate.getUTCFullYear() - 1970);
 }
+
+const handleUploadAvatar = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const response = await fetch("http://localhost:8000/users/avatar", {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to upload avatar.");
+    }
+
+    window.location.reload();
+  } catch (err) {
+    console.error("Avatar upload failed:", err);
+  }
+};
+
+const handleDeleteAvatar = async () => {
+  try {
+    const res = await fetch("http://localhost:8000/users/avatar", {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to delete avatar.");
+    }
+
+    window.location.reload();
+  } catch (err) {
+    console.error("Avatar delete failed:", err);
+  }
+};

@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardHeader,
@@ -14,50 +13,45 @@ import {
   Box,
   Pagination,
 } from "@mui/material";
-import FavoriteIcon from "@mui/icons-material/Favorite";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import BookFilter from "./BookFilter";
 import { useAuth } from "../contexts/AuthContext";
+import BookFilter from "../components/BookFilter";
+import { Link } from "react-router-dom";
 import DownloadForOfflineIcon from "@mui/icons-material/DownloadForOffline";
 
-function BookListPage() {
+function MyBooksPage() {
   const [books, setBooks] = useState([]);
+  const [originalBooks, setOriginalBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const { user } = useAuth();
 
   const booksPerPage = 8;
-  const totalPages = Math.ceil(books.length / booksPerPage);
   const indexOfLastBook = currentPage * booksPerPage;
   const indexOfFirstBook = indexOfLastBook - booksPerPage;
   const currentBooks = books.slice(indexOfFirstBook, indexOfLastBook);
-  const { user } = useAuth();
-  const [favouriteBookIds, setFavouriteBookIds] = useState([]);
+  const totalPages = Math.ceil(books.length / booksPerPage);
 
   useEffect(() => {
-    const fetchBooks = async () => {
-      setIsLoading(true);
-      setError(null);
+    const fetchMyBooks = async () => {
       try {
-        const response = await fetch("http://localhost:8000/books");
-        if (!response.ok) {
-          throw new Error(`Error ${response.status}: Unable to fetch books.`);
-        }
-
-        const booksData = await response.json();
+        const res = await fetch("http://localhost:8000/books/authored", {
+          credentials: "include",
+        });
+        const authoredBooks = await res.json();
 
         const booksWithRatings = await Promise.all(
-          booksData.map(async (book) => {
+          authoredBooks.map(async (book) => {
             try {
               const ratingRes = await fetch(
                 `http://localhost:8000/books/${book.id}/average-rating`
               );
-              if (!ratingRes.ok) throw new Error();
               const ratingData = await ratingRes.json();
               return {
                 ...book,
                 average_rating: ratingData.average_rating,
-                reviewCount: ratingData.review_count || 0, // ako dodate u response
+                reviewCount: ratingData.review_count || 0,
               };
             } catch {
               return {
@@ -69,94 +63,22 @@ function BookListPage() {
           })
         );
 
+        setOriginalBooks(booksWithRatings);
         setBooks(booksWithRatings);
       } catch (err) {
-        setError(err.message || "An error occurred.");
+        setError("Failed to load your books.");
       } finally {
         setIsLoading(false);
       }
     };
 
-    const fetchFavourites = async () => {
-      if (!user) return;
-
-      try {
-        const res = await fetch("http://localhost:8000/books/favourites", {
-          credentials: "include",
-        });
-        const data = await res.json();
-
-        console.log("Fetched favourites:", data); // ✅ OVDE DODAJ LOG
-
-        if (!Array.isArray(data)) {
-          console.error("Unexpected response:", data);
-          setFavouriteBookIds([]); // fallback prazno
-          return;
-        }
-
-        setFavouriteBookIds(data);
-      } catch (err) {
-        console.error("Failed to fetch favourites", err);
-        setFavouriteBookIds([]); // fallback
-      }
-    };
-
-    fetchBooks();
-    fetchFavourites();
+    if (user) fetchMyBooks();
   }, [user]);
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
-  const toggleFavourite = async (bookId) => {
-    if (!user) {
-      alert("Please login to use favourites.");
-      return;
-    }
-
-    const isFavourite = favouriteBookIds.includes(bookId);
-
-    try {
-      const response = await fetch(
-        `http://localhost:8000/books/favourites/${bookId}`,
-        {
-          method: isFavourite ? "DELETE" : "POST",
-          credentials: "include",
-        }
-      );
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.detail);
-
-      setFavouriteBookIds((prev) =>
-        isFavourite ? prev.filter((id) => id !== bookId) : [...prev, bookId]
-      );
-    } catch (err) {
-      alert(err.message || "Something went wrong.");
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <Container sx={{ mt: 6 }}>
-        <Typography align="center" variant="h6" color="text.secondary">
-          Loading books...
-        </Typography>
-      </Container>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container sx={{ mt: 6 }}>
-        <Typography align="center" variant="h6" color="error">
-          Error: {error}
-        </Typography>
-      </Container>
-    );
-  }
 
   return (
     <Container sx={{ mt: 6, pb: 6 }}>
@@ -172,17 +94,21 @@ function BookListPage() {
           px: 2,
         }}
       >
-        All Books
+        My Uploaded Books
       </Typography>
 
       <Box sx={{ my: 4 }}>
-        <BookFilter onResults={setBooks} />
+        <BookFilter baseBooks={originalBooks} onResults={setBooks} />
       </Box>
 
-      {books.length === 0 ? (
-        <Typography align="center" sx={{ mt: 2 }}>
-          No books available.
+      {isLoading ? (
+        <Typography align="center">Loading...</Typography>
+      ) : error ? (
+        <Typography align="center" color="error">
+          {error}
         </Typography>
+      ) : books.length === 0 ? (
+        <Typography align="center">No books found.</Typography>
       ) : (
         <>
           <Grid container spacing={4} justifyContent="center">
@@ -215,31 +141,29 @@ function BookListPage() {
                   />
                   <CardContent>
                     <Box sx={{ display: "flex", alignItems: "center" }}>
-                      {/* Star Rating */}
-                      <Box sx={{ display: "flex", alignItems: "center" }}>
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Typography
-                            key={star}
-                            sx={{
-                              color:
-                                star <= Math.round(book.average_rating || 0)
-                                  ? "#ffc107"
-                                  : "#e0e0e0",
-                              fontSize: "1.2rem",
-                            }}
-                          >
-                            ★
-                          </Typography>
-                        ))}
+                      {[1, 2, 3, 4, 5].map((star) => (
                         <Typography
-                          variant="caption"
-                          sx={{ ml: 1, color: "text.secondary" }}
+                          key={star}
+                          sx={{
+                            color:
+                              star <= Math.round(book.average_rating || 0)
+                                ? "#ffc107"
+                                : "#e0e0e0",
+                            fontSize: "1.2rem",
+                          }}
                         >
-                          {book.average_rating != null
-                            ? `(${book.average_rating.toFixed(1)})`
-                            : "(N/A)"}
+                          ★
                         </Typography>
-                      </Box>
+                      ))}
+                      <Typography
+                        variant="caption"
+                        sx={{ ml: 1, color: "text.secondary" }}
+                      >
+                        {book.average_rating != null
+                          ? `(${book.average_rating.toFixed(1)})`
+                          : "(N/A)"}
+                      </Typography>
+
                       <Box
                         sx={{
                           marginLeft: "auto",
@@ -260,26 +184,12 @@ function BookListPage() {
                   </CardContent>
 
                   <CardActions sx={{ px: 2, pb: 2 }}>
-                    <IconButton
-                      aria-label="add to favorites"
-                      onClick={() => toggleFavourite(book.id)}
-                    >
-                      <FavoriteIcon
-                        sx={{
-                          color:
-                            Array.isArray(favouriteBookIds) &&
-                            favouriteBookIds.includes(book.id)
-                              ? "red"
-                              : "inherit",
-                        }}
-                      />
-                    </IconButton>
-                    <IconButton aria-label="shopping cart">
+                    <IconButton>
                       <ShoppingCartIcon />
                     </IconButton>
                     <Box sx={{ marginLeft: "auto" }}>
                       <Link
-                        to={`${book.id}`}
+                        to={`/app/author/books/${book.id}`}
                         style={{ textDecoration: "none" }}
                       >
                         <Typography
@@ -315,4 +225,4 @@ function BookListPage() {
   );
 }
 
-export default BookListPage;
+export default MyBooksPage;

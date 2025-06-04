@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, Query, Form, status, File, UploadFile, Request
+from fastapi import APIRouter, Depends, Query, Form, status, File, UploadFile, Request, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.future import select
 
 from schemas import BookCreate, BookDisplay, BookAverageRating, ReviewDisplay
 from database import get_db, get_async_db
@@ -10,9 +11,7 @@ from schemas.book import BookResponseSchema
 from services.auth_service import *
 from services.book_service import *
 
-
 router = APIRouter(prefix="/books", tags=["Books"])
-
 
 @router.post("/", response_model=BookDisplay, status_code=201)
 async def create_book(book_data: BookCreate, db: AsyncSession = Depends(get_db)):
@@ -29,7 +28,20 @@ async def get_all_books(
 ):
     return await book_service.get_all_books_service(db, genre, author, keywords, sort, direction)
 
-
+@router.get("/authored", response_model=list[BookDisplay]) 
+async def get_authored_books(
+    db: AsyncSession = Depends(get_async_db),
+    token_user: dict = Depends(get_current_user)
+):
+    result = await db.execute(
+        select(Book)
+        .options(
+            selectinload(Book.author).selectinload(User.roles) 
+        )
+        .where(Book.author_id == token_user["id"])
+    )
+    books = result.scalars().all()
+    return books
 
 @router.get("/favourites")
 async def get_favourites(
@@ -41,7 +53,6 @@ async def get_favourites(
     )
     user = result.scalar_one()
     return [book.id for book in user.favourite_books]
-
 
 @router.post("/favourites/{book_id}")
 async def add_to_favourites(
@@ -66,7 +77,6 @@ async def add_to_favourites(
     await db.commit()
     return {"detail": "Book added to favourites"}
 
-
 @router.delete("/favourites/{book_id}")
 async def remove_from_favourites(
     book_id: int,
@@ -89,7 +99,6 @@ async def remove_from_favourites(
     user.favourite_books = [b for b in user.favourite_books if b.id != book_id]
     await db.commit()
     return {"detail": "Book removed from favourites"}
-
 
 @router.get("/{book_id}", response_model=BookDisplay)
 async def get_book(book_id: int, db: AsyncSession = Depends(get_db)):
@@ -121,13 +130,13 @@ async def api_create_book_with_upload(
     categories = form.getlist("categories")
     author_id = current_user['id']
 
-    print("📥 [UPLOAD PRIMLJENO]")
+    print("\ud83d\udcc5 [UPLOAD RECEIVED]")
     print(f"• title = {title}")
     print(f"• description = {description}")
     print(f"• categories = {categories}")
     print(f"• file.filename = {book_file.filename}")
     print(f"• file.content_type = {book_file.content_type}")
-    print(f"• author_id = {author_id} (iz tokena)")
+    print(f"• author_id = {author_id} (from token)")
 
     try:
         new_book = await service_create_book_with_upload(
@@ -140,9 +149,8 @@ async def api_create_book_with_upload(
         )
 
         if not new_book:
-            raise HTTPException(status_code=500, detail="Greška prilikom kreiranja knjige.")
+            raise HTTPException(status_code=500, detail="Error while creating book.")
 
-        # ✅ Učitaj sve relacije prije serijalizacije
         result = await db.execute(
             select(Book)
             .where(Book.id == new_book.id)
@@ -154,9 +162,9 @@ async def api_create_book_with_upload(
         full_book = result.scalar_one_or_none()
 
         if not full_book:
-            raise HTTPException(status_code=500, detail="Kreirana knjiga nije pronađena.")
+            raise HTTPException(status_code=500, detail="Created book not found.")
 
-        print(f"✅ [USPJEH] Knjiga '{full_book.title}' uspješno kreirana sa ID = {full_book.id}")
+        print(f"✅ [SUCCESS] Book '{full_book.title}' successfully created with ID = {full_book.id}")
         return BookResponseSchema.from_orm(full_book)
 
     except HTTPException as e:
@@ -164,10 +172,10 @@ async def api_create_book_with_upload(
         raise e
 
     except Exception as e:
-        print(f"[EXCEPTION ❌] Neočekivana greška: {str(e)}")
+        print(f"[EXCEPTION ❌] Unexpected error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Došlo je do greške prilikom upload-a knjige."
+            detail="An error occurred during book upload."
         )
 
 @router.post("/{book_id}/increment-download")
@@ -176,9 +184,9 @@ async def increment_download(book_id: int, db: AsyncSession = Depends(get_async_
     book = result.scalar_one_or_none()
 
     if not book:
-        raise HTTPException(status_code=404, detail="Knjiga nije pronađena")
+        raise HTTPException(status_code=404, detail="Book not found")
 
     book.num_of_downloads += 1
     await db.commit()
     await db.refresh(book)
-    return {"message": "Download broj je povećan", "num_of_downloads": book.num_of_downloads}
+    return {"message": "Download count incremented", "num_of_downloads": book.num_of_downloads}
