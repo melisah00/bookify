@@ -1,7 +1,7 @@
 from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, joinedload
 from sqlalchemy import func
 
 from models import Book, User, Review
@@ -48,15 +48,16 @@ async def get_book_by_id(book_id: int, db: AsyncSession) -> Optional[Book]:
     return result.scalars().first()
 
 
+
 async def get_book_reviews(book_id: int, db: AsyncSession) -> List[Review]:
     result = await db.execute(
         select(Review)
-        .where(Review.book_id == book_id)
         .options(
-            selectinload(Review.user).selectinload(User.roles)  
+            joinedload(Review.user).joinedload(User.roles) 
         )
+        .where(Review.book_id == book_id)
     )
-    return result.scalars().all()
+    return result.unique().scalars().all()
 
 async def get_book_average_rating(book_id: int, db: AsyncSession) -> Optional[float]:
     result = await db.execute(

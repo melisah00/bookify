@@ -21,13 +21,15 @@ class BookDisplay(BaseModel):
     title: str
     path: str
     num_of_downloads: int
-    author: UserDisplay  
+    description: Optional[str] = None 
+    author: UserDisplay
+
     class Config:
         model_config = ConfigDict(from_attributes=True)
 
 class CategoryResponseSimpleSchema(BaseModel):
     id: int
-    category: str  # ← koristi pravo ime iz modela
+    category: str
 
     class Config:
         from_attributes = True

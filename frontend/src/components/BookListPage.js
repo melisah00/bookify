@@ -16,9 +16,9 @@ import {
 } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import { red } from "@mui/material/colors";
 import BookFilter from "./BookFilter";
 import { useAuth } from "../contexts/AuthContext";
+import DownloadForOfflineIcon from "@mui/icons-material/DownloadForOffline";
 
 function BookListPage() {
   const [books, setBooks] = useState([]);
@@ -31,6 +31,8 @@ function BookListPage() {
   const indexOfLastBook = currentPage * booksPerPage;
   const indexOfFirstBook = indexOfLastBook - booksPerPage;
   const currentBooks = books.slice(indexOfFirstBook, indexOfLastBook);
+  const { user } = useAuth();
+  const [favouriteBookIds, setFavouriteBookIds] = useState([]);
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -75,66 +77,66 @@ function BookListPage() {
       }
     };
 
-const fetchFavourites = async () => {
-  if (!user) return;
+    const fetchFavourites = async () => {
+      if (!user) return;
 
-  try {
-    const res = await fetch("http://localhost:8000/books/favourites", {
-      credentials: "include",
-    });
-    const data = await res.json();
+      try {
+        const res = await fetch("http://localhost:8000/books/favourites", {
+          credentials: "include",
+        });
+        const data = await res.json();
 
-    console.log("Fetched favourites:", data); // ✅ OVDE DODAJ LOG
+        console.log("Fetched favourites:", data); // ✅ OVDE DODAJ LOG
 
-    if (!Array.isArray(data)) {
-      console.error("Unexpected response:", data);
-      setFavouriteBookIds([]); // fallback prazno
-      return;
-    }
+        if (!Array.isArray(data)) {
+          console.error("Unexpected response:", data);
+          setFavouriteBookIds([]); // fallback prazno
+          return;
+        }
 
-    setFavouriteBookIds(data);
-  } catch (err) {
-    console.error("Failed to fetch favourites", err);
-    setFavouriteBookIds([]); // fallback
-  }
-};
+        setFavouriteBookIds(data);
+      } catch (err) {
+        console.error("Failed to fetch favourites", err);
+        setFavouriteBookIds([]); // fallback
+      }
+    };
 
     fetchBooks();
     fetchFavourites();
-  }, []);
+  }, [user]);
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const { user } = useAuth();
-const [favouriteBookIds, setFavouriteBookIds] = useState([]);
+  const toggleFavourite = async (bookId) => {
+    if (!user) {
+      alert("Please login to use favourites.");
+      return;
+    }
 
-const toggleFavourite = async (bookId) => {
-  if (!user) {
-    alert("Please login to use favourites.");
-    return;
-  }
+    const isFavourite = favouriteBookIds.includes(bookId);
 
-  const isFavourite = favouriteBookIds.includes(bookId);
+    try {
+      const response = await fetch(
+        `http://localhost:8000/books/favourites/${bookId}`,
+        {
+          method: isFavourite ? "DELETE" : "POST",
+          credentials: "include",
+        }
+      );
 
-  try {
-    const response = await fetch(`http://localhost:8000/books/favourites/${bookId}`, {
-      method: isFavourite ? "DELETE" : "POST",
-      credentials: "include",
-    });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail);
 
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.detail);
-
-    setFavouriteBookIds((prev) =>
-      isFavourite ? prev.filter((id) => id !== bookId) : [...prev, bookId]
-    );
-  } catch (err) {
-    alert(err.message || "Something went wrong.");
-  }
-};
+      setFavouriteBookIds((prev) =>
+        isFavourite ? prev.filter((id) => id !== bookId) : [...prev, bookId]
+      );
+    } catch (err) {
+      alert(err.message || "Something went wrong.");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -213,44 +215,65 @@ const toggleFavourite = async (bookId) => {
                   />
                   <CardContent>
                     <Box sx={{ display: "flex", alignItems: "center" }}>
-                      {[1, 2, 3, 4, 5].map((star) => (
+                      {/* Star Rating */}
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Typography
+                            key={star}
+                            sx={{
+                              color:
+                                star <= Math.round(book.average_rating || 0)
+                                  ? "#ffc107"
+                                  : "#e0e0e0",
+                              fontSize: "1.2rem",
+                            }}
+                          >
+                            ★
+                          </Typography>
+                        ))}
                         <Typography
-                          key={star}
-                          sx={{
-                            color:
-                              star <= Math.round(book.average_rating || 0)
-                                ? "#ffc107"
-                                : "#e0e0e0",
-                            fontSize: "1.2rem",
-                          }}
+                          variant="caption"
+                          sx={{ ml: 1, color: "text.secondary" }}
                         >
-                          ★
+                          {book.average_rating != null
+                            ? `(${book.average_rating.toFixed(1)})`
+                            : "(N/A)"}
                         </Typography>
-                      ))}
-                      <Typography
-                        variant="caption"
-                        sx={{ ml: 1, color: "text.secondary" }}
+                      </Box>
+                      <Box
+                        sx={{
+                          marginLeft: "auto",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px",
+                          color: "text.secondary",
+                        }}
                       >
-                        {book.average_rating != null
-                          ? `(${book.average_rating.toFixed(1)})`
-                          : "(N/A)"}
-                      </Typography>
+                        <DownloadForOfflineIcon
+                          sx={{ fontSize: 18, color: "#6c757d" }}
+                        />
+                        <Typography variant="caption">
+                          {book.num_of_downloads}
+                        </Typography>
+                      </Box>
                     </Box>
                   </CardContent>
 
                   <CardActions sx={{ px: 2, pb: 2 }}>
-                  <IconButton
-                    aria-label="add to favorites"
-                    onClick={() => toggleFavourite(book.id)}
-                  >
-                  <FavoriteIcon
-                     sx={{
-                      color: Array.isArray(favouriteBookIds) && favouriteBookIds.includes(book.id)
-                        ? "red"
-                        : "inherit",
-                    }}
-                  />
-                  </IconButton>
+                    <IconButton
+                      aria-label="add to favorites"
+                      onClick={() => toggleFavourite(book.id)}
+                    >
+                      <FavoriteIcon
+                        sx={{
+                          color:
+                            Array.isArray(favouriteBookIds) &&
+                            favouriteBookIds.includes(book.id)
+                              ? "red"
+                              : "inherit",
+                        }}
+                      />
+                    </IconButton>
                     <IconButton aria-label="shopping cart">
                       <ShoppingCartIcon />
                     </IconButton>
