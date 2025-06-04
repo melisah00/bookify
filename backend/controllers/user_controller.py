@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy.future import select 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File 
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -14,7 +14,6 @@ from sqlalchemy.orm import selectinload
 from schemas.user import UserUpdateRequest
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -212,3 +211,18 @@ async def count_following(user_id: int, db: AsyncSession = Depends(get_async_db)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return {"following_count": len(user.following)}
+
+@router.post("/avatar", response_model=UserOut)
+async def upload_avatar(
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user),
+):
+    return await user_service.upload_avatar_service(file, db, current_user)
+
+@router.delete("/avatar")
+async def delete_avatar(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return await user_service.delete_avatar_service(db, current_user)

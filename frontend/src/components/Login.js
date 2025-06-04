@@ -103,13 +103,14 @@ export default function Login() {
         throw new Error(errData.detail || "Login failed");
       }
 
-      const meRes = await fetch("http://localhost:8000/auth/user-info", {
+      const meRes = await fetch("http://localhost:8000/users/profile", {
         credentials: "include",
       });
 
       if (!meRes.ok) throw new Error("Failed to fetch user info");
 
       const currentUser = await meRes.json();
+
       const roles = Array.isArray(currentUser.roles)
         ? currentUser.roles.map((r) =>
             typeof r === "string" ? r : r.name || r.role_name || r.value || ""

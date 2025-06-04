@@ -1,4 +1,3 @@
-// src/App.jsx
 import React from "react";
 import AppRoutes from "./AppRoutes";
 import { AuthProvider } from "./contexts/AuthContext";
