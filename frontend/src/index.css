@@ -1,13 +1,328 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap');
+
+@layer base {
+  :root {
+    --spring-wood: #f8f6f1;
+    --gray-nurse: #e1eae5;
+    --moss-green: #a7d7b8;
+    --moss-green-dark: #86b697;
+    --moss-green-darker: #76a687;
+    --tradewind: #66b2a0;
+    --como: #4e796b;
+    
+    --primary: var(--como);
+    --secondary: var(--tradewind);
+    --accent: var(--moss-green);
+    --background: var(--spring-wood);
+    --light-bg: var(--gray-nurse);
+  }
+
+  body {
+    font-family: 'Google Sans', 'Roboto', sans-serif;
+    background-color: var(--background);
+    color: #333;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--background);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--light-bg);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+  }
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+@layer components {
+  .btn-primary {
+    @apply bg-como text-white hover:bg-tradewind transition-colors duration-200;
+  }
+
+  .btn-secondary {
+    @apply bg-tradewind text-white transition-colors duration-200;
+  }
+
+  .badge-going {
+    @apply bg-moss-green text-white;
+  }
+
+  .badge-interested {
+    @apply bg-tradewind text-white;
+  }
+
+  .badge-not-going {
+    @apply bg-orange-600 text-white;
+  }
+
+  .event-card {
+    @apply border-l-4 border-moss-green transition-all duration-300 ease-in-out;
+  }
+
+  .event-card:hover {
+    @apply -translate-y-1 shadow-lg;
+  }
+
+  .calendar-header {
+    background: var(--moss-green);
+  }
+
+  .view-toggle-btn {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  .view-toggle-btn.active {
+    background-color: var(--spring-wood);
+    color: var(--moss-green-darker);
+    @apply font-medium;
+  }
+
+  .view-toggle-btn:not(.active) {
+    background-color: transparent;
+    color: var(--spring-wood);
+  }
+
+  .view-toggle-btn:hover:not(.active) {
+    background-color: rgba(248, 246, 241, 0.2);
+  }
+
+  .nav-btn {
+    @apply transition-all duration-200 ease-in-out;
+    background-color: rgba(248, 246, 241, 0.2);
+    color: var(--spring-wood);
+  }
+
+  .nav-btn:hover {
+    background-color: rgba(248, 246, 241, 0.3);
+  }
+
+  .action-btn-primary {
+    background-color: var(--spring-wood);
+    color: var(--moss-green-darker);
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  .action-btn-primary:hover {
+    background-color: #eae8e3;
+  }
+
+  .action-btn-secondary {
+    background-color: rgba(248, 246, 241, 0.2);
+    color: var(--spring-wood);
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  .action-btn-secondary:hover {
+    background-color: rgba(248, 246, 241, 0.3);
+  }
+
+  .event-pill {
+    background-color: var(--secondary);
+    @apply opacity-90 transition-all duration-200 ease-in-out;
+  }
+
+  .event-pill:hover {
+    @apply opacity-100 -translate-y-px;
+  }
+
+  .filter-chip {
+    background-color: var(--moss-green);
+    color: var(--spring-wood);
+    @apply transition-all duration-200 ease-in-out font-medium shadow-sm;
+    border: 1px solid var(--moss-green);
+  }
+
+  .filter-chip:hover {
+    background-color: #96c6a7;
+    border-color: #96c6a7;
+    color: var(--spring-wood);
+    @apply shadow-md;
+  }
+
+  .filter-chip.active {
+    background-color: #86b697;
+    border-color: #86b697;
+    color: var(--spring-wood);
+    @apply font-semibold shadow-md;
+  }
+
+  .hero-section {
+    @apply relative overflow-hidden;
+  }
+
+  .hero-content {
+    @apply relative z-10;
+  }
+
+  .hero-overlay {
+    @apply absolute inset-0 opacity-90;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+  }
+
+  .hero-pattern {
+    background-color: var(--primary);
+    background-image: radial-gradient(var(--secondary) 0.5px, transparent 0.5px), radial-gradient(var(--secondary) 0.5px, var(--primary) 0.5px);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+    @apply opacity-80;
+  }
+
+  .io-card {
+    @apply rounded-2xl overflow-hidden transition-all duration-300 ease-in-out;
+  }
+
+  .io-card:hover {
+    @apply -translate-y-1;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  .io-card-image {
+    @apply h-48 overflow-hidden;
+  }
+
+  .io-card-image img {
+    @apply w-full h-full object-cover transition-transform duration-500 ease-in-out;
+  }
+
+  .io-card:hover .io-card-image img {
+    @apply scale-105;
+  }
+
+  .io-card-content {
+    @apply p-6;
+  }
+
+  .io-badge {
+    @apply inline-block px-3 py-1 rounded-2xl text-xs font-medium uppercase tracking-wider;
+  }
+
+  .io-title {
+    @apply text-2xl font-medium my-3;
+    color: var(--primary);
+  }
+
+  .io-info {
+    @apply flex items-center mb-2 text-gray-600;
+  }
+
+  .io-info svg {
+    @apply w-4 h-4 mr-2;
+  }
+
+  .io-action {
+    @apply mt-4 flex justify-between items-center;
+  }
+
+  .io-button {
+    @apply px-4 py-2 rounded-3xl font-medium transition-all duration-200 ease-in-out;
+  }
+
+  .io-button-primary {
+    background-color: var(--primary);
+    @apply text-white;
+  }
+
+  .io-button-primary:hover {
+    background-color: var(--secondary);
+  }
+
+  .io-button-secondary {
+    background-color: var(--light-bg);
+    color: var(--primary);
+  }
+
+  .io-button-secondary:hover {
+    background-color: var(--gray-nurse);
+  }
+
+  .io-tags {
+    @apply flex flex-wrap gap-2 mt-4;
+  }
+
+  .io-tag {
+    background-color: var(--light-bg);
+    color: var(--primary);
+    @apply px-3 py-1 rounded-2xl text-xs;
+  }
+
+  .month-view .day {
+    @apply min-h-32 border border-gray-nurse;
+  }
+
+  .month-view .day:hover {
+    background-color: rgba(143, 154, 91, 0.05);
+  }
+
+  .week-view .hour-slot {
+    @apply h-16 border-b border-gray-nurse;
+  }
+
+  .fade-in {
+    @apply animate-fadeIn;
+  }
+
+   /* Add animation class */
+   .animate-fadeIn {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  /* Ensure min-height classes work */
+  .min-h-32 {
+    min-height: 8rem;
+  }
+  
+  /* Fix border classes */
+  .border-gray-nurse {
+    border-color: var(--gray-nurse);
+  }
+  
+  /* Add text color utilities */
+  .text-spring-wood {
+    color: var(--spring-wood);
+  }
+  
+  /* Add background color utilities */
+  .bg-moss-green {
+    background-color: var(--moss-green);
+  }
+  
+  .bg-moss-green-dark {
+    background-color: var(--moss-green-dark);
+  }
+  
+  .bg-spring-wood {
+    background-color: var(--spring-wood);
+  }
+  
+  .bg-gray-nurse {
+    background-color: var(--gray-nurse);
+  }
+  
+  .bg-como {
+    background-color: var(--como);
+  }
+  
+  .bg-tradewind {
+    background-color: var(--tradewind);
+  }
+  
+  /* Add text color utilities */
+  .text-como {
+    color: var(--como);
+  }
 }

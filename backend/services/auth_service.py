@@ -91,3 +91,26 @@ async def get_current_user_for_favourites(
 
     except JWTError:
         raise credentials_exception
+    
+async def get_current_user_object(
+    token: str = Cookie(default=None),
+    db: AsyncSession = Depends(get_async_db)
+) -> User:
+    """Get current user as a User object (not dict)"""
+    if not token:
+        raise credentials_exception
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("id")
+        if not user_id:
+            raise credentials_exception
+
+        user = await db.get(User, user_id)
+        if not user:
+            raise credentials_exception
+
+        return user
+
+    except JWTError:
+        raise credentials_exception
