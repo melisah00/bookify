@@ -18,6 +18,7 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useAuth } from "../contexts/AuthContext";
 import BookFilter from "../components/BookFilter";
 import { Link } from "react-router-dom";
+import DownloadForOfflineIcon from "@mui/icons-material/DownloadForOffline";
 
 function FavouriteBooksPage() {
   const [books, setBooks] = useState([]);
@@ -200,6 +201,23 @@ function FavouriteBooksPage() {
                           ? `(${book.average_rating.toFixed(1)})`
                           : "(N/A)"}
                       </Typography>
+
+                      <Box
+                        sx={{
+                          marginLeft: "auto",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px",
+                          color: "text.secondary",
+                        }}
+                      >
+                        <DownloadForOfflineIcon
+                          sx={{ fontSize: 18, color: "#6c757d" }}
+                        />
+                        <Typography variant="caption">
+                          {book.num_of_downloads}
+                        </Typography>
+                      </Box>
                     </Box>
                   </CardContent>
                   <CardActions sx={{ px: 2, pb: 2 }}>
