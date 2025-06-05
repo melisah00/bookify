@@ -212,6 +212,25 @@ async def count_following(user_id: int, db: AsyncSession = Depends(get_async_db)
         raise HTTPException(status_code=404, detail="User not found")
     return {"following_count": len(user.following)}
 
+@router.get("/followers/{user_id}", response_model=List[UserOut])
+async def get_followers(user_id: int, db: AsyncSession = Depends(get_async_db)):
+    stmt = select(User).where(User.id == user_id).options(selectinload(User.followers))
+    result = await db.execute(stmt)
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user.followers
+
+
+@router.get("/following/{user_id}", response_model=List[UserOut])
+async def get_following(user_id: int, db: AsyncSession = Depends(get_async_db)):
+    stmt = select(User).where(User.id == user_id).options(selectinload(User.following))
+    result = await db.execute(stmt)
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user.following
+
 @router.post("/avatar", response_model=UserOut)
 async def upload_avatar(
     file: UploadFile = File(...),
