@@ -310,9 +310,11 @@ function SingleBookDisplayPage() {
           <div style={pageStyles.gridContainer}>
             <div style={pageStyles.bookInfoSection}>
               <div style={pageStyles.authorInfo}>
-                <div style={pageStyles.authorAvatar}>
-                  {book.author?.username[0]?.toUpperCase()}
-                </div>
+                <img
+                  src={`http://localhost:8000${book.author?.icon}`}
+                  alt="Author Avatar"
+                  style={pageStyles.authorAvatar}
+                />
                 <div>
                   <h3 style={{ margin: 0 }}>{book.author?.username}</h3>
                   <small style={{ color: "#868e96" }}>Author</small>
