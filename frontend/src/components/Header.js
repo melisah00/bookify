@@ -15,7 +15,7 @@ import LogoutButton from "./LogoutButton";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import CircularProgress from "@mui/material/CircularProgress";
-import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import palette from "../theme/palette";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -31,11 +31,9 @@ export default function Header() {
 
   const { user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const pathParts = location.pathname.split("/");
-  const roleFromPath = pathParts[2] || "reader";
-  const profilePath = `/app/${roleFromPath}/profile`;
+  const userRole = user?.roles?.[0] || "reader";
+  const profilePath = `/app/${userRole}/profile`;
 
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
@@ -136,7 +134,9 @@ export default function Header() {
             display: { xs: "none", sm: "block" },
             fontWeight: "bold",
             color: "rgb(248,246,241)",
-          }}>
+            cursor: "pointer"
+          }}
+          onClick={() => navigate(`/app/${userRole}/home`)}>
             BOOKIFY
           </Typography>
 
@@ -153,7 +153,7 @@ export default function Header() {
               onInputChange={(e, val) => setInputValue(val)}
               onChange={(e, selectedUser) => {
                 if (selectedUser) {
-                  navigate(`/app/${roleFromPath}/user/${selectedUser.id}`);
+                  navigate(`/app/${userRole}/user/${selectedUser.id}`);
                   setInputValue("");
                   setOptions([]);
                 }
@@ -177,9 +177,9 @@ export default function Header() {
                     src={option.icon ? `http://localhost:8000${option.icon}` : undefined}
                     sx={{ width: 32, height: 32, fontSize: 14, bgcolor: "#66b2a0" }}
                   >
-                  {option.first_name && option.last_name
-                    ? `${option.first_name[0].toUpperCase()}${option.last_name[0].toUpperCase()}`
-                    : "NN"}
+                    {option.first_name && option.last_name
+                      ? `${option.first_name[0].toUpperCase()}${option.last_name[0].toUpperCase()}`
+                      : "NN"}
                   </Avatar>
                   <Box>
                     <Typography variant="body2">
