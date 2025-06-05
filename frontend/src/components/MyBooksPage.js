@@ -127,7 +127,7 @@ function MyBooksPage() {
                       </Avatar>
                     }
                     title={book.title}
-                    subheader={book.author?.username || "Unknown Author"}
+                    subheader={user?.username || "Unknown Author"}
                   />
                   <CardMedia
                     component="img"
