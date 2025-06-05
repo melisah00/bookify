@@ -6,18 +6,16 @@ import {
   CardContent,
   CardActions,
   Avatar,
-  IconButton,
   Typography,
   Grid,
   Container,
   Box,
   Pagination,
 } from "@mui/material";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import DownloadForOfflineIcon from "@mui/icons-material/DownloadForOffline";
 import { useAuth } from "../contexts/AuthContext";
 import BookFilter from "../components/BookFilter";
 import { Link } from "react-router-dom";
-import DownloadForOfflineIcon from "@mui/icons-material/DownloadForOffline";
 
 function MyBooksPage() {
   const [books, setBooks] = useState([]);
@@ -40,31 +38,8 @@ function MyBooksPage() {
           credentials: "include",
         });
         const authoredBooks = await res.json();
-
-        const booksWithRatings = await Promise.all(
-          authoredBooks.map(async (book) => {
-            try {
-              const ratingRes = await fetch(
-                `http://localhost:8000/books/${book.id}/average-rating`
-              );
-              const ratingData = await ratingRes.json();
-              return {
-                ...book,
-                average_rating: ratingData.average_rating,
-                reviewCount: ratingData.review_count || 0,
-              };
-            } catch {
-              return {
-                ...book,
-                average_rating: null,
-                reviewCount: 0,
-              };
-            }
-          })
-        );
-
-        setOriginalBooks(booksWithRatings);
-        setBooks(booksWithRatings);
+        setOriginalBooks(authoredBooks);
+        setBooks(authoredBooks);
       } catch (err) {
         setError("Failed to load your books.");
       } finally {
@@ -79,6 +54,16 @@ function MyBooksPage() {
     setCurrentPage(value);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  if (isLoading) {
+    return (
+      <Container sx={{ mt: 6, pb: 6 }}>
+        <Typography align="center" variant="h6" color="text.secondary">
+          Loading books...
+        </Typography>
+      </Container>
+    );
+  }
 
   return (
     <Container sx={{ mt: 6, pb: 6 }}>
@@ -97,20 +82,23 @@ function MyBooksPage() {
         My Uploaded Books
       </Typography>
 
-      <Box sx={{ my: 4 }}>
-        <BookFilter baseBooks={originalBooks} onResults={setBooks} />
-      </Box>
-
-      {isLoading ? (
-        <Typography align="center">Loading...</Typography>
-      ) : error ? (
+      {error ? (
         <Typography align="center" color="error">
           {error}
         </Typography>
       ) : books.length === 0 ? (
-        <Typography align="center">No books found.</Typography>
+        <>
+          <Box sx={{ my: 4 }}>
+            <BookFilter baseBooks={originalBooks} onResults={setBooks} />
+          </Box>
+          <Typography align="center">No books found.</Typography>
+        </>
       ) : (
         <>
+          <Box sx={{ my: 4 }}>
+            <BookFilter baseBooks={originalBooks} onResults={setBooks} />
+          </Box>
+
           <Grid container spacing={4} justifyContent="center">
             {currentBooks.map((book) => (
               <Grid item key={book.id} xs={12} sm={6} md={4} lg={3}>
@@ -126,8 +114,16 @@ function MyBooksPage() {
                 >
                   <CardHeader
                     avatar={
-                      <Avatar sx={{ bgcolor: "#66b2a0" }}>
-                        {book.author?.username?.[0]?.toUpperCase() || "A"}
+                      <Avatar
+                        src={
+                          user?.icon
+                            ? `http://localhost:8000${user.icon}`
+                            : undefined
+                        }
+                        sx={{ bgcolor: "#66b2a0" }}
+                      >
+                        {!user?.icon &&
+                          (user?.username?.[0]?.toUpperCase() || "A")}
                       </Avatar>
                     }
                     title={book.title}

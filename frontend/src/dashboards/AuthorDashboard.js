@@ -16,6 +16,8 @@ import ProtectedLayout from "../ProtectedLayout";
 import FavouriteBooksPage from "../components/FavouriteBooksPage";
 import UserProfile from "../components/UserProfile";
 import MyBooksPage from "../components/MyBooksPage";
+import AuthorAnalyticsPage from "../components/AuthorAnalyticsPage";
+import TopPerformingBooksPage from "../pages/TopPerformingBooksPage";
 
 export default function AuthorDashboard() {
   const { user, loading } = useAuth();
@@ -71,6 +73,11 @@ export default function AuthorDashboard() {
                 <Route path="*" element={<Navigate to="" replace />} />
 
                 <Route path="my-books" element={<MyBooksPage />} />
+                <Route path="analytics" element={<AuthorAnalyticsPage />} />
+                <Route
+                  path="analytics/top-books"
+                  element={<TopPerformingBooksPage />}
+                />
               </Routes>
             </Box>
           </Box>

@@ -21,9 +21,10 @@ class BookDisplay(BaseModel):
     title: str
     path: str
     num_of_downloads: int
-    description: Optional[str] = None 
+    description: Optional[str] = None
     author: UserDisplay
-
+    average_rating: Optional[float] = None 
+    review_count: Optional[int] = None     
     class Config:
         model_config = ConfigDict(from_attributes=True)
 
@@ -46,3 +47,14 @@ class BookResponseSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+class BookAnalytics(BaseModel):
+    id: int
+    title: str
+    num_of_downloads: int
+    average_rating: float | None
+    review_count: int
+    favourite_count: int
+
+    class Config:
+        orm_mode = True
