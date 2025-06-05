@@ -16,6 +16,7 @@ class UserBase(BaseModel):
     username: str
     email: EmailStr
     roles: Optional[List[Role]] = None
+    icon: Optional[str] = None
 
 
 class UserCreate(UserBase):

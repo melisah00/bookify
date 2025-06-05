@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import eventService from '../../services/eventService';
-import './RSVPButton.css';
+import React, { useState, useEffect } from "react";
+import eventService from "../../services/eventService";
+import "./RSVPButton.css";
 
 const RSVPButton = ({ eventId, userId, onRSVPChange, disabled = false }) => {
   const [currentStatus, setCurrentStatus] = useState(null);
@@ -16,13 +16,13 @@ const RSVPButton = ({ eventId, userId, onRSVPChange, disabled = false }) => {
       const response = await eventService.getUserRSVPStatus(eventId, userId);
       setCurrentStatus(response.status);
     } catch (error) {
-      console.error('Error fetching RSVP status:', error);
+      console.error("Error fetching RSVP status:", error);
     }
   };
 
   const handleRSVP = async (status) => {
     if (disabled) return;
-    
+
     setLoading(true);
     try {
       const response = await eventService.rsvpToEvent(eventId, status, userId);
@@ -36,8 +36,8 @@ const RSVPButton = ({ eventId, userId, onRSVPChange, disabled = false }) => {
         alert(response.message);
       }
     } catch (error) {
-      console.error('Error updating RSVP:', error);
-      alert('Failed to update RSVP. Please try again.');
+      console.error("Error updating RSVP:", error);
+      alert("Failed to update RSVP. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -59,7 +59,7 @@ const RSVPButton = ({ eventId, userId, onRSVPChange, disabled = false }) => {
           >
             <span className="status-icon">{currentStatusInfo.icon}</span>
             <span className="status-text">{currentStatusInfo.label}</span>
-            <span className="dropdown-arrow">{showOptions ? '▲' : '▼'}</span>
+            <span className="dropdown-arrow">{showOptions ? "▲" : "▼"}</span>
           </button>
         ) : (
           <button
@@ -68,7 +68,7 @@ const RSVPButton = ({ eventId, userId, onRSVPChange, disabled = false }) => {
             disabled={disabled || loading}
           >
             <span>RSVP</span>
-            <span className="dropdown-arrow">{showOptions ? '▲' : '▼'}</span>
+            <span className="dropdown-arrow">{showOptions ? "▲" : "▼"}</span>
           </button>
         )}
 
@@ -78,7 +78,7 @@ const RSVPButton = ({ eventId, userId, onRSVPChange, disabled = false }) => {
               <button
                 key={option.value}
                 className={`rsvp-option ${option.value} ${
-                  currentStatus === option.value ? 'selected' : ''
+                  currentStatus === option.value ? "selected" : ""
                 }`}
                 onClick={() => handleRSVP(option.value)}
                 disabled={loading}
