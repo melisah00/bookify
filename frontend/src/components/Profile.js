@@ -1,4 +1,5 @@
-import React from "react";
+//src/components/Profile.js
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Card,
@@ -13,11 +14,34 @@ import EditIcon from "@mui/icons-material/Edit";
 import { useAuth } from "../contexts/AuthContext";
 import EditProfileDialog from "./EditProfileDialog";
 import ChangePictureDialog from "./ChangePictureDialog";
+import FollowersDialog from './FollowersDialog';
 
 export default function Profile() {
   const { user, loading } = useAuth();
   const [editOpen, setEditOpen] = React.useState(false);
   const [pictureDialogOpen, setPictureDialogOpen] = React.useState(false);
+  const [followersOpen, setFollowersOpen] = React.useState(false);
+  const [followingOpen, setFollowingOpen] = React.useState(false);
+  const [followersCount, setFollowersCount] = useState(null);
+  const [followingCount, setFollowingCount] = useState(null);
+
+  useEffect(() => {
+    if (!user) return;
+
+    fetch(`http://localhost:8000/users/count-followers/${user.id}`, {
+      credentials: "include",
+    })
+      .then((res) => res.json())
+      .then((data) => setFollowersCount(data.followers_count))
+      .catch((err) => console.error(err));
+
+    fetch(`http://localhost:8000/users/count-following/${user.id}`, {
+      credentials: "include",
+    })
+      .then((res) => res.json())
+      .then((data) => setFollowingCount(data.following_count))
+      .catch((err) => console.error(err));
+  }, [user]);
 
   if (loading) {
     return (
@@ -64,6 +88,56 @@ export default function Profile() {
               </Typography>
             </Box>
           </Box>
+
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-around",
+              bgcolor: "rgba(102,178,160, 0.08)",
+              borderRadius: 2,
+              py: 2,
+              my: 1,
+              textAlign: "center",
+            }}
+          >
+            <Box>
+              <Typography
+                variant="h6"
+                sx={{ color: "#66b2a0", fontWeight: 700 }}
+              >
+                {followersCount !== null ? followersCount : "-"}
+              </Typography>
+              <Button variant="text" onClick={() => setFollowersOpen(true)} sx={{ fontSize: 12, fontWeight: 600, color: "#66b2a0" }}>
+                Followers
+              </Button>
+            </Box>
+            <Box>
+              <Typography
+                variant="h6"
+                sx={{ color: "#66b2a0", fontWeight: 700 }}
+              >
+                {followingCount !== null ? followingCount : "-"}
+              </Typography>
+              <Button variant="text" onClick={() => setFollowingOpen(true)} sx={{ fontSize: 12, fontWeight: 600, color: "#66b2a0" }}>
+                Following
+              </Button>
+            </Box>
+          </Box>
+
+          <FollowersDialog
+            open={followersOpen}
+            onClose={() => setFollowersOpen(false)}
+            userId={user.id}
+            type="followers"
+            title="Your Followers"
+          />
+          <FollowersDialog
+            open={followingOpen}
+            onClose={() => setFollowingOpen(false)}
+            userId={user.id}
+            type="following"
+            title="Users You Follow"
+          />
 
           <Box
             sx={{
