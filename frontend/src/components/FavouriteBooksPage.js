@@ -154,7 +154,8 @@ function FavouriteBooksPage() {
               <Grid item key={book.id} xs={12} sm={6} md={4} lg={3}>
                 <Card
                   sx={{
-                    height: "100%",
+                    height: 420,
+                    maxWidth: 260,
                     display: "flex",
                     flexDirection: "column",
                     boxShadow: 3,
