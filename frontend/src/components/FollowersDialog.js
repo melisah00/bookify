@@ -12,7 +12,7 @@ import {
   Typography,
   Box
 } from '@mui/material';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function FollowersDialog({ open, onClose, userId, title, type }) {
@@ -21,12 +21,10 @@ export default function FollowersDialog({ open, onClose, userId, title, type }) 
   const [followersCount, setFollowersCount] = useState(null);
   const [followingCount, setFollowingCount] = useState(null);
   const navigate = useNavigate();
-  const location = useLocation();
   const { user: loggedInUser } = useAuth();
 
-  const pathParts = location.pathname.split("/");
-  const roleFromPath = pathParts[2] || "reader";
-  const profilePath = `/app/${roleFromPath}/profile`;
+  const userRole = loggedInUser?.roles?.[0] || "reader";
+  const profilePath = `/app/${userRole}/profile`;
 
   useEffect(() => {
     if (!open) return;
@@ -54,7 +52,6 @@ export default function FollowersDialog({ open, onClose, userId, title, type }) 
       .then(res => res.json())
       .then(data => setFollowingCount(data.following_count))
       .catch(err => console.error(err));
-
   }, [open, userId, type]);
 
   const handleClick = (selectedUser) => {
@@ -62,7 +59,7 @@ export default function FollowersDialog({ open, onClose, userId, title, type }) 
     if (loggedInUser && selectedUser.id === loggedInUser.id) {
       navigate(profilePath);
     } else {
-      navigate(`/app/${roleFromPath}/user/${selectedUser.id}`);
+      navigate(`/app/${userRole}/user/${selectedUser.id}`);
     }
   };
 
