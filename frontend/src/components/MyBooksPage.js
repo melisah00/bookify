@@ -183,12 +183,14 @@ function MyBooksPage() {
                       </Box>
                     </Box>
                   </CardContent>
-
                   <CardActions sx={{ px: 2, pb: 2 }}>
-                    <IconButton>
-                      <ShoppingCartIcon />
-                    </IconButton>
-                    <Box sx={{ marginLeft: "auto" }}>
+                    <Box
+                      sx={{
+                        width: "100%",
+                        display: "flex",
+                        justifyContent: "center",
+                      }}
+                    >
                       <Link
                         to={`/app/author/books/${book.id}`}
                         style={{ textDecoration: "none" }}
