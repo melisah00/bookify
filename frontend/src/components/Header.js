@@ -29,7 +29,7 @@ export default function Header() {
   const [inputValue, setInputValue] = React.useState("");
   const [loadingUsers, setLoadingUsers] = React.useState(false);
 
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -162,9 +162,33 @@ export default function Header() {
                 ? `${option.first_name !== "N/A" ? option.first_name : ""} ${option.last_name !== "N/A" ? option.last_name : ""} (@${option.username})`.trim()
                 : ""}
               renderOption={(props, option) => (
-                <Box component="li" {...props} key={option.id}>
-                  <strong>@{option.username}</strong>&nbsp;
-                  <span>{option.first_name} {option.last_name}</span>
+                <Box
+                  component="li"
+                  {...props}
+                  key={option.id}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    py: 0.5,
+                  }}
+                >
+                  <Avatar
+                    src={option.icon ? `http://localhost:8000${option.icon}` : undefined}
+                    sx={{ width: 32, height: 32, fontSize: 14, bgcolor: "#66b2a0" }}
+                  >
+                  {option.first_name && option.last_name
+                    ? `${option.first_name[0].toUpperCase()}${option.last_name[0].toUpperCase()}`
+                    : "NN"}
+                  </Avatar>
+                  <Box>
+                    <Typography variant="body2">
+                      <strong>@{option.username}</strong>
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {option.first_name} {option.last_name}
+                    </Typography>
+                  </Box>
                 </Box>
               )}
               noOptionsText="No users found"
@@ -236,11 +260,14 @@ export default function Header() {
               onClick={handleProfileMenuOpen}
               color="inherit"
             >
-              {user?.icon ? (
-                <Avatar src={`http://localhost:8000${user.icon}`} sx={{ width: 32, height: 32 }} />
-              ) : (
-                <AccountCircle />
-              )}
+              <Avatar
+                src={user?.icon ? `http://localhost:8000${user.icon}` : undefined}
+                sx={{ width: 32, height: 32, fontSize: 14, bgcolor: "#66b2a0" }}
+              >
+                {user?.first_name && user?.last_name
+                  ? `${user.first_name[0]}${user.last_name[0]}`
+                  : "NN"}
+              </Avatar>
             </IconButton>
           </Box>
 

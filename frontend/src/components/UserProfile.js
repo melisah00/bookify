@@ -128,22 +128,22 @@ export default function UserProfile() {
               borderRadius: 2,
             }}
           >
-            <Avatar
-              sx={{
-                bgcolor: palette.backgroundLight,
-                width: 60,
-                height: 60,
-                color: palette.accentMedium,
-                border: `2px solid ${palette.backgroundLight}`,
-              }}
-              src={user?.avatarUrl || ""}
-            >
-              {user?.first_name && user?.last_name ? (
-                `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`
-              ) : (
-                <PersonIcon sx={{ fontSize: 26 }} />
-              )}
-            </Avatar>
+          <Avatar
+            sx={{
+              bgcolor: palette.backgroundLight,
+              width: 60,
+              height: 60,
+              color: palette.accentMedium,
+              border: `2px solid ${palette.backgroundLight}`,
+            }}
+            src={user?.icon ? `http://localhost:8000${user.icon}` : undefined}
+          >
+            {user?.first_name && user?.last_name ? (
+              `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`
+            ) : (
+              <PersonIcon sx={{ fontSize: 26 }} />
+            )}
+          </Avatar>
             <Box>
               <Typography variant="h5" fontWeight={700} color={palette.backgroundLight}>
                 @{user.username}
