@@ -74,7 +74,10 @@ export default function Header() {
       transformOrigin={{ vertical: "top", horizontal: "right" }}
     >
       <MenuItem onClick={handleMenuClose}>
-        <NavLink to={profilePath} style={{ textDecoration: "none", color: "inherit" }}>
+        <NavLink
+          to={profilePath}
+          style={{ textDecoration: "none", color: "inherit" }}
+        >
           Profile
         </NavLink>
       </MenuItem>
@@ -119,33 +122,49 @@ export default function Header() {
 
   return (
     <Box sx={{ width: "100%" }}>
-      <AppBar position="fixed" sx={{
-        bgcolor: "rgb(102,178,160)",
-        color: "white",
-        boxShadow: "0 4px 12px rgba(255, 255, 255, 0.3)",
-        zIndex: (theme) => theme.zIndex.drawer + 1,
-        borderLeft: "1px solid rgba(255,255,255,0.3)",
-      }}>
+      <AppBar
+        position="fixed"
+        sx={{
+          bgcolor: "rgb(102,178,160)",
+          color: "white",
+          boxShadow: "0 4px 12px rgba(255, 255, 255, 0.3)",
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          borderLeft: "1px solid rgba(255,255,255,0.3)",
+        }}
+      >
         <Toolbar>
-          <Box component="img" src="/Book.png" alt="Bookify Logo" sx={{
-            width: 40, height: 40, mr: 1, filter: "brightness(0) invert(1)",
-          }} />
-          <Typography variant="h6" sx={{
-            display: { xs: "none", sm: "block" },
-            fontWeight: "bold",
-            color: "rgb(248,246,241)",
-            cursor: "pointer"
-          }}
-          onClick={() => navigate(`/app/${userRole}/home`)}>
+          <Box
+            component="img"
+            src="/Book.png"
+            alt="Bookify Logo"
+            sx={{
+              width: 40,
+              height: 40,
+              mr: 1,
+              filter: "brightness(0) invert(1)",
+            }}
+          />
+          <Typography
+            variant="h6"
+            sx={{
+              display: { xs: "none", sm: "block" },
+              fontWeight: "bold",
+              color: "rgb(248,246,241)",
+              cursor: "pointer",
+            }}
+            onClick={() => navigate(`/`)}
+          >
             BOOKIFY
           </Typography>
 
-          <Box sx={{
-            flexGrow: 1,
-            display: "flex",
-            justifyContent: "center",
-            mx: 4,
-          }}>
+          <Box
+            sx={{
+              flexGrow: 1,
+              display: "flex",
+              justifyContent: "center",
+              mx: 4,
+            }}
+          >
             <Autocomplete
               options={options}
               loading={loadingUsers}
@@ -158,9 +177,13 @@ export default function Header() {
                   setOptions([]);
                 }
               }}
-              getOptionLabel={(option) => option.username
-                ? `${option.first_name !== "N/A" ? option.first_name : ""} ${option.last_name !== "N/A" ? option.last_name : ""} (@${option.username})`.trim()
-                : ""}
+              getOptionLabel={(option) =>
+                option.username
+                  ? `${option.first_name !== "N/A" ? option.first_name : ""} ${
+                      option.last_name !== "N/A" ? option.last_name : ""
+                    } (@${option.username})`.trim()
+                  : ""
+              }
               renderOption={(props, option) => (
                 <Box
                   component="li"
@@ -174,8 +197,17 @@ export default function Header() {
                   }}
                 >
                   <Avatar
-                    src={option.icon ? `http://localhost:8000${option.icon}` : undefined}
-                    sx={{ width: 32, height: 32, fontSize: 14, bgcolor: "#66b2a0" }}
+                    src={
+                      option.icon
+                        ? `http://localhost:8000${option.icon}`
+                        : undefined
+                    }
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      fontSize: 14,
+                      bgcolor: "#66b2a0",
+                    }}
                   >
                     {option.first_name && option.last_name
                       ? `${option.first_name[0].toUpperCase()}${option.last_name[0].toUpperCase()}`
@@ -202,7 +234,9 @@ export default function Header() {
                   bgcolor: "white",
                   "& fieldset": { borderColor: "transparent" },
                   "&:hover fieldset": { borderColor: palette.accentMedium },
-                  "&.Mui-focused fieldset": { borderColor: palette.accentMedium },
+                  "&.Mui-focused fieldset": {
+                    borderColor: palette.accentMedium,
+                  },
                 },
               }}
               renderInput={(params) => (
@@ -221,7 +255,11 @@ export default function Header() {
                     endAdornment: (
                       <>
                         {loadingUsers && (
-                          <CircularProgress color="inherit" size={16} sx={{ mr: 1 }} />
+                          <CircularProgress
+                            color="inherit"
+                            size={16}
+                            sx={{ mr: 1 }}
+                          />
                         )}
                         {params.InputProps.endAdornment}
                       </>
@@ -242,12 +280,18 @@ export default function Header() {
 
           <Box sx={{ display: { xs: "none", md: "flex" } }}>
             <IconButton size="large" color="inherit">
-              <Badge badgeContent={4} sx={{ "& .MuiBadge-badge": { backgroundColor: "#d9534f" } }}>
+              <Badge
+                badgeContent={4}
+                sx={{ "& .MuiBadge-badge": { backgroundColor: "#d9534f" } }}
+              >
                 <MailIcon />
               </Badge>
             </IconButton>
             <IconButton size="large" color="inherit">
-              <Badge badgeContent={17} sx={{ "& .MuiBadge-badge": { backgroundColor: "#d9534f" } }}>
+              <Badge
+                badgeContent={17}
+                sx={{ "& .MuiBadge-badge": { backgroundColor: "#d9534f" } }}
+              >
                 <NotificationsIcon />
               </Badge>
             </IconButton>
@@ -261,7 +305,9 @@ export default function Header() {
               color="inherit"
             >
               <Avatar
-                src={user?.icon ? `http://localhost:8000${user.icon}` : undefined}
+                src={
+                  user?.icon ? `http://localhost:8000${user.icon}` : undefined
+                }
                 sx={{ width: 32, height: 32, fontSize: 14, bgcolor: "#66b2a0" }}
               >
                 {user?.first_name && user?.last_name
