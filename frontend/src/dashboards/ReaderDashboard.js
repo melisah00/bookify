@@ -14,7 +14,9 @@ import Footer from '../components/Footer';
 import ProtectedLayout from '../ProtectedLayout';
 import FavouriteBooksPage from '../components/FavouriteBooksPage'
 import UserProfile from '../components/UserProfile'
-
+import StudentCornerChat from '../components/StudentCornerChat';
+import StudentCornerScripts from '../components/StudentCornerScripts';
+import EditScriptPage from '../components/EditScriptPage'
 
 export default function ReaderDashboard() {
   const { user, loading } = useAuth();
@@ -65,6 +67,10 @@ export default function ReaderDashboard() {
                 <Route path="*" element={<Navigate to="books" replace />} />
                 <Route path="favourites" element={<FavouriteBooksPage />} />
                 <Route path="/user/:id" element={<UserProfile />} />
+
+                <Route path="student-corner" element={<StudentCornerChat username={user.username} />} />
+                <Route path="student-corner/scripts" element={<StudentCornerScripts />} /> 
+                <Route path="/student-corner/scripts/edit/:id" element={<EditScriptPage />} />
               </Routes>
             </Box>
           </Box>
