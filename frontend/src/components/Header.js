@@ -165,117 +165,119 @@ export default function Header() {
               mx: 4,
             }}
           >
-            <Autocomplete
-              options={options}
-              loading={loadingUsers}
-              inputValue={inputValue}
-              onInputChange={(e, val) => setInputValue(val)}
-              onChange={(e, selectedUser) => {
-                if (selectedUser) {
-                  navigate(`/app/${userRole}/user/${selectedUser.id}`);
-                  setInputValue("");
-                  setOptions([]);
+            {user?.roles?.[0] !== "admin" && (
+              <Autocomplete
+                options={options}
+                loading={loadingUsers}
+                inputValue={inputValue}
+                onInputChange={(e, val) => setInputValue(val)}
+                onChange={(e, selectedUser) => {
+                  if (selectedUser) {
+                    navigate(`/app/${userRole}/user/${selectedUser.id}`);
+                    setInputValue("");
+                    setOptions([]);
+                  }
+                }}
+                getOptionLabel={(option) =>
+                  option.username
+                    ? `${
+                        option.first_name !== "N/A" ? option.first_name : ""
+                      } ${
+                        option.last_name !== "N/A" ? option.last_name : ""
+                      } (@${option.username})`.trim()
+                    : ""
                 }
-              }}
-              getOptionLabel={(option) =>
-                option.username
-                  ? `${option.first_name !== "N/A" ? option.first_name : ""} ${
-                      option.last_name !== "N/A" ? option.last_name : ""
-                    } (@${option.username})`.trim()
-                  : ""
-              }
-              renderOption={(props, option) => (
-                <Box
-                  component="li"
-                  {...props}
-                  key={option.id}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1.5,
-                    py: 0.5,
-                  }}
-                >
-                  <Avatar
-                    src={
-                      option.icon
-                        ? `http://localhost:8000${option.icon}`
-                        : undefined
-                    }
+                renderOption={(props, option) => (
+                  <Box
+                    component="li"
+                    {...props}
+                    key={option.id}
                     sx={{
-                      width: 32,
-                      height: 32,
-                      fontSize: 14,
-                      bgcolor: "#66b2a0",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.5,
+                      py: 0.5,
                     }}
                   >
-                    {option.first_name && option.last_name
-                      ? `${option.first_name[0].toUpperCase()}${option.last_name[0].toUpperCase()}`
-                      : "NN"}
-                  </Avatar>
-                  <Box>
-                    <Typography variant="body2">
-                      <strong>@{option.username}</strong>
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {option.first_name} {option.last_name}
-                    </Typography>
+                    <Avatar
+                      src={
+                        option.icon
+                          ? `http://localhost:8000${option.icon}`
+                          : undefined
+                      }
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        fontSize: 14,
+                        bgcolor: "#66b2a0",
+                      }}
+                    >
+                      <AccountCircle />
+                    </Avatar>
+                    <Box>
+                      <Typography variant="body2">
+                        <strong>@{option.username}</strong>
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {option.first_name} {option.last_name}
+                      </Typography>
+                    </Box>
                   </Box>
-                </Box>
-              )}
-              noOptionsText="No users found"
-              sx={{
-                width: { xs: 200, sm: 300, md: 400 },
-                bgcolor: "white",
-                borderRadius: "8px",
-                boxShadow: "0 2px 6px rgba(0, 0, 0, 0.1)",
-                "& .MuiOutlinedInput-root": {
-                  minHeight: 32,
+                )}
+                noOptionsText="No users found"
+                sx={{
+                  width: { xs: 200, sm: 300, md: 400 },
                   bgcolor: "white",
-                  "& fieldset": { borderColor: "transparent" },
-                  "&:hover fieldset": { borderColor: palette.accentMedium },
-                  "&.Mui-focused fieldset": {
-                    borderColor: palette.accentMedium,
-                  },
-                },
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  placeholder="Search users..."
-                  size="small"
-                  variant="outlined"
-                  InputProps={{
-                    ...params.InputProps,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon sx={{ fontSize: 18 }} />
-                      </InputAdornment>
-                    ),
-                    endAdornment: (
-                      <>
-                        {loadingUsers && (
-                          <CircularProgress
-                            color="inherit"
-                            size={16}
-                            sx={{ mr: 1 }}
-                          />
-                        )}
-                        {params.InputProps.endAdornment}
-                      </>
-                    ),
-                    sx: {
-                      height: 32,
-                      px: 1,
-                      fontSize: 14,
-                      bgcolor: "white",
-                      borderRadius: "8px",
-                      "& input": { padding: "4px 6px" },
+                  borderRadius: "8px",
+                  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.1)",
+                  "& .MuiOutlinedInput-root": {
+                    minHeight: 32,
+                    bgcolor: "white",
+                    "& fieldset": { borderColor: "transparent" },
+                    "&:hover fieldset": { borderColor: palette.accentMedium },
+                    "&.Mui-focused fieldset": {
+                      borderColor: palette.accentMedium,
                     },
-                  }}
-                />
-              )}
-            />
+                  },
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Search users..."
+                    size="small"
+                    variant="outlined"
+                    InputProps={{
+                      ...params.InputProps,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon sx={{ fontSize: 18 }} />
+                        </InputAdornment>
+                      ),
+                      endAdornment: (
+                        <>
+                          {loadingUsers && (
+                            <CircularProgress
+                              color="inherit"
+                              size={16}
+                              sx={{ mr: 1 }}
+                            />
+                          )}
+                          {params.InputProps.endAdornment}
+                        </>
+                      ),
+                      sx: {
+                        height: 32,
+                        px: 1,
+                        fontSize: 14,
+                        bgcolor: "white",
+                        borderRadius: "8px",
+                        "& input": { padding: "4px 6px" },
+                      },
+                    }}
+                  />
+                )}
+              />
+            )}
           </Box>
 
           <Box sx={{ display: { xs: "none", md: "flex" } }}>
@@ -304,16 +306,14 @@ export default function Header() {
               onClick={handleProfileMenuOpen}
               color="inherit"
             >
-              <Avatar
-                src={
-                  user?.icon ? `http://localhost:8000${user.icon}` : undefined
-                }
-                sx={{ width: 32, height: 32, fontSize: 14, bgcolor: "#66b2a0" }}
-              >
-                {user?.first_name && user?.last_name
-                  ? `${user.first_name[0]}${user.last_name[0]}`
-                  : "NN"}
-              </Avatar>
+              {user?.roles?.[0] !== "admin" && user?.icon ? (
+                <Avatar
+                  src={`http://localhost:8000${user.icon}`}
+                  sx={{ width: 32, height: 32 }}
+                />
+              ) : (
+                <AccountCircle sx={{ width: 32, height: 32 }} />
+              )}
             </IconButton>
           </Box>
 

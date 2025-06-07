@@ -15,7 +15,7 @@ import eventService from "../../services/eventService";
 const getSidebar = (user) => {
   if (!user) return null;
 
-  switch (user.role) {
+  switch (user.roles[0]) {
     case "admin":
       return AdminSidebar;
     case "author":

@@ -1,19 +1,19 @@
 from datetime import datetime
 from sqlalchemy.future import select 
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File 
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, UploadFile, File 
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
 from models.user import User, Role, RoleNameEnum
 from services.auth_service import get_current_user
 from schemas import UserCreate, UserDisplay
-from schemas.user import UserOut, UserDisplay2
+from schemas.user import UserOut, UserDisplay2, AdminUserOut
 from database import get_db, engine, get_async_db
 from services import user_service
 from sqlalchemy.orm import selectinload
 from schemas.user import UserUpdateRequest
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import and_, func, select
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -28,6 +28,12 @@ async def create_user(user_data: UserCreate, db: Session = Depends(get_session))
 @router.get("/", response_model=List[UserDisplay])
 async def get_all_users(db: Session = Depends(get_session)):
     return await user_service.get_all_users_service(db)
+
+@router.get("/roles")
+async def get_all_roles(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Role.name))
+    role_names = [row[0] for row in result.all()]
+    return role_names
 
 @router.get("/profile")
 async def get_user_profile(
@@ -245,3 +251,79 @@ async def delete_avatar(
     current_user: User = Depends(get_current_user),
 ):
     return await user_service.delete_avatar_service(db, current_user)
+
+@router.get("/admin/users")
+async def get_users_admin(
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1),
+    username: Optional[str] = Query(None),
+    email: Optional[str] = Query(None),
+    roles: Optional[List[str]] = Query(None),
+):
+    filters = []
+    if username:
+        filters.append(User.username.ilike(f"%{username}%"))
+    if email:
+        filters.append(User.email.ilike(f"%{email}%"))
+    if roles:
+        filters.append(User.roles.any(Role.name.in_(roles)))
+
+    base_query = select(User).options(selectinload(User.roles))
+    count_query = select(func.count()).select_from(User)
+
+    if filters:
+        base_query = base_query.where(and_(*filters))
+        count_query = count_query.where(and_(*filters))
+
+    total_result = await db.execute(count_query)
+    total_count = total_result.scalar_one()
+
+    base_query = base_query.offset((page - 1) * limit).limit(limit)
+    result = await db.execute(base_query)
+    users = result.scalars().all()
+
+    return {
+        "total_count": total_count,
+        "users": [
+            {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "icon": user.icon,
+                "roles": [r.name for r in user.roles],
+            }
+            for user in users
+        ],
+    }
+
+@router.put("/admin/{user_id}/role")
+async def update_user_role(
+    user_id: int = Path(..., gt=0),
+    role_data: dict = None,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    if "admin" not in current_user["roles"]:
+        raise HTTPException(status_code=403, detail="Admins only")
+    
+    new_role = role_data.get("role")
+    if not new_role:
+        raise HTTPException(status_code=400, detail="Missing role")
+
+    return await user_service.update_user_role(db, user_id, new_role)
+
+
+@router.delete("/admin/{user_id}")
+async def delete_user_by_admin(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    if "admin" not in current_user["roles"]:
+        raise HTTPException(status_code=403, detail="Admins only")
+
+    return await user_service.delete_user(db, user_id)
