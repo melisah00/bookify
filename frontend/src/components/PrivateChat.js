@@ -30,11 +30,9 @@ const formatDate = (iso) => new Date(iso).toLocaleDateString();
 const formatTime = (iso) =>
   new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-// ✅ Ispravljena i precizna linkifikacija
 const linkify = (text) => {
   const urlRegex =
     /((https?:\/\/)?(www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}([\/?][^\s]*)?)/gi;
-
   return (
     <span>
       {text.split(/\s+/).map((part, i) => {
@@ -88,6 +86,7 @@ const PrivateChat = () => {
   const typingTimeoutRef = useRef(null);
   const chatEndRef = useRef(null);
   const ws = useRef(null);
+  const emojiButtonRef = useRef(null);
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -118,7 +117,9 @@ const PrivateChat = () => {
       })
       .catch((err) => console.error("Error fetching messages:", err));
 
-    ws.current = new WebSocket(`ws://localhost:8000/ws/private-chat/${senderId}`);
+    ws.current = new WebSocket(
+      `ws://localhost:8000/ws/private-chat/${senderId}`
+    );
 
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -154,7 +155,10 @@ const PrivateChat = () => {
         if (data.sender_id === parseInt(receiverId)) {
           setTypingUser(data.username);
           clearTimeout(typingTimeoutRef.current);
-          typingTimeoutRef.current = setTimeout(() => setTypingUser(null), 3000);
+          typingTimeoutRef.current = setTimeout(
+            () => setTypingUser(null),
+            3000
+          );
         }
       }
     };
@@ -188,11 +192,16 @@ const PrivateChat = () => {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`http://localhost:8000/private-chat/messages/${selectedId}`, {
-        params: { username },
-        withCredentials: true,
-      });
-      setMessages((prev) => prev.filter((msg) => msg.message_id !== selectedId));
+      await axios.delete(
+        `http://localhost:8000/private-chat/messages/${selectedId}`,
+        {
+          params: { username },
+          withCredentials: true,
+        }
+      );
+      setMessages((prev) =>
+        prev.filter((msg) => msg.message_id !== selectedId)
+      );
       handleMenuClose();
     } catch (err) {
       console.error("Delete error:", err);
@@ -241,8 +250,8 @@ const PrivateChat = () => {
           const isMine = msg.sender_id === senderId;
           const showDate = formatDate(msg.timestamp) !== lastDate;
           lastDate = formatDate(msg.timestamp);
-
-          const initials = (msg.first_name?.[0] || "") + (msg.last_name?.[0] || "");
+          const initials =
+            (msg.first_name?.[0] || "") + (msg.last_name?.[0] || "");
 
           return (
             <React.Fragment key={index}>
@@ -255,7 +264,6 @@ const PrivateChat = () => {
                   <Divider sx={{ flex: 1, ml: 1 }} />
                 </Box>
               )}
-
               <Box
                 sx={{
                   display: "flex",
@@ -266,7 +274,9 @@ const PrivateChat = () => {
                 }}
               >
                 <Avatar
-                  src={msg.icon ? `http://localhost:8000${msg.icon}` : undefined}
+                  src={
+                    msg.icon ? `http://localhost:8000${msg.icon}` : undefined
+                  }
                   sx={{
                     width: 32,
                     height: 32,
@@ -308,7 +318,11 @@ const PrivateChat = () => {
                         multiline
                       />
                       <Box sx={{ mt: 1, display: "flex", gap: 1 }}>
-                        <Button variant="contained" size="small" onClick={handleEditSubmit}>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={handleEditSubmit}
+                        >
                           Save
                         </Button>
                         <Button
@@ -324,12 +338,17 @@ const PrivateChat = () => {
                       </Box>
                     </Box>
                   ) : (
-                    <Typography variant="body1">{linkify(msg.content)}</Typography>
+                    <Typography variant="body1">
+                      {linkify(msg.content)}
+                    </Typography>
                   )}
                 </Box>
 
                 {isMine && (
-                  <IconButton size="small" onClick={(e) => handleMenuClick(e, msg.message_id)}>
+                  <IconButton
+                    size="small"
+                    onClick={(e) => handleMenuClick(e, msg.message_id)}
+                  >
                     <MoreVertIcon fontSize="small" />
                   </IconButton>
                 )}
@@ -339,7 +358,10 @@ const PrivateChat = () => {
         })}
 
         {typingUser && (
-          <Typography variant="body2" sx={{ fontStyle: "italic", color: colors.textDark, mt: 1 }}>
+          <Typography
+            variant="body2"
+            sx={{ fontStyle: "italic", color: colors.textDark, mt: 1 }}
+          >
             {typingUser} is typing...
           </Typography>
         )}
@@ -347,7 +369,14 @@ const PrivateChat = () => {
         <div ref={chatEndRef} />
       </Paper>
 
-      <Box sx={{ display: "flex", gap: 1 }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 1,
+          alignItems: "center",
+          position: "relative",
+        }}
+      >
         <TextField
           fullWidth
           value={input}
@@ -363,19 +392,51 @@ const PrivateChat = () => {
           }}
           placeholder="Type a message..."
         />
-        <Button onClick={() => setShowEmoji(!showEmoji)}>😀</Button>
-        <Button onClick={sendMessage} variant="contained" sx={{ bgcolor: colors.accentMedium }}>
+
+        <Button
+          ref={emojiButtonRef}
+          onClick={() => setShowEmoji((prev) => !prev)}
+          sx={{
+            minWidth: 40,
+            px: 1.5,
+            bgcolor: colors.accentMedium,
+            color: "white",
+          }}
+        >
+          😀
+        </Button>
+
+        <Button
+          onClick={sendMessage}
+          variant="contained"
+          sx={{ bgcolor: colors.accentMedium }}
+        >
           Send
         </Button>
+
+        {showEmoji && (
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: 60,
+              right: 100,
+              zIndex: 10,
+            }}
+          >
+            <Picker
+              data={data}
+              onEmojiSelect={(e) => setInput((prev) => prev + e.native)}
+              theme="light"
+            />
+          </Box>
+        )}
       </Box>
 
-      {showEmoji && (
-        <Box sx={{ mt: 1 }}>
-          <Picker data={data} onEmojiSelect={(e) => setInput((prev) => prev + e.native)} />
-        </Box>
-      )}
-
-      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+      >
         <MenuItem
           onClick={() => {
             const msg = messages.find((m) => m.message_id === selectedId);

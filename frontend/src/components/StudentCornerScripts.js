@@ -1,5 +1,3 @@
-// StudentCornerScripts.jsx
-
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -14,13 +12,13 @@ import {
   Pagination,
   Button,
   TextField,
-  Paper,
+  Alert,
+  CircularProgress,
 } from "@mui/material";
 import DownloadForOfflineIcon from "@mui/icons-material/DownloadForOffline";
 import DescriptionIcon from "@mui/icons-material/Description";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const API = "http://localhost:8000";
@@ -28,9 +26,13 @@ const API = "http://localhost:8000";
 export default function StudentCornerScripts() {
   const [scripts, setScripts] = useState([]);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [view, setView] = useState("all");
-  const { user } = useAuth();
+  const [selectedFileName, setSelectedFileName] = useState("");
+  const [uploadInfo, setUploadInfo] = useState("");
+  const [uploading, setUploading] = useState(false);
+
   const navigate = useNavigate();
 
   const scriptsPerPage = 8;
@@ -42,6 +44,8 @@ export default function StudentCornerScripts() {
 
   const fetchScripts = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const endpoint = view === "my" ? "/scripts/me" : "/scripts";
       const res = await fetch(`${API}${endpoint}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch scripts.");
@@ -49,6 +53,8 @@ export default function StudentCornerScripts() {
       setScripts(data);
     } catch (err) {
       setError(err.message || "An error occurred.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,7 +66,7 @@ export default function StudentCornerScripts() {
         credentials: "include",
       });
       if (!res.ok) throw new Error("Delete failed.");
-      fetchScripts(); // refresh
+      fetchScripts();
     } catch (err) {
       alert(err.message || "Failed to delete.");
     }
@@ -92,42 +98,128 @@ export default function StudentCornerScripts() {
         Student Corner Scripts
       </Typography>
 
-      <Box sx={{ display: "flex", gap: 3 }}>
-        <Paper sx={{ width: 200, p: 2, bgcolor: "#f2f7f5" }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Menu
-          </Typography>
-          <Button fullWidth onClick={() => setView("upload")} sx={{ mb: 1 }}>
-            Upload Script
-          </Button>
-          <Button fullWidth onClick={() => setView("my")} sx={{ mb: 1 }}>
-            My Scripts
-          </Button>
-          <Button fullWidth onClick={() => setView("all")} sx={{ mb: 1 }}>
-            All Scripts
-          </Button>
+      {/* Menu */}
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          variant="h6"
+          sx={{
+            color: "#4e796b",
+            mb: 1,
+            fontWeight: 600,
+            textAlign: "center",
+          }}
+        >
+          Quick Actions
+        </Typography>
+
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            flexWrap: "wrap",
+            gap: 1.5,
+            border: "1px solid #d8eae5",
+            borderRadius: 2,
+            padding: 1.5,
+            backgroundColor: "#f4fdfb",
+          }}
+        >
+          {[
+            { label: "Upload Script", value: "upload" },
+            { label: "My Scripts", value: "my" },
+            { label: "All Scripts", value: "all" },
+          ].map((item) => (
+            <Button
+              key={item.value}
+              variant={view === item.value ? "contained" : "outlined"}
+              onClick={() => {
+                setView(item.value);
+                setUploadInfo("");
+              }}
+              sx={{
+                textTransform: "none",
+                fontWeight: 500,
+                px: 2.5,
+                py: 1,
+                minWidth: 130,
+                backgroundColor: view === item.value ? "#4e796b" : "#fff",
+                color: view === item.value ? "#fff" : "#4e796b",
+                borderColor: "#4e796b",
+                "&:hover": {
+                  backgroundColor: view === item.value ? "#3f665b" : "#e9f3ef",
+                  borderColor: "#4e796b",
+                },
+              }}
+            >
+              {item.label}
+            </Button>
+          ))}
+
           <Button
-            fullWidth
-            sx={{ mt: 2 }}
-            onClick={() => (window.location.href = "/app/reader/student-corner")}
+            onClick={() =>
+              (window.location.href = "/app/reader/student-corner")
+            }
+            variant="outlined"
+            sx={{
+              textTransform: "none",
+              fontWeight: 500,
+              px: 2.5,
+              py: 1,
+              minWidth: 130,
+              color: "#4e796b",
+              borderColor: "#4e796b",
+              "&:hover": {
+                backgroundColor: "#e9f3ef",
+                borderColor: "#4e796b",
+              },
+            }}
           >
             Go to Chat
           </Button>
-        </Paper>
+        </Box>
+      </Box>
 
-        <Box sx={{ flex: 1 }}>
+      {/* Main content */}
+      <Box sx={{ display: "flex", justifyContent: "center" }}>
+        <Box sx={{ width: "100%", maxWidth: 1400 }}>
           {view === "upload" ? (
-            <Box>
-              <Typography variant="h5" sx={{ mb: 2 }}>
-                Upload Script
+            <Card
+              sx={{
+                maxWidth: 600,
+                mx: "auto",
+                p: 4,
+                borderRadius: 4,
+                boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+                backgroundColor: "#f9fdfc",
+              }}
+            >
+              <Typography
+                variant="h5"
+                align="center"
+                sx={{ mb: 3, fontWeight: 700, color: "#4e796b" }}
+              >
+                Upload New Script
               </Typography>
+
+              {uploadInfo && (
+                <Alert severity="success" sx={{ mb: 2 }}>
+                  {uploadInfo}
+                </Alert>
+              )}
+
               <form
                 onSubmit={async (e) => {
                   e.preventDefault();
+                  setUploadInfo("");
+
                   const formData = new FormData(e.target);
                   const file = formData.get("file");
-                  if (!formData.get("name") || !formData.get("subject") || !file) {
-                    alert("Please fill in all fields.");
+
+                  if (
+                    !formData.get("name") ||
+                    !formData.get("subject") ||
+                    !file
+                  ) {
                     return;
                   }
 
@@ -137,35 +229,120 @@ export default function StudentCornerScripts() {
                       body: formData,
                       credentials: "include",
                     });
+
                     if (!res.ok) throw new Error("Upload failed");
-                    alert("Script uploaded successfully");
+
+                    setUploadInfo("Script uploaded successfully");
                     e.target.reset();
+                    setSelectedFileName("");
+
+                    setTimeout(() => {
+                      setView("all");
+                      fetchScripts();
+                      setUploadInfo("");
+                    }, 1500);
                   } catch (err) {
-                    alert(err.message || "Error uploading.");
+                    console.error(err);
+                    setUploadInfo("");
                   }
                 }}
                 encType="multipart/form-data"
               >
-                <TextField label="Script Name" name="name" fullWidth sx={{ mb: 2 }} required />
-                <TextField label="Subject" name="subject" fullWidth sx={{ mb: 2 }} required />
-                <input
-                  type="file"
-                  name="file"
-                  accept="application/pdf"
+                <TextField
+                  label="Script Name"
+                  name="name"
+                  fullWidth
                   required
-                  style={{ marginBottom: 16 }}
+                  sx={{ mb: 2 }}
                 />
-                <Button variant="contained" type="submit">
-                  Upload
+                <TextField
+                  label="Subject"
+                  name="subject"
+                  fullWidth
+                  required
+                  sx={{ mb: 3 }}
+                />
+
+                <Box
+                  sx={{
+                    border: "2px dashed #b2dcd2",
+                    borderRadius: 2,
+                    textAlign: "center",
+                    py: 4,
+                    px: 2,
+                    color: "#4e796b",
+                    cursor: "pointer",
+                    mb: 3,
+                    transition: "0.3s",
+                    "&:hover": {
+                      backgroundColor: "#eff9f7",
+                    },
+                  }}
+                >
+                  <Button
+                    component="label"
+                    variant="text"
+                    sx={{
+                      textTransform: "none",
+                      fontWeight: 500,
+                      color: "#4e796b",
+                    }}
+                  >
+                    Click to select a PDF file
+                    <input
+                      type="file"
+                      name="file"
+                      accept="application/pdf"
+                      hidden
+                      required
+                      onChange={(e) => {
+                        setSelectedFileName(e.target.files?.[0]?.name || "");
+                      }}
+                    />
+                  </Button>
+
+                  <Typography variant="caption" display="block" mt={1}>
+                    Only PDF files are supported
+                  </Typography>
+
+                  {selectedFileName && (
+                    <Typography variant="body2" mt={2} sx={{ fontWeight: 500 }}>
+                      Selected file: <em>{selectedFileName}</em>
+                    </Typography>
+                  )}
+                </Box>
+
+                <Button
+                  variant="contained"
+                  type="submit"
+                  fullWidth
+                  disabled={uploading}
+                  sx={{
+                    textTransform: "none",
+                    fontWeight: 600,
+                    py: 1.2,
+                    backgroundColor: "#4e796b",
+                    "&:hover": {
+                      backgroundColor: "#3c6359",
+                    },
+                  }}
+                >
+                  {uploading ? "Uploading..." : "Upload Script"}
                 </Button>
               </form>
+            </Card>
+          ) : loading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 6 }}>
+              <CircularProgress color="primary" />
             </Box>
           ) : error ? (
             <Typography align="center" color="error">
               {error}
             </Typography>
           ) : scripts.length === 0 ? (
-            <Typography align="center">No scripts available.</Typography>
+            <Typography align="center" sx={{ mt: 4 }}>
+              No scripts available.
+            </Typography>
           ) : (
             <>
               <Grid container spacing={4} justifyContent="center">
@@ -173,12 +350,16 @@ export default function StudentCornerScripts() {
                   <Grid item key={script.id} xs={12} sm={6} md={4} lg={3}>
                     <Card
                       sx={{
-                        maxWidth: 300,
-                        height: 300,
+                        height: 240,
                         display: "flex",
                         flexDirection: "column",
-                        boxShadow: 3,
-                        borderRadius: 2,
+                        borderRadius: 3,
+                        boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+                        transition: "0.3s",
+                        "&:hover": {
+                          transform: "translateY(-4px)",
+                          boxShadow: "0 6px 16px rgba(0,0,0,0.08)",
+                        },
                       }}
                     >
                       <CardHeader
@@ -187,49 +368,96 @@ export default function StudentCornerScripts() {
                             {script.author_username?.[0]?.toUpperCase() || "U"}
                           </Avatar>
                         }
-                        title={script.name}
-                        subheader={`Subject: ${script.subject}`}
+                        title={
+                          <Typography
+                            variant="subtitle1"
+                            noWrap
+                            sx={{ fontWeight: 600, color: "#333" }}
+                          >
+                            {script.name}
+                          </Typography>
+                        }
+                        subheader={
+                          <Typography variant="caption" sx={{ color: "#666" }}>
+                            Subject: {script.subject}
+                          </Typography>
+                        }
+                        sx={{ pb: 0 }}
                       />
-                      <CardContent sx={{ flexGrow: 1 }}>
+
+                      <CardContent sx={{ flexGrow: 1, pt: 1 }}>
                         <Box
                           sx={{
                             display: "flex",
                             alignItems: "center",
                             gap: 1,
                             color: "text.secondary",
-                            mb: 1,
                           }}
                         >
-                          <DescriptionIcon sx={{ fontSize: 20 }} />
-                          <Typography variant="body2">
+                          <DescriptionIcon sx={{ fontSize: 18 }} />
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            noWrap
+                          >
                             Author: {script.author_username}
                           </Typography>
                         </Box>
                       </CardContent>
-                      <CardActions sx={{ px: 2, pb: 2, justifyContent: "flex-end" }}>
+                      <CardActions
+                        sx={{
+                          px: 2,
+                          pb: 2,
+                          pt: 0,
+                          justifyContent:
+                            view === "my" ? "space-between" : "center",
+                        }}
+                      >
                         {view === "my" ? (
                           <>
                             <Button
                               size="small"
-                              color="error"
-                              onClick={() => handleDelete(script.id)}
-                              startIcon={<DeleteIcon />}
+                              onClick={() =>
+                                navigate(
+                                  `/app/reader/student-corner/scripts/edit/${script.id}`
+                                )
+                              }
+                              sx={{
+                                color: "#4e796b",
+                                textTransform: "none",
+                                fontWeight: 500,
+                              }}
+                              startIcon={<EditIcon fontSize="small" />}
                             >
-                              Delete
+                              Edit
                             </Button>
                             <Button
                               size="small"
-                              onClick={() => navigate(`/app/reader/student-corner/scripts/edit/${script.id}`)}
-                              startIcon={<EditIcon />}
+                              color="error"
+                              onClick={() => handleDelete(script.id)}
+                              sx={{ textTransform: "none", fontWeight: 500 }}
+                              startIcon={<DeleteIcon fontSize="small" />}
                             >
-                              Edit
+                              Delete
                             </Button>
                           </>
                         ) : (
                           <Button
                             size="small"
                             variant="outlined"
-                            startIcon={<DownloadForOfflineIcon />}
+                            sx={{
+                              textTransform: "none",
+                              fontWeight: 500,
+                              borderColor: "#4e796b",
+                              color: "#4e796b",
+                              "&:hover": {
+                                backgroundColor: "#eaf6f3",
+                                borderColor: "#4e796b",
+                              },
+                            }}
+                            startIcon={
+                              <DownloadForOfflineIcon fontSize="small" />
+                            }
                             href={`${API}/scripts/download/${script.id}`}
                             target="_blank"
                           >
