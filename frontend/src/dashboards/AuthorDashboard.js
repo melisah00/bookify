@@ -18,6 +18,7 @@ import UserProfile from "../components/UserProfile";
 import MyBooksPage from "../components/MyBooksPage";
 import AuthorAnalyticsPage from "../components/AuthorAnalyticsPage";
 import TopPerformingBooksPage from "../pages/TopPerformingBooksPage";
+import PrivateChat from "../components/PrivateChat"
 
 export default function AuthorDashboard() {
   const { user, loading } = useAuth();
@@ -77,6 +78,10 @@ export default function AuthorDashboard() {
                 <Route
                   path="analytics/top-books"
                   element={<TopPerformingBooksPage />}
+                />
+                <Route
+                  path="/chat/private/:receiverId"
+                  element={<PrivateChat senderId={user.id} currentUsername={user.username} />}
                 />
               </Routes>
             </Box>
