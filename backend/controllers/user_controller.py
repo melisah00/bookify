@@ -315,15 +315,3 @@ async def update_user_role(
         raise HTTPException(status_code=400, detail="Missing role")
 
     return await user_service.update_user_role(db, user_id, new_role)
-
-
-@router.delete("/admin/{user_id}")
-async def delete_user_by_admin(
-    user_id: int,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    if "admin" not in current_user["roles"]:
-        raise HTTPException(status_code=403, detail="Admins only")
-
-    return await user_service.delete_user(db, user_id)

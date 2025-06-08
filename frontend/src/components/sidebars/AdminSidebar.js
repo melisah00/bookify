@@ -33,7 +33,7 @@ const navItems = [
   { label: "Inbox", icon: <InboxIcon /> },
   { label: "Events", to: "/app/events", icon: <EventIcon /> },
   { label: "Forums", icon: <ForumIcon /> },
-  { label: "Analytics", icon: <AnalyticsIcon /> },
+  { label: "Analytics", to: "/app/admin/analytics", icon: <AnalyticsIcon /> },
 ];
 
 export default function AdminSidebar({ open, onToggle }) {

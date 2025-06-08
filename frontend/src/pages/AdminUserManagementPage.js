@@ -17,9 +17,7 @@ import {
   Stack,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
 import EditUserRoleDialog from "../components/EditUserRoleDialog";
-import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog";
 import AdminUserFilter from "../components/AdminUserFilter";
 
 const AdminUserManagementPage = () => {
@@ -36,7 +34,6 @@ const AdminUserManagementPage = () => {
 
   const [selectedUser, setSelectedUser] = useState(null);
   const [editOpen, setEditOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -84,11 +81,6 @@ const AdminUserManagementPage = () => {
   const openEditDialog = (user) => {
     setSelectedUser(user);
     setEditOpen(true);
-  };
-
-  const openDeleteDialog = (user) => {
-    setSelectedUser(user);
-    setDeleteOpen(true);
   };
 
   if (isLoading) {
@@ -188,15 +180,6 @@ const AdminUserManagementPage = () => {
                           >
                             Edit
                           </Button>
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            color="error"
-                            startIcon={<DeleteIcon />}
-                            onClick={() => openDeleteDialog(user)}
-                          >
-                            Delete
-                          </Button>
                         </Stack>
                       </TableCell>
                     </TableRow>
@@ -218,26 +201,15 @@ const AdminUserManagementPage = () => {
       )}
 
       {selectedUser && (
-        <>
-          <EditUserRoleDialog
-            open={editOpen}
-            onClose={() => setEditOpen(false)}
-            user={selectedUser}
-            onSuccess={() => {
-              setEditOpen(false);
-              fetchUsers();
-            }}
-          />
-          <ConfirmDeleteDialog
-            open={deleteOpen}
-            onClose={() => setDeleteOpen(false)}
-            user={selectedUser}
-            onSuccess={() => {
-              setDeleteOpen(false);
-              fetchUsers();
-            }}
-          />
-        </>
+        <EditUserRoleDialog
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          user={selectedUser}
+          onSuccess={() => {
+            setEditOpen(false);
+            fetchUsers();
+          }}
+        />
       )}
     </Container>
   );

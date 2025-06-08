@@ -7,7 +7,7 @@ from sqlalchemy.future import select
 from schemas import BookCreate, BookDisplay, BookAverageRating, ReviewDisplay
 from database import get_db, get_async_db
 from services import book_service
-from schemas.book import BookAnalytics, BookResponseSchema
+from schemas.book import AdminBookMetricsSummary, BookAnalytics, BookResponseSchema
 from services.auth_service import *
 from services.book_service import *
 
@@ -241,3 +241,7 @@ async def get_book_summary(
         })
 
     return summaries
+
+@router.get("/admin/metrics/summary", response_model=AdminBookMetricsSummary)
+async def get_admin_metrics_summary(db: AsyncSession = Depends(get_async_db)):
+    return await book_service.get_admin_metrics_summary_service(db)
