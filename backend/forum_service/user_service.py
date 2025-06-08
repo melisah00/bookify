@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List
 
-from schemas.user import UserUpdateRequest
+from schemas.user import UserDisplay, UserUpdateRequest
 from models import User, Role, RoleNameEnum
 from schemas import UserCreate
 from repositories import user_repository
@@ -47,8 +47,24 @@ async def get_user_by_id_service(user_id: int, db: AsyncSession) -> User:
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-async def get_all_users_service(db: AsyncSession) -> List[User]:
-    return await user_repository.get_all_users(db)
+# async def get_all_users_service(db: AsyncSession) -> List[User]:
+#     return await user_repository.get_all_users(db)
+
+
+async def get_all_users_service(db: AsyncSession) -> List[UserDisplay]:
+    users: List[User] = await user_repository.get_all_users(db)
+    return [
+        UserDisplay(
+            id=u.id,
+            username=u.username,
+            email=u.email,
+            first_name=u.first_name,
+            last_name=u.last_name,
+            roles=[r.name.value for r in u.roles] if u.roles else [],
+        )
+        for u in users
+    ]
+
 
 async def get_user_profile(user_id: int, db: AsyncSession):
     user = await user_repository.get_user_with_roles_by_id(user_id, db)

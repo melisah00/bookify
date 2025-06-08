@@ -31,13 +31,24 @@ class UserUpdateRequest(BaseModel):
     date_of_birth: Optional[str] = None
 
 
-class UserDisplay(UserBase):
+# class UserDisplay(UserBase):
+#     id: int
+#     roles: List[Role]
+
+#     class Config:
+#         model_config = ConfigDict(from_attributes=True)
+
+
+class UserDisplay(BaseModel):
     id: int
-    roles: List[Role]
+    username: str
+    email: str
+    first_name: str | None
+    last_name: str | None
+    roles: List[str]
 
     class Config:
-        model_config = ConfigDict(from_attributes=True)
-
+        orm_mode = True
 
 class UserOut(BaseModel):
     id: int

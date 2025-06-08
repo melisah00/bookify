@@ -15,6 +15,7 @@ import EventDetailsPage from "./pages/events/EventDetailsPage.js";
 import UserDashboard from "./pages/UserDashboard";
 import EventAnalyticsDashboard from "./pages/events/EventAnalyticsDashboard";
 import OrganizerPanel from "./pages/events/OrganizerPanel";
+import ForumCategoryList from "./components/forum/ForumCategoryList.js"
 
 export default function AppRoutes() {
   return (
@@ -35,6 +36,8 @@ export default function AppRoutes() {
         <Route path="/app/admin/*" element={<AdminDashboard />} />
         <Route path="/app/author/*" element={<AuthorDashboard />} />
         <Route path="/app/reader/*" element={<ReaderDashboard />} />
+
+        <Route path="/app/forums" element={<ForumCategoryList/>}/>
       </Route>
 
       <Route path="/" element={<LandingPage />} />

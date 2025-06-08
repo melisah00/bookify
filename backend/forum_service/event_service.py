@@ -9,7 +9,7 @@ from schemas.event import EventCreate, EventUpdate, EventParticipantCreate, Even
 from repositories import event_repository
 
 try:
-    from services.email_service import email_service
+    from forum_service.email_service import email_service
     EMAIL_AVAILABLE = True
 except ImportError as e:
     print(f"Email service not available: {e}")
@@ -39,7 +39,7 @@ except ImportError as e:
                 print(f"Failed to send confirmation email: {e}")
         else:
             print(f"Email confirmation for {user.email}: Registration for '{event.title}' confirmed")
-from services.notification_service import create_notification_service
+from forum_service.notification_service import create_notification_service
 
 async def create_event_service(event_data: EventCreate, db: AsyncSession) -> Event:
     # Verify organizer exists

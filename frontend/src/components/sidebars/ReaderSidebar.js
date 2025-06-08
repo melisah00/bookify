@@ -40,7 +40,7 @@ const navItems = [
   { label: "Student corner", icon: <SchoolIcon /> },
   { label: "Inbox", icon: <InboxIcon /> },
   { label: 'Events', to: '/app/events', icon: <EventIcon /> },
-  { label: "Forums", icon: <ForumIcon /> },
+  { label: "Forums", to: '/app/reader/forums',icon: <ForumIcon /> },
   { label: "Favorites", to: "/app/reader/favourites", icon: <HeartIcon /> },
 ];
 

@@ -12,9 +12,10 @@ import Profile from '../components/Profile';
 import SubmitReviewPage from '../pages/SubmitReviewPage';
 import Footer from '../components/Footer';
 import ProtectedLayout from '../ProtectedLayout';
-import FavouriteBooksPage from '../components/FavouriteBooksPage'
-import UserProfile from '../components/UserProfile'
-
+import FavouriteBooksPage from '../components/FavouriteBooksPage';
+import UserProfile from '../components/UserProfile';
+import ForumCategoryList from '../components/forum/ForumCategoryList';
+import TopicDetail from '../components/forum/TopicDetail';
 
 export default function ReaderDashboard() {
   const { user, loading } = useAuth();
@@ -27,50 +28,29 @@ export default function ReaderDashboard() {
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <Header />
       <Toolbar />
-      <Box display="flex"
-        flexDirection="column"
-        minHeight="100vh">
-        <Box sx={{ display: 'flex', flexGrow: 1 }}>
-
-          <ReaderSidebar open={open} onToggle={() => setOpen(o => !o)} />
-          <Box
-            component="main"
-            sx={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              height: '100%',
-              backgroundColor: '#f8f9fa',
-            }}
-          >
-            <Box
-              sx={{
-                flexGrow: 1,
-                overflowY: 'auto',
-                width: '100%',
-                height: '100%',
-                px: 0,
-                py: 0,
-              }}
-            >
-              <Routes element={<ProtectedLayout />}>
-                <Route path="/" element={<ReaderHomePage />} />
-                <Route path="profile" element={<Profile />} />
-                <Route path="books" element={<BookListPage />} />
-                <Route path="books/:bookId" element={<SingleBookDisplayPage />} />
-                <Route
-                  path="books/:bookId/submit-review"
-                  element={<SubmitReviewPage />}
-                />
-                <Route path="*" element={<Navigate to="books" replace />} />
-                <Route path="favourites" element={<FavouriteBooksPage />} />
-                <Route path="/user/:id" element={<UserProfile />} />
-              </Routes>
-            </Box>
+      <Box sx={{ display: 'flex', flexGrow: 1 }}>
+        <ReaderSidebar open={open} onToggle={() => setOpen(o => !o)} />
+        <Box
+          component="main"
+          sx={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#f8f9fa' }}
+        >
+          <Box sx={{ flexGrow: 1, overflowY: 'auto', px: 0, py: 0 }}>
+            <Routes element={<ProtectedLayout />}>
+              <Route path="/" element={<ReaderHomePage />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="books" element={<BookListPage />} />
+              <Route path="books/:bookId" element={<SingleBookDisplayPage />} />
+              <Route path="books/:bookId/submit-review" element={<SubmitReviewPage />} />
+              <Route path="favourites" element={<FavouriteBooksPage />} />
+              <Route path="user/:id" element={<UserProfile />} />
+              <Route path="forums" element={<ForumCategoryList />} />
+              <Route path="forums/topics/:topicId" element={<TopicDetail />} />
+              <Route path="*" element={<Navigate to="books" replace />} />
+            </Routes>
           </Box>
         </Box>
-        <Footer />
       </Box>
+      <Footer />
     </Box>
   );
 }

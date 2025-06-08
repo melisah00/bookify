@@ -22,6 +22,7 @@ import MyBooksIcon from '@mui/icons-material/MenuBook';
 import UserIcon from '@mui/icons-material/Person';
 import { useTheme } from '@mui/material/styles';
 
+
 const drawerWidth = 200;
 
 const colors = {
@@ -33,7 +34,7 @@ const navItems = [
     { label: 'Users', icon: <UserIcon /> },
     { label: 'Inbox', icon: <InboxIcon /> },
     { label: 'Events', to: '/app/events', icon: <EventIcon /> },
-    { label: 'Forums', icon: <ForumIcon /> },
+    { label: 'Forums', icon: <ForumIcon />, to: '/app/admin/forum' },
     { label: 'Books', icon: <MyBooksIcon /> },
     { label: 'Analytics', icon: <AnalyticsIcon /> },
 ];

@@ -9,7 +9,7 @@ import Profile from '../components/Profile';
 import Footer from '../components/Footer';
 import AdminHomePage from '../pages/AdminHomePage';
 import ProtectedLayout from '../ProtectedLayout';
-
+import ForumAdmin from '../components/forum/ForumAdmin';
 
 export default function AdminDashboard() {
   const { user, loading } = useAuth();
@@ -48,6 +48,7 @@ export default function AdminDashboard() {
                 <Route index element={<AdminHomePage />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="*" element={<Navigate to="" replace />} />
+                <Route path="forum" element={<ForumAdmin />} />
               </Routes>
 
             </Box>

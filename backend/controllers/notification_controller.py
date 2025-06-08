@@ -4,7 +4,7 @@ from typing import List
 
 from database import get_db
 from schemas import NotificationDisplay
-from services import notification_service
+from forum_service import notification_service
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
 

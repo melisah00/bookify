@@ -9,10 +9,10 @@ from schemas.event import (
     EventTagDisplay, RSVPRequest, RSVPResponse, EventParticipantStats
 )
 from models.event import EventParticipantStatusEnum
-from services import event_service
-from services.event_analytics_service import analytics_service
-from services.ical_service import ical_service
-from services.auth_service import get_current_user, get_current_user_object
+from forum_service import event_service
+from forum_service.event_analytics_service import analytics_service
+from forum_service.ical_service import ical_service
+from forum_service.auth_service import get_current_user, get_current_user_object
 from models.user import User
 
 router = APIRouter(prefix="/events", tags=["Events"])

@@ -6,10 +6,10 @@ from sqlalchemy.future import select
 
 from schemas import BookCreate, BookDisplay, BookAverageRating, ReviewDisplay
 from database import get_db, get_async_db
-from services import book_service
+from forum_service import book_service
 from schemas.book import BookAnalytics, BookResponseSchema
-from services.auth_service import *
-from services.book_service import *
+from forum_service.auth_service import *
+from forum_service.book_service import *
 
 router = APIRouter(prefix="/books", tags=["Books"])
 
