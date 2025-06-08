@@ -10,6 +10,7 @@ import Footer from "../components/Footer";
 import AdminHomePage from "../pages/AdminHomePage";
 import ProtectedLayout from "../ProtectedLayout";
 import AdminUserManagementPage from "../pages/AdminUserManagementPage";
+import AdminAnalyticsPage from "../pages/AdminAnalyticsPage";
 
 export default function AdminDashboard() {
   const { user, loading } = useAuth();
@@ -49,6 +50,7 @@ export default function AdminDashboard() {
                 <Route path="profile" element={<Profile />} />
                 <Route path="*" element={<Navigate to="" replace />} />
                 <Route path="users" element={<AdminUserManagementPage />} />
+                <Route path="analytics" element={<AdminAnalyticsPage />} />
               </Routes>
             </Box>
           </Box>

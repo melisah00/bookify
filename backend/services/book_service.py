@@ -211,13 +211,10 @@ async def service_create_book_with_upload(
 
     return created_book
 
-
-
 async def get_average_book_rating(book_id: int, db: AsyncSession) -> float | None:
     stmt = select(func.avg(Review.rating)).where(Review.book_id == book_id)
     result = await db.execute(stmt)
-    avg = result.scalar_one_or_none()  # ← guarantees a scalar (float or None)
-    print("✅ AVG VALUE:", avg, type(avg))
+    avg = result.scalar_one_or_none()
     return float(avg) if avg is not None else None
 
 async def get_review_count(book_id: int, db: AsyncSession) -> int:
@@ -231,3 +228,6 @@ async def get_favourite_count(book_id: int, db: AsyncSession) -> int:
         select(func.count()).select_from(book_favourites).where(book_favourites.c.book_id == book_id)
     )
     return result.scalar()
+
+async def get_admin_metrics_summary_service(db: AsyncSession):
+    return await book_repository.get_admin_book_metrics_summary(db)
