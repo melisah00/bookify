@@ -1,10 +1,12 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy.future import select 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, UploadFile, File 
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
+from models.book import Book, Script
 from models.user import User, Role, RoleNameEnum
+from models.event import Event
 from services.auth_service import get_current_user
 from schemas import UserCreate, UserDisplay
 from schemas.user import UserOut, UserDisplay2, AdminUserOut
@@ -13,7 +15,7 @@ from services import user_service
 from sqlalchemy.orm import selectinload
 from schemas.user import UserUpdateRequest
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import and_, func, select
+from sqlalchemy import and_, func, select, text
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -315,3 +317,51 @@ async def update_user_role(
         raise HTTPException(status_code=400, detail="Missing role")
 
     return await user_service.update_user_role(db, user_id, new_role)
+
+@router.get("/admin/dashboard-metrics")
+async def get_dashboard_metrics(db: AsyncSession = Depends(get_async_db)):
+    total_books = await db.scalar(select(func.count(Book.id)))
+    total_users = await db.scalar(select(func.count(User.id)))
+    total_scripts = await db.scalar(select(func.count(Script.id)))
+    total_events = await db.scalar(select(func.count(Event.id)))
+
+    total_authors = await db.scalar(
+        select(func.count(User.id))
+        .join(User.roles)
+        .where(Role.name == "author")
+    )
+
+    total_readers = await db.scalar(
+        select(func.count(User.id))
+        .join(User.roles)
+        .where(Role.name == "reader")
+    )
+
+    return {
+        "total_books": total_books,
+        "total_users": total_users,
+        "total_authors": total_authors,
+        "total_readers": total_readers,
+        "total_scripts": total_scripts,
+        "total_events": total_events,
+    }
+
+@router.get("/admin/chat-activity")
+async def get_chat_activity(db: AsyncSession = Depends(get_async_db)):
+    today = datetime.utcnow().date()
+    seven_days_ago = today - timedelta(days=6)
+
+    stmt = text("""
+        SELECT 
+            DATE(timestamp) as date,
+            COUNT(*) as count
+        FROM chat_messages
+        WHERE timestamp >= :start_date
+        GROUP BY DATE(timestamp)
+        ORDER BY date
+    """)
+
+    result = await db.execute(stmt, {"start_date": seven_days_ago})
+    rows = result.fetchall()
+
+    return [{"date": str(row[0]), "count": row[1]} for row in rows]
