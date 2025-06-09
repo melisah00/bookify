@@ -40,14 +40,14 @@ const Row = React.memo(function Row({ category, onUpdateCategory, onDeleteCatego
 
   const [newTopicOpen, setNewTopicOpen] = useState(false);
   const [editTopicOpen, setEditTopicOpen] = useState(false);
-  const [editTopicData, setEditTopicData] = useState({ 
-    title: '', 
+  const [editTopicData, setEditTopicData] = useState({
+    title: '',
     description: '',
     is_pinned: false,
     is_locked: false
   });
-  const [newTopicData, setNewTopicData] = useState({ 
-    title: '', 
+  const [newTopicData, setNewTopicData] = useState({
+    title: '',
     description: '',
     is_pinned: false,
     is_locked: false
@@ -183,9 +183,9 @@ const Row = React.memo(function Row({ category, onUpdateCategory, onDeleteCatego
         }}
       >
         <TableCell sx={{ width: '5%' }}>
-          <IconButton 
-            size="small" 
-            onClick={handleExpand} 
+          <IconButton
+            size="small"
+            onClick={handleExpand}
             aria-label={open ? "Hide topics" : "Show topics"}
             sx={{ color: palette.accentPrimary }}
           >
@@ -200,11 +200,11 @@ const Row = React.memo(function Row({ category, onUpdateCategory, onDeleteCatego
               size="small"
               autoFocus
               fullWidth
-              sx={{ 
-                '& .MuiInputBase-root': { 
+              sx={{
+                '& .MuiInputBase-root': {
                   borderRadius: '8px',
                   bgcolor: palette.backgroundLight
-                } 
+                }
               }}
             />
           ) : (
@@ -221,11 +221,11 @@ const Row = React.memo(function Row({ category, onUpdateCategory, onDeleteCatego
               onChange={e => setEditDesc(e.target.value)}
               size="small"
               fullWidth
-              sx={{ 
-                '& .MuiInputBase-root': { 
+              sx={{
+                '& .MuiInputBase-root': {
                   borderRadius: '8px',
                   bgcolor: palette.backgroundLight
-                } 
+                }
               }}
             />
           ) : (
@@ -251,18 +251,18 @@ const Row = React.memo(function Row({ category, onUpdateCategory, onDeleteCatego
           ) : (
             <Stack direction="row" spacing={0.5} justifyContent="flex-end">
               <Tooltip title="Edit category">
-                <IconButton 
-                  onClick={() => setIsEditing(true)} 
-                  size="small" 
+                <IconButton
+                  onClick={() => setIsEditing(true)}
+                  size="small"
                   sx={{ color: palette.textSecondary }}
                 >
                   <Edit fontSize="small" />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Delete category">
-                <IconButton 
-                  onClick={handleDelete} 
-                  size="small" 
+                <IconButton
+                  onClick={handleDelete}
+                  size="small"
                   sx={{ color: palette.error }}
                 >
                   <Delete fontSize="small" />
@@ -275,10 +275,10 @@ const Row = React.memo(function Row({ category, onUpdateCategory, onDeleteCatego
       <TableRow>
         <TableCell colSpan={4} sx={{ p: 0, border: 0 }}>
           <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box sx={{ 
-              m: 1, 
-              bgcolor: palette.backgroundLight, 
-              borderRadius: 2, 
+            <Box sx={{
+              m: 1,
+              bgcolor: palette.backgroundLight,
+              borderRadius: 2,
               p: 2,
               border: `1px solid ${palette.borderLight}`,
               boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
@@ -288,16 +288,16 @@ const Row = React.memo(function Row({ category, onUpdateCategory, onDeleteCatego
                   <Topic sx={{ verticalAlign: 'middle', mr: 1, color: palette.accentSecondary }} />
                   Topics in category
                 </Typography>
-                <Button 
-                  startIcon={<Add />} 
-                  variant="outlined" 
+                <Button
+                  startIcon={<Add />}
+                  variant="outlined"
                   onClick={() => setNewTopicOpen(true)}
-                  sx={{ 
-                    color: palette.accentPrimary, 
+                  sx={{
+                    color: palette.accentPrimary,
                     borderColor: palette.accentPrimary,
-                    '&:hover': { 
-                      bgcolor: `${palette.accentPrimary}15`, 
-                      borderColor: palette.accentPrimary 
+                    '&:hover': {
+                      bgcolor: `${palette.accentPrimary}15`,
+                      borderColor: palette.accentPrimary
                     }
                   }}
                 >
@@ -325,7 +325,7 @@ const Row = React.memo(function Row({ category, onUpdateCategory, onDeleteCatego
                         <TableRow
                           key={topic.topic_id}
                           hover
-                          sx={{ 
+                          sx={{
                             '&:hover': { bgcolor: palette.hoverLight },
                             '&:last-child td': { borderBottom: 0 }
                           }}
@@ -352,18 +352,18 @@ const Row = React.memo(function Row({ category, onUpdateCategory, onDeleteCatego
                           <TableCell>
                             <Stack direction="row" spacing={0.5}>
                               {topic.is_pinned && (
-                                <Chip 
-                                  label="Pinned" 
-                                  size="small" 
-                                  icon={<PushPin fontSize="small" />} 
+                                <Chip
+                                  label="Pinned"
+                                  size="small"
+                                  icon={<PushPin fontSize="small" />}
                                   sx={{ bgcolor: `${palette.warning}20`, color: palette.warning }}
                                 />
                               )}
                               {topic.is_locked && (
-                                <Chip 
-                                  label="Locked" 
-                                  size="small" 
-                                  icon={<Lock fontSize="small" />} 
+                                <Chip
+                                  label="Locked"
+                                  size="small"
+                                  icon={<Lock fontSize="small" />}
                                   sx={{ bgcolor: `${palette.error}20`, color: palette.error }}
                                 />
                               )}
@@ -431,14 +431,14 @@ const Row = React.memo(function Row({ category, onUpdateCategory, onDeleteCatego
       </TableRow>
 
       {/* New Topic Modal */}
-      <Dialog 
-        open={newTopicOpen} 
+      <Dialog
+        open={newTopicOpen}
         onClose={() => setNewTopicOpen(false)}
         PaperProps={{ sx: { borderRadius: 3, overflow: 'hidden' } }}
       >
-        <DialogTitle sx={{ 
-          bgcolor: palette.accentPrimary, 
-          color: 'white', 
+        <DialogTitle sx={{
+          bgcolor: palette.accentPrimary,
+          color: 'white',
           fontWeight: 500,
           py: 2
         }}>
@@ -490,10 +490,10 @@ const Row = React.memo(function Row({ category, onUpdateCategory, onDeleteCatego
           </Stack>
         </DialogContent>
         <DialogActions sx={{ bgcolor: palette.backgroundLight, px: 3, py: 2 }}>
-          <Button 
-            onClick={() => setNewTopicOpen(false)} 
+          <Button
+            onClick={() => setNewTopicOpen(false)}
             variant="outlined"
-            sx={{ 
+            sx={{
               color: palette.textSecondary,
               borderColor: palette.borderLight,
               borderRadius: 2
@@ -501,10 +501,10 @@ const Row = React.memo(function Row({ category, onUpdateCategory, onDeleteCatego
           >
             Cancel
           </Button>
-          <Button 
-            onClick={handleCreateTopic} 
-            variant="contained" 
-            sx={{ 
+          <Button
+            onClick={handleCreateTopic}
+            variant="contained"
+            sx={{
               bgcolor: palette.accentPrimary,
               borderRadius: 2,
               boxShadow: 'none',
@@ -517,14 +517,14 @@ const Row = React.memo(function Row({ category, onUpdateCategory, onDeleteCatego
       </Dialog>
 
       {/* Edit Topic Modal */}
-      <Dialog 
-        open={editTopicOpen} 
+      <Dialog
+        open={editTopicOpen}
         onClose={() => setEditTopicOpen(false)}
         PaperProps={{ sx: { borderRadius: 3, overflow: 'hidden' } }}
       >
-        <DialogTitle sx={{ 
-          bgcolor: palette.accentPrimary, 
-          color: 'white', 
+        <DialogTitle sx={{
+          bgcolor: palette.accentPrimary,
+          color: 'white',
           fontWeight: 500,
           py: 2
         }}>
@@ -576,10 +576,10 @@ const Row = React.memo(function Row({ category, onUpdateCategory, onDeleteCatego
           </Stack>
         </DialogContent>
         <DialogActions sx={{ bgcolor: palette.backgroundLight, px: 3, py: 2 }}>
-          <Button 
-            onClick={() => setEditTopicOpen(false)} 
+          <Button
+            onClick={() => setEditTopicOpen(false)}
             variant="outlined"
-            sx={{ 
+            sx={{
               color: palette.textSecondary,
               borderColor: palette.borderLight,
               borderRadius: 2
@@ -587,10 +587,10 @@ const Row = React.memo(function Row({ category, onUpdateCategory, onDeleteCatego
           >
             Cancel
           </Button>
-          <Button 
-            onClick={handleTopicUpdate} 
-            variant="contained" 
-            sx={{ 
+          <Button
+            onClick={handleTopicUpdate}
+            variant="contained"
+            sx={{
               bgcolor: palette.accentPrimary,
               borderRadius: 2,
               boxShadow: 'none',
@@ -667,15 +667,15 @@ export default function ForumCategoryTable() {
   }, []);
 
   return (
-    <Box sx={{ 
-      bgcolor: palette.backgroundLight, 
-      p: 3, 
+    <Box sx={{
+      bgcolor: palette.backgroundLight,
+      p: 3,
       borderRadius: 3,
       boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
     }}>
-      <Typography variant="h6" sx={{ 
-        color: palette.textPrimary, 
-        fontWeight: 600, 
+      <Typography variant="h6" sx={{
+        color: palette.textPrimary,
+        fontWeight: 600,
         mb: 2,
         display: 'flex',
         alignItems: 'center',
@@ -684,10 +684,10 @@ export default function ForumCategoryTable() {
         <Folder sx={{ color: palette.accentSecondary }} /> Forum Category Management
       </Typography>
 
-      <Box sx={{ 
-        bgcolor: 'white', 
-        p: 3, 
-        mb: 3, 
+      <Box sx={{
+        bgcolor: 'white',
+        p: 3,
+        mb: 3,
         borderRadius: 3,
         boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
       }}>
@@ -711,10 +711,10 @@ export default function ForumCategoryTable() {
             sx={{ flex: 2 }}
             InputProps={{ sx: { borderRadius: 2 } }}
           />
-          <Button 
-            variant="contained" 
-            onClick={handleAdd} 
-            sx={{ 
+          <Button
+            variant="contained"
+            onClick={handleAdd}
+            sx={{
               bgcolor: palette.accentPrimary,
               color: 'white',
               borderRadius: 2,
@@ -728,10 +728,10 @@ export default function ForumCategoryTable() {
       </Box>
 
       {loading ? (
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
           minHeight: 300,
           bgcolor: 'white',
           borderRadius: 3
@@ -746,9 +746,9 @@ export default function ForumCategoryTable() {
           </Fade>
         </Box>
       ) : (
-        <TableContainer 
-          component={Paper} 
-          sx={{ 
+        <TableContainer
+          component={Paper}
+          sx={{
             borderRadius: 3,
             boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
             overflow: 'hidden'

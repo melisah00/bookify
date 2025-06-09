@@ -10,6 +10,8 @@ import Footer from '../components/Footer';
 import AdminHomePage from '../pages/AdminHomePage';
 import ProtectedLayout from '../ProtectedLayout';
 import ForumAdmin from '../components/forum/ForumAdmin';
+import TopicDetail from '../components/forum/TopicDetail';
+
 
 export default function AdminDashboard() {
   const { user, loading } = useAuth();
@@ -49,6 +51,8 @@ export default function AdminDashboard() {
                 <Route path="profile" element={<Profile />} />
                 <Route path="*" element={<Navigate to="" replace />} />
                 <Route path="forum" element={<ForumAdmin />} />
+                <Route path="forums/topics/:topicId" element={<TopicDetail />} />
+                <Route path="*" element={<Navigate to="" replace />} />
               </Routes>
 
             </Box>

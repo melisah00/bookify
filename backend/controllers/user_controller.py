@@ -8,15 +8,14 @@ from sqlalchemy.orm import Session
 from typing import List
 # Add these endpoints
 from fastapi import HTTPException, status, Path
-from forum_service.auth_service import RoleChecker
 from sqlalchemy.orm import selectinload
 
 from models.user import User, Role, RoleNameEnum
-from forum_service.auth_service import RoleChecker, get_current_user
+from services.auth_service import RoleChecker, get_current_user
 from schemas import UserCreate, UserDisplay
 from schemas.user import UserOut, UserDisplay2
 from database import get_db, engine, get_async_db
-from forum_service import user_service
+from services import user_service
 from sqlalchemy.orm import selectinload
 from schemas.user import UserUpdateRequest
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -33,16 +32,12 @@ def get_session():
     with Session(engine) as session:
         yield session
 
-# class RoleUpdateRequest(BaseModel):
-#     roles: List[str]
+
 
 @router.post("/", response_model=UserDisplay, status_code=201)
 async def create_user(user_data: UserCreate, db: Session = Depends(get_session)):
     return await user_service.create_user_service(user_data, db)
 
-# @router.get("/", response_model=List[UserDisplay])
-# async def get_all_users(db: Session = Depends(get_session)):
-#     return await user_service.get_all_users_service(db)
 
 @router.get(
     "/",
@@ -53,13 +48,8 @@ async def read_all_users(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_async_db)
 ):
-    """
-    Endpoint koji vraća sve korisnike osim onih sa ulogom 'admin'.
-    Zaštićen, zahteva validan JWT u kolačiću.
-    """
     try:
         users = await user_service.get_all_users_service(db)
-        # Izbaci korisnike koji imaju 'admin' ulogu
         filtered = [u for u in users if 'admin' not in u.roles]
         return filtered
     except Exception as e:
@@ -115,54 +105,9 @@ async def search_users(
     return users
 
 
-# @router.post("/{user_id}/roles", status_code=200)
-# async def update_user_roles(
-#     user_id: int = Path(..., description="ID korisnika čije se role menjaju"),
-#     role_update: RoleUpdateRequest = None,
-#     db: AsyncSession = Depends(get_async_db)
-# ):
-#     # Pronađi korisnika
-#     result = await db.execute(select(User).where(User.id == user_id))
-#     user = result.scalars().first()
-
-#     if not user:
-#         raise HTTPException(status_code=404, detail="User not found")
-
-#     # Validiraj role koje stižu u requestu
-#     valid_roles = [role.value for role in RoleNameEnum]
-#     for role_name in role_update.roles:
-#         if role_name not in valid_roles:
-#             raise HTTPException(
-#                 status_code=400,
-#                 detail=f"Invalid role: {role_name}. Valid roles are: {valid_roles}"
-#             )
-
-#     # Učitaj Role objekte za zadate role iz baze
-#     roles_result = await db.execute(select(Role).where(Role.name.in_(role_update.roles)))
-#     roles = roles_result.scalars().all()
-
-#     # Update korisnikove role
-#     user.roles = roles
-
-#     # Sačuvaj izmene
-#     await db.commit()
-#     await db.refresh(user)
-
-#     return {"msg": "User roles updated successfully", "roles": [r.name for r in user.roles]}
-
-# @router.delete("{user_id}/roles/{role_name}")
-# def remove_role(user_id: int, role_name: str, db: Session = Depends(get_db)):
-#     user = db.query(User).filter(User.id == user_id).first()
-#     if not user:
-#         raise HTTPException(status_code=404, detail="User not found")
-
-#     if role_name not in user.roles:
-#         raise HTTPException(status_code=422, detail=f"User does not have role '{role_name}'")
-
-#     user.roles.remove(role_name)
-#     db.commit()
-#     db.refresh(user)
-#     return {"message": f"Role '{role_name}' removed from user {user.username}"}
+@router.get("/{user_id}", response_model=UserDisplay)
+async def get_user(user_id: int, db: AsyncSession = Depends(get_async_db)):
+    return await user_service.get_user_by_id_service(user_id, db)
 
 
  

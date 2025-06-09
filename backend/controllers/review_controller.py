@@ -4,7 +4,7 @@ from typing import List
 
 from database import get_db
 from schemas import ReviewCreate, ReviewDisplay
-from forum_service import review_service
+from services import review_service
 
 router = APIRouter(prefix="/reviews", tags=["Reviews"])
 

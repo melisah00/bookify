@@ -37,7 +37,7 @@ export default function AppRoutes() {
         <Route path="/app/author/*" element={<AuthorDashboard />} />
         <Route path="/app/reader/*" element={<ReaderDashboard />} />
 
-        <Route path="/app/forums" element={<ForumCategoryList/>}/>
+        {/* <Route path="/app/forums" element={<ForumCategoryList/>}/> */}
       </Route>
 
       <Route path="/" element={<LandingPage />} />

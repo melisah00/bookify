@@ -31,31 +31,20 @@ class UserUpdateRequest(BaseModel):
     date_of_birth: Optional[str] = None
 
 
-# class UserDisplay(UserBase):
-#     id: int
-#     roles: List[Role]
-
-#     class Config:
-#         model_config = ConfigDict(from_attributes=True)
-
-
-class UserDisplay(BaseModel):
+class UserDisplay(UserBase):
     id: int
-    username: str
-    email: str
-    first_name: str | None
-    last_name: str | None
-    roles: List[str]
+    roles: List[Role]
 
     class Config:
-        orm_mode = True
+        model_config = ConfigDict(from_attributes=True)
+
 
 class UserOut(BaseModel):
     id: int
     username: str
     first_name: Optional[str]
     last_name: Optional[str]
-    icon: Optional[str] = None  # Added for avatar URL
+    icon: Optional[str] = None
 
     class Config:
         model_config = ConfigDict(from_attributes=True)
@@ -84,6 +73,17 @@ class UserDisplay2(BaseModel):
     roles: List[RoleDisplay]
     followers: List[FollowerDisplay]
     following: List[FollowerDisplay]
-    icon: Optional[str] = None  # Added here too
+    icon: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+class AdminUserOut(BaseModel):
+    id: int
+    username: str
+    email: str
+    first_name: Optional[str]
+    last_name: Optional[str]
+    icon: Optional[str] = None
+    roles: List[str]
 
     model_config = ConfigDict(from_attributes=True)

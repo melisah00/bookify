@@ -7,7 +7,6 @@ export default function ForumCategoryCreate() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Fetch existing categories
   useEffect(() => {
     fetch('/forum/categories')
       .then(res => res.json())
@@ -15,7 +14,6 @@ export default function ForumCategoryCreate() {
       .catch(() => setError('Greška pri dohvaćanju kategorija.'));
   }, []);
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);

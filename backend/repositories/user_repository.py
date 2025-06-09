@@ -16,25 +16,10 @@ async def get_user_with_roles_by_id(user_id: int, db: AsyncSession) -> Optional[
     )
     return result.scalars().first()
 
-# async def get_all_users(db: AsyncSession) -> List[User]:
-#     result = await db.execute(select(User))
-#     return result.scalars().all()
-
 async def get_all_users(db: AsyncSession) -> List[User]:
-    """
-    Dohvati sve korisnike iz tabele `users`,
-    uključujući njihove relacije `roles` kako bi Pydantic
-    mogao serijalizovati listu uloga.
-    """
-    stmt = select(User).options(selectinload(User.roles))
-    result = await db.execute(stmt)
+    result = await db.execute(select(User))
     return result.scalars().all()
 
-async def get_user_by_email(email: str, db: AsyncSession) -> Optional[User]:
-    result = await db.execute(
-        select(User).where(User.email == email)
-    )
-    return result.scalars().first()
 
 async def create_user(user: User, db: AsyncSession) -> User:
     db.add(user)

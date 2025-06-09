@@ -16,6 +16,7 @@ from schemas import ForumTopicDisplay, ForumPostDisplay
 from repositories import forum_repository
 from sqlalchemy import select, delete
 
+
 # Kategorije
 async def get_all_categories_service(db: AsyncSession) -> List[ForumCategory]:
     return await forum_repository.get_all_categories(db)
@@ -62,21 +63,22 @@ async def delete_category_service(category_id: int, db: AsyncSession) -> bool:
 
 
 async def delete_category_and_contents(category_id: int, db: AsyncSession):
-    # Fetch all topics in the category
-    topics_stmt = select(ForumTopic.topic_id).where(ForumTopic.category_id == category_id)
+    topics_stmt = select(ForumTopic.topic_id).where(
+        ForumTopic.category_id == category_id
+    )
     result = await db.execute(topics_stmt)
     topic_ids = [row[0] for row in result.fetchall()]
 
     if topic_ids:
-        # Delete posts in those topics
         await db.execute(delete(ForumPost).where(ForumPost.topic_id.in_(topic_ids)))
 
-        # Delete topics
         await db.execute(delete(ForumTopic).where(ForumTopic.topic_id.in_(topic_ids)))
 
-    # Delete the category itself
-    await db.execute(delete(ForumCategory).where(ForumCategory.category_id == category_id))
+    await db.execute(
+        delete(ForumCategory).where(ForumCategory.category_id == category_id)
+    )
     await db.commit()
+
 
 # Teme
 async def get_topics_by_category_service(
@@ -114,7 +116,7 @@ async def update_topic_service(
     topic = await db.get(ForumTopic, topic_id)
     if not topic:
         raise ValueError("Topic not found.")
-    
+
     topic.title = topic_data.title
     topic.description = topic_data.description
     topic.is_pinned = topic_data.is_pinned
@@ -135,32 +137,17 @@ async def delete_topic_service(topic_id: int, db: AsyncSession) -> bool:
 
 
 # Postovi
-# async def get_posts_by_topic_service(
-#     topic_id: int, db: AsyncSession
-# ) -> List[ForumPost]:
-#     topic = await forum_repository.get_topic_by_id(topic_id, db)
-#     if not topic:
-#         raise HTTPException(status_code=404, detail="Forum topic not found")
-#     return await forum_repository.get_posts_by_topic(topic_id, db)
-
-
-# async def create_post_service(data: ForumPostDisplay, db: AsyncSession) -> ForumPost:
-#     user = await db.get(User, data.user_id)
-#     if not user:
-#         raise HTTPException(status_code=404, detail="User not found")
-
-#     topic = await forum_repository.get_topic_by_id(data.topic_id, db)
-#     if not topic:
-#         raise HTTPException(status_code=404, detail="Forum topic not found")
-
-#     post = ForumPost(**data.dict())
-#     return await forum_repository.create_post(post, db)
-
-async def create_post_service(db: AsyncSession, post_data: ForumPostCreate) -> ForumPost:
+async def create_post_service(
+    db: AsyncSession, post_data: ForumPostCreate
+) -> ForumPost:
     return await forum_repository.create_post(db, post_data)
 
-async def get_posts_by_topic_service(db: AsyncSession, topic_id: int) -> list[ForumPost]:
+
+async def get_posts_by_topic_service(
+    db: AsyncSession, topic_id: int
+) -> list[ForumPost]:
     return await forum_repository.get_posts_by_topic(db, topic_id)
+
 
 async def delete_post_service(db: AsyncSession, post_id: int) -> bool:
     return await forum_repository.delete_post(db, post_id)

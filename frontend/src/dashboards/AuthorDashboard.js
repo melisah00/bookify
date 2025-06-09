@@ -18,6 +18,9 @@ import UserProfile from "../components/UserProfile";
 import MyBooksPage from "../components/MyBooksPage";
 import AuthorAnalyticsPage from "../components/AuthorAnalyticsPage";
 import TopPerformingBooksPage from "../pages/TopPerformingBooksPage";
+import ForumCategoryList from '../components/forum/ForumCategoryList';
+import TopicDetail from '../components/forum/TopicDetail';
+
 
 export default function AuthorDashboard() {
   const { user, loading } = useAuth();
@@ -70,7 +73,7 @@ export default function AuthorDashboard() {
                 <Route path="favourites" element={<FavouriteBooksPage />} />
                 <Route path="/user/:id" element={<UserProfile />} />
 
-                <Route path="*" element={<Navigate to="" replace />} />
+                {/* <Route path="*" element={<Navigate to="" replace />} /> */}
 
                 <Route path="my-books" element={<MyBooksPage />} />
                 <Route path="analytics" element={<AuthorAnalyticsPage />} />
@@ -78,6 +81,10 @@ export default function AuthorDashboard() {
                   path="analytics/top-books"
                   element={<TopPerformingBooksPage />}
                 />
+
+                <Route path="forums" element={<ForumCategoryList />} />
+                <Route path="forums/topics/:topicId" element={<TopicDetail />} />
+                <Route path="*" element={<Navigate to="" replace />} />
               </Routes>
             </Box>
           </Box>

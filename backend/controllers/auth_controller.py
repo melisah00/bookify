@@ -7,7 +7,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from models import User
 from models.user import Role, RoleNameEnum
 from models.dto_auth_model import Token, CreateUserRequest
-from forum_service.auth_service import (
+from services.auth_service import (
     authenticate_user, create_access_token, get_current_user,
     bcrypt_context, credentials_exception, RoleChecker
 )
