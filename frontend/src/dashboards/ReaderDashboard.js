@@ -13,7 +13,7 @@ import SubmitReviewPage from '../pages/SubmitReviewPage';
 import Footer from '../components/Footer';
 import ProtectedLayout from '../ProtectedLayout';
 import FavouriteBooksPage from '../components/FavouriteBooksPage'
-import UserProfile from '../components/UserProfileModal'
+import UserProfile from '../components/UserProfile'
 import StudentCornerChat from '../components/StudentCornerChat';
 import StudentCornerScripts from '../components/StudentCornerScripts';
 import EditScriptPage from '../components/EditScriptPage'
