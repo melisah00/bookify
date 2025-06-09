@@ -7,7 +7,7 @@ from sqlalchemy.future import select
 from schemas import BookCreate, BookDisplay, BookAverageRating, ReviewDisplay
 from database import get_db, get_async_db
 from services import book_service
-from schemas.book import BookResponseSchema
+from schemas.book import AdminBookMetricsSummary, BookAnalytics, BookResponseSchema
 from services.auth_service import *
 from services.book_service import *
 
@@ -28,20 +28,34 @@ async def get_all_books(
 ):
     return await book_service.get_all_books_service(db, genre, author, keywords, sort, direction)
 
-@router.get("/authored", response_model=list[BookDisplay]) 
+@router.get("/authored", response_model=list[BookAnalytics])
 async def get_authored_books(
     db: AsyncSession = Depends(get_async_db),
     token_user: dict = Depends(get_current_user)
 ):
     result = await db.execute(
         select(Book)
-        .options(
-            selectinload(Book.author).selectinload(User.roles) 
-        )
+        .options(selectinload(Book.author).selectinload(User.roles))
         .where(Book.author_id == token_user["id"])
     )
     books = result.scalars().all()
-    return books
+
+    enriched = []
+    for book in books:
+        avg = await get_average_book_rating(book.id, db)
+        reviews = await get_review_count(book.id, db)
+        favs = await get_favourite_count(book.id, db)
+
+        enriched.append(BookAnalytics(
+        id=book.id,
+        title=book.title,
+        num_of_downloads=book.num_of_downloads,
+        average_rating=avg,
+        review_count=reviews,
+        favourite_count=favs
+    ))
+
+    return enriched
 
 @router.get("/favourites")
 async def get_favourites(
@@ -130,14 +144,6 @@ async def api_create_book_with_upload(
     categories = form.getlist("categories")
     author_id = current_user['id']
 
-    print("\ud83d\udcc5 [UPLOAD RECEIVED]")
-    print(f"• title = {title}")
-    print(f"• description = {description}")
-    print(f"• categories = {categories}")
-    print(f"• file.filename = {book_file.filename}")
-    print(f"• file.content_type = {book_file.content_type}")
-    print(f"• author_id = {author_id} (from token)")
-
     try:
         new_book = await service_create_book_with_upload(
             title=title,
@@ -190,3 +196,52 @@ async def increment_download(book_id: int, db: AsyncSession = Depends(get_async_
     await db.commit()
     await db.refresh(book)
     return {"message": "Download count incremented", "num_of_downloads": book.num_of_downloads}
+
+@router.get("/{book_id}/review-stats")
+async def get_review_stats(book_id: int, db: AsyncSession = Depends(get_async_db)):
+    stmt = (
+        select(
+            func.date_trunc("day", Review.created_at).label("date"),
+            func.count().label("count")
+        )
+        .where(Review.book_id == book_id)
+        .group_by("date")
+        .order_by("date")
+    )
+    result = await db.execute(stmt)
+    rows = result.all()
+
+    return [{"date": row.date.date().isoformat(), "count": row.count} for row in rows]
+
+@router.get("/authored/summary")
+async def get_book_summary(
+    db: AsyncSession = Depends(get_async_db),
+    token_user: dict = Depends(get_current_user)
+):
+    author_id = token_user["id"]
+
+    result = await db.execute(select(Book).where(Book.author_id == author_id))
+    books = result.scalars().all()
+
+    summaries = []
+    for book in books:
+        review_count = await db.scalar(
+            select(func.count(Review.id)).where(Review.book_id == book.id)
+        )
+        favourite_count = await db.scalar(
+            select(func.count()).select_from(book_favourites).where(book_favourites.c.book_id == book.id)
+        )
+
+        summaries.append({
+            "id": book.id,
+            "title": book.title,
+            "num_of_downloads": book.num_of_downloads or 0,
+            "review_count": review_count or 0,
+            "favourite_count": favourite_count or 0,
+        })
+
+    return summaries
+
+@router.get("/admin/metrics/summary", response_model=AdminBookMetricsSummary)
+async def get_admin_metrics_summary(db: AsyncSession = Depends(get_async_db)):
+    return await book_service.get_admin_metrics_summary_service(db)

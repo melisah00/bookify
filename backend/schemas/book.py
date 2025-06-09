@@ -21,9 +21,10 @@ class BookDisplay(BaseModel):
     title: str
     path: str
     num_of_downloads: int
-    description: Optional[str] = None 
+    description: Optional[str] = None
     author: UserDisplay
-
+    average_rating: Optional[float] = None 
+    review_count: Optional[int] = None     
     class Config:
         model_config = ConfigDict(from_attributes=True)
 
@@ -46,3 +47,30 @@ class BookResponseSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+class BookAnalytics(BaseModel):
+    id: int
+    title: str
+    num_of_downloads: int
+    average_rating: float | None
+    review_count: int
+    favourite_count: int
+
+    class Config:
+        orm_mode = True
+
+class EngagementMetrics(BaseModel):
+    total_downloads: int
+    total_reviews: int
+    avg_global_rating: float
+    avg_favourites_per_book: float
+    avg_reviews_per_book: float
+
+class AdminBookMetricsSummary(BaseModel):
+    total_books: int
+    top_authors_by_uploads: List[dict]
+    most_downloaded_books: List[dict]
+    top_rated_books: List[dict]
+    bottom_rated_books: List[dict]
+    most_favourited_books: List[dict]
+    engagement: EngagementMetrics

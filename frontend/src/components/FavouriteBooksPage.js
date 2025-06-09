@@ -15,14 +15,14 @@ import {
 } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import DownloadForOfflineIcon from "@mui/icons-material/DownloadForOffline";
 import { useAuth } from "../contexts/AuthContext";
 import BookFilter from "../components/BookFilter";
 import { Link } from "react-router-dom";
-import DownloadForOfflineIcon from "@mui/icons-material/DownloadForOffline";
 
 function FavouriteBooksPage() {
   const [books, setBooks] = useState([]);
-  const [originalBooks, setOriginalBooks] = useState([]); // ✅ new state
+  const [originalBooks, setOriginalBooks] = useState([]);
   const [favouriteBookIds, setFavouriteBookIds] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -44,35 +44,15 @@ function FavouriteBooksPage() {
         const ids = await res.json();
         setFavouriteBookIds(ids);
 
-        const booksRes = await fetch("http://localhost:8000/books");
+        const booksRes = await fetch("http://localhost:8000/books", {
+          credentials: "include",
+        });
         const allBooks = await booksRes.json();
 
         const favBooks = allBooks.filter((book) => ids.includes(book.id));
 
-        const booksWithRatings = await Promise.all(
-          favBooks.map(async (book) => {
-            try {
-              const ratingRes = await fetch(
-                `http://localhost:8000/books/${book.id}/average-rating`
-              );
-              const ratingData = await ratingRes.json();
-              return {
-                ...book,
-                average_rating: ratingData.average_rating,
-                reviewCount: ratingData.review_count || 0,
-              };
-            } catch {
-              return {
-                ...book,
-                average_rating: null,
-                reviewCount: 0,
-              };
-            }
-          })
-        );
-
-        setOriginalBooks(booksWithRatings); // ✅ full unfiltered list
-        setBooks(booksWithRatings); // ✅ filtered display list
+        setOriginalBooks(favBooks);
+        setBooks(favBooks);
       } catch (err) {
         setError("Failed to load favourite books.");
       } finally {
@@ -107,7 +87,7 @@ function FavouriteBooksPage() {
       );
       setOriginalBooks((prevBooks) =>
         isFavourite ? prevBooks.filter((b) => b.id !== bookId) : prevBooks
-      ); // ✅ keep both in sync
+      );
     } catch (err) {
       alert("Something went wrong.");
     }
@@ -117,6 +97,16 @@ function FavouriteBooksPage() {
     setCurrentPage(value);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  if (isLoading) {
+    return (
+      <Container sx={{ mt: 6, pb: 6 }}>
+        <Typography align="center" variant="h6" color="text.secondary">
+          Loading books...
+        </Typography>
+      </Container>
+    );
+  }
 
   return (
     <Container sx={{ mt: 6, pb: 6 }}>
@@ -135,20 +125,23 @@ function FavouriteBooksPage() {
         Favourite Books
       </Typography>
 
-      <Box sx={{ my: 4 }}>
-        <BookFilter baseBooks={originalBooks} onResults={setBooks} />
-      </Box>
-
-      {isLoading ? (
-        <Typography align="center">Loading...</Typography>
-      ) : error ? (
+      {error ? (
         <Typography align="center" color="error">
           {error}
         </Typography>
       ) : books.length === 0 ? (
-        <Typography align="center">No favourites found.</Typography>
+        <>
+          <Box sx={{ my: 4 }}>
+            <BookFilter baseBooks={originalBooks} onResults={setBooks} />
+          </Box>
+          <Typography align="center">No favourites found.</Typography>
+        </>
       ) : (
         <>
+          <Box sx={{ my: 4 }}>
+            <BookFilter baseBooks={originalBooks} onResults={setBooks} />
+          </Box>
+
           <Grid container spacing={4} justifyContent="center">
             {currentBooks.map((book) => (
               <Grid item key={book.id} xs={12} sm={6} md={4} lg={3}>
@@ -164,8 +157,16 @@ function FavouriteBooksPage() {
                 >
                   <CardHeader
                     avatar={
-                      <Avatar sx={{ bgcolor: "#66b2a0" }}>
-                        {book.author?.username?.[0]?.toUpperCase() || "A"}
+                      <Avatar
+                        src={
+                          book.author?.icon
+                            ? `http://localhost:8000${book.author.icon}`
+                            : undefined
+                        }
+                        sx={{ bgcolor: "#66b2a0" }}
+                      >
+                        {!book.author?.icon &&
+                          (book.author?.username?.[0]?.toUpperCase() || "A")}
                       </Avatar>
                     }
                     title={book.title}

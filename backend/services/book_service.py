@@ -10,7 +10,8 @@ from schemas import BookCreate, BookAverageRating
 from models import Book, Review, Category, User, CategoryEnum
 from repositories import book_repository
 from sqlalchemy.orm import selectinload, joinedload
-from sqlalchemy import select, or_
+from sqlalchemy import func, select, or_
+from models import book_favourites 
 
 async def create_book_service(book_data: BookCreate, db: AsyncSession) -> Book:
     book = await book_repository.create_book(book_data, db)
@@ -26,20 +27,35 @@ async def get_all_books_service(
     sort: Optional[str] = None,
     direction: Optional[str] = "asc"
 ) -> List[Book]:
+    avg_rating_subq = (
+        select(
+            Review.book_id,
+            func.avg(Review.rating).label("average_rating"),
+            func.count(Review.id).label("review_count")
+        )
+        .group_by(Review.book_id)
+        .subquery()
+    )
+
     stmt = (
         select(Book)
         .options(
             joinedload(Book.author).selectinload(User.roles),
             selectinload(Book.categories)
         )
+        .join(avg_rating_subq, Book.id == avg_rating_subq.c.book_id, isouter=True)
+        .add_columns(
+            avg_rating_subq.c.average_rating,
+            avg_rating_subq.c.review_count
+        )
     )
 
+    # apply filters...
     if genre:
         try:
             enum_values = [CategoryEnum(g) for g in genre]
             stmt = stmt.join(Book.categories).where(Category.category.in_(enum_values))
         except ValueError:
-    
             stmt = stmt.where(False)
 
     if author:
@@ -63,7 +79,16 @@ async def get_all_books_service(
         stmt = stmt.order_by(User.username.asc() if direction == "asc" else User.username.desc())
 
     result = await db.execute(stmt)
-    return result.scalars().unique().all()
+    rows = result.all()
+
+    # manually assign rating data to each book object
+    books = []
+    for book, avg_rating, review_count in rows:
+        book.average_rating = avg_rating
+        book.review_count = review_count
+        books.append(book)
+
+    return books
 
 async def get_book_by_id_service(book_id: int, db: AsyncSession) -> Book:
     book = await book_repository.get_book_by_id(book_id, db)
@@ -185,3 +210,24 @@ async def service_create_book_with_upload(
         )
 
     return created_book
+
+async def get_average_book_rating(book_id: int, db: AsyncSession) -> float | None:
+    stmt = select(func.avg(Review.rating)).where(Review.book_id == book_id)
+    result = await db.execute(stmt)
+    avg = result.scalar_one_or_none()
+    return float(avg) if avg is not None else None
+
+async def get_review_count(book_id: int, db: AsyncSession) -> int:
+    result = await db.execute(
+        select(func.count(Review.id)).where(Review.book_id == book_id)
+    )
+    return result.scalar()
+
+async def get_favourite_count(book_id: int, db: AsyncSession) -> int:
+    result = await db.execute(
+        select(func.count()).select_from(book_favourites).where(book_favourites.c.book_id == book_id)
+    )
+    return result.scalar()
+
+async def get_admin_metrics_summary_service(db: AsyncSession):
+    return await book_repository.get_admin_book_metrics_summary(db)

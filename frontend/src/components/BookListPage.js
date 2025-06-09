@@ -46,30 +46,7 @@ function BookListPage() {
 
         const booksData = await response.json();
 
-        const booksWithRatings = await Promise.all(
-          booksData.map(async (book) => {
-            try {
-              const ratingRes = await fetch(
-                `http://localhost:8000/books/${book.id}/average-rating`
-              );
-              if (!ratingRes.ok) throw new Error();
-              const ratingData = await ratingRes.json();
-              return {
-                ...book,
-                average_rating: ratingData.average_rating,
-                reviewCount: ratingData.review_count || 0, // ako dodate u response
-              };
-            } catch {
-              return {
-                ...book,
-                average_rating: null,
-                reviewCount: 0,
-              };
-            }
-          })
-        );
-
-        setBooks(booksWithRatings);
+        setBooks(booksData);
       } catch (err) {
         setError(err.message || "An error occurred.");
       } finally {
@@ -86,18 +63,18 @@ function BookListPage() {
         });
         const data = await res.json();
 
-        console.log("Fetched favourites:", data); // ✅ OVDE DODAJ LOG
+        console.log("Fetched favourites:", data);
 
         if (!Array.isArray(data)) {
           console.error("Unexpected response:", data);
-          setFavouriteBookIds([]); // fallback prazno
+          setFavouriteBookIds([]);
           return;
         }
 
         setFavouriteBookIds(data);
       } catch (err) {
         console.error("Failed to fetch favourites", err);
-        setFavouriteBookIds([]); // fallback
+        setFavouriteBookIds([]);
       }
     };
 
@@ -200,8 +177,16 @@ function BookListPage() {
                 >
                   <CardHeader
                     avatar={
-                      <Avatar sx={{ bgcolor: "#66b2a0" }}>
-                        {book.author?.username?.[0]?.toUpperCase() || "A"}
+                      <Avatar
+                        src={
+                          book.author?.icon
+                            ? `http://localhost:8000${book.author.icon}`
+                            : undefined
+                        }
+                        sx={{ bgcolor: "#66b2a0" }}
+                      >
+                        {!book.author?.icon &&
+                          (book.author?.username?.[0]?.toUpperCase() || "A")}
                       </Avatar>
                     }
                     title={book.title}

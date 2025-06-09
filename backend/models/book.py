@@ -42,3 +42,12 @@ class BookForSale(Base):
 
     book = relationship("Book", back_populates="sale_listings")
     seller = relationship("User", back_populates="books_for_sale")
+
+class Script(Base):
+    __tablename__ = "scripts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)  # Naziv fajla
+    subject = Column(String, nullable=False)  # Predmet
+    file_path = Column(String, nullable=False)  
+    author_username = Column(String, nullable=False)

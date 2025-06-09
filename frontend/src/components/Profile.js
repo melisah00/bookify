@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Card,
@@ -13,11 +13,34 @@ import EditIcon from "@mui/icons-material/Edit";
 import { useAuth } from "../contexts/AuthContext";
 import EditProfileDialog from "./EditProfileDialog";
 import ChangePictureDialog from "./ChangePictureDialog";
+import FollowersDialog from "./FollowersDialog";
 
 export default function Profile() {
   const { user, loading } = useAuth();
-  const [editOpen, setEditOpen] = React.useState(false);
-  const [pictureDialogOpen, setPictureDialogOpen] = React.useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [pictureDialogOpen, setPictureDialogOpen] = useState(false);
+  const [followersOpen, setFollowersOpen] = useState(false);
+  const [followingOpen, setFollowingOpen] = useState(false);
+  const [followersCount, setFollowersCount] = useState(null);
+  const [followingCount, setFollowingCount] = useState(null);
+
+  useEffect(() => {
+    if (!user) return;
+
+    fetch(`http://localhost:8000/users/count-followers/${user.id}`, {
+      credentials: "include",
+    })
+      .then((res) => res.json())
+      .then((data) => setFollowersCount(data.followers_count))
+      .catch((err) => console.error(err));
+
+    fetch(`http://localhost:8000/users/count-following/${user.id}`, {
+      credentials: "include",
+    })
+      .then((res) => res.json())
+      .then((data) => setFollowingCount(data.following_count))
+      .catch((err) => console.error(err));
+  }, [user]);
 
   if (loading) {
     return (
@@ -49,11 +72,12 @@ export default function Profile() {
         <CardContent sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
             <Avatar
-              src={user.icon || undefined}
+              src={user.icon ? `http://localhost:8000${user.icon}` : undefined}
               sx={{ width: 80, height: 80, bgcolor: "#66b2a0", fontSize: 32 }}
             >
-              {user.first_name?.[0]}
-              {user.last_name?.[0]}
+              {user.first_name && user.last_name
+                ? `${user.first_name[0].toUpperCase()}${user.last_name[0].toUpperCase()}`
+                : "NN"}
             </Avatar>
             <Box>
               <Typography variant="h5" fontWeight="bold">
@@ -64,6 +88,64 @@ export default function Profile() {
               </Typography>
             </Box>
           </Box>
+
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-around",
+              bgcolor: "rgba(102,178,160, 0.08)",
+              borderRadius: 2,
+              py: 2,
+              my: 1,
+              textAlign: "center",
+            }}
+          >
+            <Box>
+              <Typography
+                variant="h6"
+                sx={{ color: "#66b2a0", fontWeight: 700 }}
+              >
+                {followersCount !== null ? followersCount : "-"}
+              </Typography>
+              <Button
+                variant="text"
+                onClick={() => setFollowersOpen(true)}
+                sx={{ fontSize: 12, fontWeight: 600, color: "#66b2a0" }}
+              >
+                Followers
+              </Button>
+            </Box>
+            <Box>
+              <Typography
+                variant="h6"
+                sx={{ color: "#66b2a0", fontWeight: 700 }}
+              >
+                {followingCount !== null ? followingCount : "-"}
+              </Typography>
+              <Button
+                variant="text"
+                onClick={() => setFollowingOpen(true)}
+                sx={{ fontSize: 12, fontWeight: 600, color: "#66b2a0" }}
+              >
+                Following
+              </Button>
+            </Box>
+          </Box>
+
+          <FollowersDialog
+            open={followersOpen}
+            onClose={() => setFollowersOpen(false)}
+            userId={user.id}
+            type="followers"
+            title="Your Followers"
+          />
+          <FollowersDialog
+            open={followingOpen}
+            onClose={() => setFollowingOpen(false)}
+            userId={user.id}
+            type="following"
+            title="Users You Follow"
+          />
 
           <Box
             sx={{
@@ -132,7 +214,7 @@ export default function Profile() {
               }}
             >
               <Avatar
-                src={user.icon || undefined}
+                src={user.icon ? `http://localhost:8000${user.icon}` : undefined}
                 sx={{
                   width: 80,
                   height: 80,
@@ -141,8 +223,9 @@ export default function Profile() {
                   flexShrink: 0,
                 }}
               >
-                {user.first_name?.[0]}
-                {user.last_name?.[0]}
+                {user.first_name && user.last_name
+                  ? `${user.first_name[0].toUpperCase()}${user.last_name[0].toUpperCase()}`
+                  : "NN"}
               </Avatar>
 
               <Box
@@ -175,6 +258,7 @@ export default function Profile() {
           </Box>
         </CardContent>
       </Card>
+
       <EditProfileDialog
         open={editOpen}
         onClose={() => setEditOpen(false)}
@@ -202,6 +286,7 @@ export default function Profile() {
           }
         }}
       />
+
       <ChangePictureDialog
         open={pictureDialogOpen}
         onClose={() => setPictureDialogOpen(false)}

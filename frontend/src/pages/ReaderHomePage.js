@@ -15,7 +15,7 @@ import { useAuth } from "../contexts/AuthContext";
 const items = [
   { label: "Profile", icon: <AccountCircleIcon />, to: "/app/reader/profile" },
   { label: "Browse Books", to: "/app/reader/books", icon: <BookIcon /> },
-  { label: "Student Corner", icon: <SchoolIcon /> },
+  { label: "Student Corner", to:"/app/reader/student-corner", icon: <SchoolIcon /> },
   { label: "Inbox", icon: <InboxIcon /> },
   { label: 'Events', icon: <EventIcon /> , to: '/app/events' },
   { label: "Forums", icon: <ForumIcon /> },

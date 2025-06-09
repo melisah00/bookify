@@ -18,12 +18,12 @@ const items = [
   { label: "Profile", icon: <AccountCircleIcon />, to: "/app/author/profile" },
   { label: "Browse Books", to: "/app/author/books", icon: <BookIcon /> },
   { label: "Inbox", icon: <InboxIcon /> },
-  { label: 'Events', icon: <EventIcon /> , to: '/app/events' },
+  { label: "Events", icon: <EventIcon />, to: "/app/events" },
   { label: "Forums", icon: <ForumIcon /> },
   { label: "Favorites", icon: <HeartIcon />, to: "/app/author/favourites" },
   { label: "Upload Book", icon: <UploadIcon />, to: "/app/author/upload" },
   { label: "My Books", icon: <MyBooksIcon />, to: "/app/author/my-books" },
-  { label: "Analytics", icon: <AnalyticsIcon /> },
+  { label: "Analytics", icon: <AnalyticsIcon />, to: "/app/author/analytics" },
 ];
 
 export default function AuthorHomePage() {

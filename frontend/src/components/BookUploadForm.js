@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import {
   Box,
@@ -47,7 +47,9 @@ export default function BookUploadForm() {
     user.roles &&
     Array.isArray(user.roles) &&
     user.roles.some(
-      (role) => role === "author" || (typeof role === "object" && role.name === "author")
+      (role) =>
+        role === "author" ||
+        (typeof role === "object" && role.name === "author")
     );
 
   const handleFileChange = (e) => {
@@ -105,7 +107,7 @@ export default function BookUploadForm() {
     const formData = new FormData();
     formData.append("title", title);
     formData.append("description", description);
-    selectedCategories.forEach(category => {
+    selectedCategories.forEach((category) => {
       formData.append("categories", category);
     });
     formData.append("book_file", file);
@@ -152,7 +154,8 @@ export default function BookUploadForm() {
         }}
       >
         <Typography sx={{ color: colors.textDark }}>
-          You don't have permission to add books. This feature is only available to authors.
+          You don't have permission to add books. This feature is only available
+          to authors.
         </Typography>
       </Paper>
     );
@@ -162,7 +165,7 @@ export default function BookUploadForm() {
     <Paper
       elevation={3}
       sx={{
-        backgroundColor: '#f8f9fa',
+        backgroundColor: "#f8f9fa",
         padding: 4,
         borderRadius: 2,
         maxWidth: 600,
@@ -288,8 +291,8 @@ export default function BookUploadForm() {
             sx={{
               color: colors.textDark,
               mb: 1,
-              fontWeight: 'bold',
-              fontSize: '0.95rem'
+              fontWeight: "bold",
+              fontSize: "0.95rem",
             }}
           >
             Book File (PDF):
@@ -301,42 +304,50 @@ export default function BookUploadForm() {
             sx={{
               color: colors.textDark,
               borderColor: colors.accentMedium,
-              backgroundColor: file ? colors.accentLight : 'transparent',
+              backgroundColor: file ? colors.accentLight : "transparent",
               "&:hover": {
                 borderColor: colors.accentMedium,
-                backgroundColor: file ? colors.accentLight : colors.backgroundMedium,
+                backgroundColor: file
+                  ? colors.accentLight
+                  : colors.backgroundMedium,
               },
-              padding: '12px',
-              textTransform: 'none',
-              justifyContent: 'flex-start',
-              textAlign: 'left',
-              fontSize: '1rem'
+              padding: "12px",
+              textTransform: "none",
+              justifyContent: "flex-start",
+              textAlign: "left",
+              fontSize: "1rem",
             }}
           >
             {file ? (
-              <Box sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                width: '100%'
-              }}>
-                <Typography sx={{
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  pr: 1
-                }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  width: "100%",
+                }}
+              >
+                <Typography
+                  sx={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    pr: 1,
+                  }}
+                >
                   {file.name}
                 </Typography>
-                <Typography sx={{
-                  color: colors.accentMedium,
-                  fontWeight: 'bold',
-                  flexShrink: 0
-                }}>
+                <Typography
+                  sx={{
+                    color: colors.accentMedium,
+                    fontWeight: "bold",
+                    flexShrink: 0,
+                  }}
+                >
                   Change File
                 </Typography>
               </Box>
             ) : (
-              'Select PDF File'
+              "Select PDF File"
             )}
             <input
               type="file"
@@ -352,10 +363,10 @@ export default function BookUploadForm() {
             <Typography
               variant="caption"
               sx={{
-                display: 'block',
+                display: "block",
                 mt: 1,
                 color: colors.textDark,
-                fontSize: '0.8rem'
+                fontSize: "0.8rem",
               }}
             >
               Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)

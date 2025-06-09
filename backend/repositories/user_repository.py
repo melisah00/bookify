@@ -31,3 +31,14 @@ async def create_user(user: User, db: AsyncSession) -> User:
     await db.commit()
     await db.refresh(user)
     return user
+
+
+async def get_users_paginated(db: AsyncSession, offset: int, limit: int):
+    stmt = (
+        select(User)
+        .options(selectinload(User.roles))  # ✅ preload roles
+        .offset(offset)
+        .limit(limit)
+    )
+    result = await db.execute(stmt)
+    return result.scalars().all()
