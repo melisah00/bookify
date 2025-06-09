@@ -19,6 +19,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
+import ChatBot from "../components/ChatBot";
 import { useAuth } from "../contexts/AuthContext";
 import { useEffect } from "react";
 
@@ -46,7 +47,6 @@ const steps = [
 export default function LandingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-
 
   useEffect(() => {
     if (user) {
@@ -182,6 +182,9 @@ export default function LandingPage() {
       </Box>
 
       <Footer />
+      
+      {/* ChatBot Component */}
+      <ChatBot />
     </ThemeProvider>
   );
 }
