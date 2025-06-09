@@ -12,6 +12,7 @@ from controllers import notification_controller
 from controllers import forum_controller
 from controllers import category_controller
 from controllers import auth_controller
+from controllers import chatbot_controller
 
 import traceback
 
@@ -63,7 +64,7 @@ app.include_router(notification_controller.router)
 app.include_router(forum_controller.router)
 app.include_router(category_controller.router)
 app.include_router(auth_controller.router)
-
+app.include_router(chatbot_controller.router)
 
 # Kreiranje tabela na startu
 @app.on_event("startup")
