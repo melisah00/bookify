@@ -1,31 +1,14 @@
-<<<<<<< HEAD
-from datetime import datetime
 
-from pydantic import BaseModel
-
-from sqlalchemy.future import select 
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, status, Body
-from sqlalchemy.orm import Session
-from typing import List
-# Add these endpoints
-from fastapi import HTTPException, status, Path
-from sqlalchemy.orm import selectinload
-=======
 from datetime import datetime, timedelta
 from sqlalchemy.future import select 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, UploadFile, File 
 from sqlalchemy.orm import Session
 from typing import List, Optional
->>>>>>> user-profile-modal
 
 from models.book import Book, Script
 from models.user import User, Role, RoleNameEnum
-<<<<<<< HEAD
-from services.auth_service import RoleChecker, get_current_user
-=======
 from models.event import Event
 from services.auth_service import get_current_user
->>>>>>> user-profile-modal
 from schemas import UserCreate, UserDisplay
 from schemas.user import UserOut, UserDisplay2, AdminUserOut
 from database import get_db, engine, get_async_db
@@ -33,16 +16,8 @@ from services import user_service
 from sqlalchemy.orm import selectinload
 from schemas.user import UserUpdateRequest
 from sqlalchemy.ext.asyncio import AsyncSession
-<<<<<<< HEAD
-from sqlalchemy import select, Column, String
-
-from sqlalchemy.dialects.postgresql import ARRAY
-
-roles = Column(ARRAY(String), default=[])
-
-=======
 from sqlalchemy import and_, func, select, text
->>>>>>> user-profile-modal
+
 
 router = APIRouter(prefix="/users", tags=["Users"])
 

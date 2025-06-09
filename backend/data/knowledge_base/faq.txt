@@ -1,0 +1,16 @@
+Frequently Asked Questions about Bookify
+
+Q: What is Bookify?
+A: Bookify is a digital library platform where you can search, share, and rate books with a community of fellow book lovers.
+
+Q: How do I create an account?
+A: Click the "Sign Up" button on the homepage and fill in your details.
+
+Q: How do I search for books?
+A: Use the search bar to find books by title, author, or genre.
+
+Q: Can I add my own books?
+A: Yes! Once logged in, you can add books to your personal collection.
+
+Q: How do I write reviews?
+A: Navigate to any book page and click "Write Review" to share your thoughts.

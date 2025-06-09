@@ -1,0 +1,14 @@
+Book Search and Discovery on Bookify
+
+Bookify offers multiple ways to discover books:
+
+1. Search by Title: Enter the exact or partial book title
+2. Search by Author: Find all books by your favorite authors
+3. Search by Genre: Browse books in specific categories
+4. Community Recommendations: See what other readers are enjoying
+5. Rating-based Discovery: Find highly-rated books
+
+Advanced Search Tips:
+- Use quotes for exact phrases
+- Combine multiple search terms
+- Filter by publication year or rating
