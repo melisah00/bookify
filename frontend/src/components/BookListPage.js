@@ -167,8 +167,8 @@ function BookListPage() {
               <Grid item key={book.id} xs={12} sm={6} md={4} lg={3}>
                 <Card
                   sx={{
-                    height: 420,
-                    maxWidth: 260,
+                    height: 380,
+                    maxWidth: 220,
                     display: "flex",
                     flexDirection: "column",
                     boxShadow: 3,
@@ -194,7 +194,7 @@ function BookListPage() {
                   />
                   <CardMedia
                     component="img"
-                    height="180"
+                    height="140"
                     image="/Book.png"
                     alt="Book cover"
                     sx={{ objectFit: "cover" }}
@@ -273,6 +273,7 @@ function BookListPage() {
                           sx={{
                             color: "#66b2a0",
                             fontWeight: "bold",
+                            fontSize: "13px",
                             "&:hover": { textDecoration: "underline" },
                           }}
                         >
