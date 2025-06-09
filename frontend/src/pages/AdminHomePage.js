@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Grid, Card, Stack } from "@mui/material";
-import { Group, ShoppingCart } from "@mui/icons-material";
+import { Group } from "@mui/icons-material";
 import { Line } from "react-chartjs-2";
-import axios from "axios";
-
 import {
   Chart as ChartJS,
   LineElement,
@@ -14,6 +12,9 @@ import {
   Legend,
 } from "chart.js";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
+import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
+import DescriptionIcon from "@mui/icons-material/Description";
+import EventIcon from "@mui/icons-material/Event";
 
 ChartJS.register(
   LineElement,
@@ -23,21 +24,6 @@ ChartJS.register(
   Tooltip,
   Legend
 );
-
-// Fejk podaci
-const data = {
-  labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-  datasets: [
-    {
-      label: "Income",
-      data: [120, 150, 90, 170, 110, 200, 140],
-      borderColor: "#1976d2",
-      backgroundColor: "rgba(25, 118, 210, 0.2)",
-      tension: 0.3,
-      fill: true,
-    },
-  ],
-};
 
 const options = {
   responsive: true,
@@ -72,37 +58,59 @@ const iconStyle = {
 
 export default function AdminHomePage() {
   const [bookCount, setBookCount] = useState(null);
-  const [readerCount, setReaderCount] = useState(null);
+  const [userCount, setUserCount] = useState(null);
   const [authorCount, setAuthorCount] = useState(null);
-  const [forumModeratorCount, setForumModeratorCount] = useState(null);
-  const [forumAdminCount, setForumAdminCount] = useState(null);
+  const [readerCount, setReaderCount] = useState(null);
+  const [scriptCount, setScriptCount] = useState(null);
+  const [eventCount, setEventCount] = useState(null);
+  const [chatChartData, setChatChartData] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [
-          booksRes,
-          readersRes,
-          authorRes,
-          forumModeratorRes,
-          forumAdminRes,
-        ] = await Promise.all([
-          axios.get("http://localhost:8000/books/count"),
-          axios.get("http://localhost:8000/users/count_readers"),
-          axios.get("http://localhost:8000/users/count_authors"),
-          axios.get("http://localhost:8000/users/count_forum_moderators"),
-          axios.get("http://localhost:8000/users/count_forum_admins"),
-        ]);
-        setBookCount(booksRes.data.total_books);
-        setReaderCount(readersRes.data.total_readers);
-        setAuthorCount(authorRes.data.total_authors);
-        setForumModeratorCount(forumModeratorRes.data.total_forum_moderators);
-        setForumAdminCount(forumAdminRes.data.total_forum_admins);
+        const res = await fetch(
+          "http://localhost:8000/users/admin/dashboard-metrics"
+        );
+        const data = await res.json();
+
+        setBookCount(data.total_books);
+        setUserCount(data.total_users);
+        setAuthorCount(data.total_authors);
+        setReaderCount(data.total_readers);
+        setScriptCount(data.total_scripts);
+        setEventCount(data.total_events);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Fetch error:", error);
       }
     };
+
+    const fetchChart = async () => {
+      try {
+        const res = await fetch(
+          "http://localhost:8000/users/admin/chat-activity"
+        );
+        const chatData = await res.json();
+
+        setChatChartData({
+          labels: chatData.map((item) => item.date),
+          datasets: [
+            {
+              label: "Messages",
+              data: chatData.map((item) => item.count),
+              borderColor: "#1976d2",
+              backgroundColor: "rgba(25, 118, 210, 0.2)",
+              tension: 0.3,
+              fill: true,
+            },
+          ],
+        });
+      } catch (error) {
+        console.error("Failed to fetch chart data:", error);
+      }
+    };
+
     fetchData();
+    fetchChart();
   }, []);
 
   return (
@@ -127,15 +135,7 @@ export default function AdminHomePage() {
                   height: "100%",
                 }}
               >
-                <CreditCardIcon
-                  sx={{
-                    fontSize: 40,
-                    color: "#1976d2",
-                    p: 1,
-                    bgcolor: "rgba(25, 118, 210, 0.1)",
-                    borderRadius: "50%",
-                  }}
-                />
+                <LibraryBooksIcon sx={iconStyle} />
                 <Box>
                   <Typography variant="h6" sx={{ fontWeight: "bold" }}>
                     {bookCount !== null ? bookCount : "..."}
@@ -145,7 +145,6 @@ export default function AdminHomePage() {
                   </Typography>
                 </Box>
               </Card>
-
               <Card
                 sx={{
                   flex: 1,
@@ -159,21 +158,13 @@ export default function AdminHomePage() {
                   height: "100%",
                 }}
               >
-                <ShoppingCart
-                  sx={{
-                    fontSize: 40,
-                    color: "#1976d2",
-                    p: 1,
-                    bgcolor: "rgba(25, 118, 210, 0.1)",
-                    borderRadius: "50%",
-                  }}
-                />
+                <CreditCardIcon sx={iconStyle} />
                 <Box>
                   <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                    $12,345
+                    {userCount !== null ? userCount : "..."}
                   </Typography>
                   <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                    Total Profit
+                    Total Users
                   </Typography>
                 </Box>
               </Card>
@@ -183,7 +174,11 @@ export default function AdminHomePage() {
           <Box sx={{ flexGrow: 1 }}>
             <Card sx={{ ...cardStyle, p: 2, height: "100%" }}>
               <Box sx={{ height: "100%" }}>
-                <Line data={data} options={options} />
+                {chatChartData ? (
+                  <Line data={chatChartData} options={options} />
+                ) : (
+                  <Typography>Loading chart...</Typography>
+                )}
               </Box>
             </Card>
           </Box>
@@ -191,6 +186,34 @@ export default function AdminHomePage() {
 
         <Grid size={4}>
           <Stack spacing={3} sx={{ height: "100%" }}>
+            <Card sx={cardStyle}>
+              <Stack direction="row" alignItems="center">
+                <EventIcon sx={iconStyle} />
+                <Box>
+                  <Typography variant="h5" fontWeight="bold">
+                    {eventCount ?? "..."}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Total Events
+                  </Typography>
+                </Box>
+              </Stack>
+            </Card>
+
+            <Card sx={cardStyle}>
+              <Stack direction="row" alignItems="center">
+                <DescriptionIcon sx={iconStyle} />
+                <Box>
+                  <Typography variant="h5" fontWeight="bold">
+                    {scriptCount ?? "..."}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Total Scripts
+                  </Typography>
+                </Box>
+              </Stack>
+            </Card>
+
             <Card sx={cardStyle}>
               <Stack direction="row" alignItems="center">
                 <Group sx={iconStyle} />
@@ -214,34 +237,6 @@ export default function AdminHomePage() {
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Total Authors
-                  </Typography>
-                </Box>
-              </Stack>
-            </Card>
-
-            <Card sx={cardStyle}>
-              <Stack direction="row" alignItems="center">
-                <Group sx={iconStyle} />
-                <Box>
-                  <Typography variant="h5" fontWeight="bold">
-                    {forumModeratorCount ?? "..."}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Forum Moderators
-                  </Typography>
-                </Box>
-              </Stack>
-            </Card>
-
-            <Card sx={cardStyle}>
-              <Stack direction="row" alignItems="center">
-                <Group sx={iconStyle} />
-                <Box>
-                  <Typography variant="h5" fontWeight="bold">
-                    {forumAdminCount ?? "..."}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Forum Admins
                   </Typography>
                 </Box>
               </Stack>

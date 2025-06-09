@@ -134,7 +134,7 @@ async def upload_avatar_service(file: UploadFile, db: AsyncSession, current_user
     return user
 
 async def delete_avatar_service(db: AsyncSession, current_user: dict):
-    from models.user import User  # ensure you import your User model
+    from models.user import User
 
     result = await db.execute(select(User).where(User.id == current_user["id"]))
     user = result.scalar_one_or_none()
@@ -152,3 +152,45 @@ async def delete_avatar_service(db: AsyncSession, current_user: dict):
     await db.refresh(user)
 
     return {"message": "Avatar deleted"}
+
+
+async def get_paginated_users(db: AsyncSession, page: int, limit: int):
+    offset = (page - 1) * limit
+    return await user_repository.get_users_paginated(db, offset, limit)
+
+
+async def update_user_role(db, user_id: int, new_role: str):
+    result = await db.execute(
+        select(User)
+        .options(selectinload(User.roles))
+        .where(User.id == user_id)
+    )
+    user = result.scalars().first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    role_result = await db.execute(select(Role).where(Role.name == new_role))
+    role = role_result.scalars().first()
+
+    if not role:
+        raise HTTPException(status_code=404, detail="Role not found")
+
+    user.roles = [role]
+
+    await db.commit()
+    await db.refresh(user)
+
+    return {"detail": "User role updated successfully"}
+
+async def delete_user(db, user_id: int):
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalars().first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    await db.delete(user)
+    await db.commit()
+
+    return {"detail": "User deleted successfully"}

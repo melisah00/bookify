@@ -1,7 +1,8 @@
-import enum
-from sqlalchemy import Column, Integer, String, Date, ForeignKey, Table, Enum
+from sqlalchemy import Column, Integer, String, Date, ForeignKey, Table, Enum, DateTime
 from sqlalchemy.orm import relationship
+from datetime import datetime
 from database import Base
+import enum
 
 # Enum definicije
 class RoleNameEnum(enum.Enum):
@@ -37,7 +38,7 @@ user_role = Table(
     Column("role_id", Integer, ForeignKey("role.id"), primary_key=True)
 )
 
-# Entiteti
+# Model User
 class User(Base):
     __tablename__ = "users"
 
@@ -71,6 +72,10 @@ class User(Base):
     forum_topics_created = relationship("ForumTopic", back_populates="creator")
     forum_posts = relationship("ForumPost", back_populates="user")
 
+    # Chat poruke
+    chat_messages = relationship("ChatMessage", back_populates="user")
+
+# Model Role
 class Role(Base):
     __tablename__ = "role"
 
@@ -79,6 +84,7 @@ class Role(Base):
 
     users = relationship("User", secondary=user_role, back_populates="roles")
 
+# Model Category
 class Category(Base):
     __tablename__ = "categories"
 
@@ -87,3 +93,27 @@ class Category(Base):
 
     users = relationship("User", secondary=user_interests, back_populates="interests")
     books = relationship("Book", secondary="book_categories", back_populates="categories")
+
+# Model ChatMessage
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    content = Column(String, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="chat_messages")
+
+class PrivateChatMessage(Base):
+    __tablename__ = "private_chat_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    receiver_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    content = Column(String, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    edited = Column(String, nullable=True)
+
+    sender = relationship("User", foreign_keys=[sender_id])
+    receiver = relationship("User", foreign_keys=[receiver_id])

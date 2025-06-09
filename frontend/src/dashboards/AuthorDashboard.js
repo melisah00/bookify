@@ -14,13 +14,14 @@ import BookUploadForm from "../components/BookUploadForm";
 import Footer from "../components/Footer";
 import ProtectedLayout from "../ProtectedLayout";
 import FavouriteBooksPage from "../components/FavouriteBooksPage";
-import UserProfile from "../components/UserProfile";
+import UserProfile from "../components/UserProfileModal";
 import MyBooksPage from "../components/MyBooksPage";
 import AuthorAnalyticsPage from "../components/AuthorAnalyticsPage";
 import TopPerformingBooksPage from "../pages/TopPerformingBooksPage";
 import ForumCategoryList from '../components/forum/ForumCategoryList';
 import TopicDetail from '../components/forum/TopicDetail';
 
+import PrivateChat from "../components/PrivateChat"
 
 export default function AuthorDashboard() {
   const { user, loading } = useAuth();
@@ -85,6 +86,10 @@ export default function AuthorDashboard() {
                 <Route path="forums" element={<ForumCategoryList />} />
                 <Route path="forums/topics/:topicId" element={<TopicDetail />} />
                 <Route path="*" element={<Navigate to="" replace />} />
+                <Route
+                  path="/chat/private/:receiverId"
+                  element={<PrivateChat senderId={user.id} currentUsername={user.username} />}
+                />
               </Routes>
             </Box>
           </Box>

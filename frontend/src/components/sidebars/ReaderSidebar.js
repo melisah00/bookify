@@ -22,6 +22,7 @@ import HeartIcon from "@mui/icons-material/Favorite";
 import { useTheme } from "@mui/material/styles";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
+
 const drawerWidth = 200;
 
 const colors = {
@@ -37,7 +38,7 @@ const navItems = [
   { label: "Home", to: "/app/reader", icon: <HomeIcon /> },
   { label: "Profile", to: "/app/reader/profile", icon: <AccountCircleIcon /> },
   { label: "Browse Books", to: "/app/reader/books", icon: <BookIcon /> },
-  { label: "Student corner", icon: <SchoolIcon /> },
+   { label: "Student corner", to: "/app/reader/student-corner", icon: <SchoolIcon /> },
   { label: "Inbox", icon: <InboxIcon /> },
   { label: 'Events', to: '/app/events', icon: <EventIcon /> },
   { label: "Forums", to: '/app/reader/forums',icon: <ForumIcon /> },

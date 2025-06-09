@@ -74,6 +74,20 @@ class UserDisplay2(BaseModel):
     followers: List[FollowerDisplay]
     following: List[FollowerDisplay]
     icon: Optional[str] = None
+<<<<<<< HEAD
+=======
+
+    model_config = ConfigDict(from_attributes=True)
+
+class AdminUserOut(BaseModel):
+    id: int
+    username: str
+    email: str
+    first_name: Optional[str]
+    last_name: Optional[str]
+    icon: Optional[str] = None
+    roles: List[str]
+>>>>>>> user-profile-modal
 
     model_config = ConfigDict(from_attributes=True)
 

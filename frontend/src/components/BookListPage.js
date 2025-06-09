@@ -166,122 +166,139 @@ function BookListPage() {
             {currentBooks.map((book) => (
               <Grid item key={book.id} xs={12} sm={6} md={4} lg={3}>
                 <Card
-                  sx={{
-                    height: 420,
-                    maxWidth: 260,
-                    display: "flex",
-                    flexDirection: "column",
-                    boxShadow: 3,
-                    borderRadius: 2,
-                  }}
-                >
-                  <CardHeader
-                    avatar={
-                      <Avatar
-                        src={
-                          book.author?.icon
-                            ? `http://localhost:8000${book.author.icon}`
-                            : undefined
-                        }
-                        sx={{ bgcolor: "#66b2a0" }}
-                      >
-                        {!book.author?.icon &&
-                          (book.author?.username?.[0]?.toUpperCase() || "A")}
-                      </Avatar>
-                    }
-                    title={book.title}
-                    subheader={book.author?.username || "Unknown Author"}
-                  />
-                  <CardMedia
-                    component="img"
-                    height="180"
-                    image="/Book.png"
-                    alt="Book cover"
-                    sx={{ objectFit: "cover" }}
-                  />
-                  <CardContent>
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      {/* Star Rating */}
-                      <Box sx={{ display: "flex", alignItems: "center" }}>
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Typography
-                            key={star}
-                            sx={{
-                              color:
-                                star <= Math.round(book.average_rating || 0)
-                                  ? "#ffc107"
-                                  : "#e0e0e0",
-                              fontSize: "1.2rem",
-                            }}
-                          >
-                            ★
-                          </Typography>
-                        ))}
-                        <Typography
-                          variant="caption"
-                          sx={{ ml: 1, color: "text.secondary" }}
-                        >
-                          {book.average_rating != null
-                            ? `(${book.average_rating.toFixed(1)})`
-                            : "(N/A)"}
-                        </Typography>
-                      </Box>
-                      <Box
-                        sx={{
-                          marginLeft: "auto",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "4px",
-                          color: "text.secondary",
-                        }}
-                      >
-                        <DownloadForOfflineIcon
-                          sx={{ fontSize: 18, color: "#6c757d" }}
-                        />
-                        <Typography variant="caption">
-                          {book.num_of_downloads}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </CardContent>
+  sx={{
+    height: 420,
+    maxWidth: 240,
+    display: "flex",
+    flexDirection: "column",
+    boxShadow: 3,
+    borderRadius: 2,
+  }}
+>
+  <CardHeader
+  avatar={
+    <Avatar
+      src={
+        book.author?.icon
+          ? `http://localhost:8000${book.author.icon}`
+          : undefined
+      }
+      sx={{ bgcolor: "#66b2a0" }}
+    >
+      {!book.author?.icon &&
+        (book.author?.username?.[0]?.toUpperCase() || "A")}
+    </Avatar>
+  }
+  title={
+    <Typography
+      noWrap
+      title={book.title}       // ovo dodaje native tooltip sa punim naslovom
+      sx={{
+        cursor: "pointer",
+        maxWidth: "calc(240px - 56px - 16px)",
+        fontSize:"0.9rem"
+      }}
+    >
+      {book.title}
+    </Typography>
+  }
+  subheader={
+    <Typography
+      noWrap
+      title={book.author?.username || "Unknown Author"}
+      sx={{ maxWidth: "calc(240px - 56px - 16px)" , fontSize:"0.8rem"}}
+    >
+      {book.author?.username || "Unknown Author"}
+    </Typography>
+  }
+/>
 
-                  <CardActions sx={{ px: 2, pb: 2 }}>
-                    <IconButton
-                      aria-label="add to favorites"
-                      onClick={() => toggleFavourite(book.id)}
-                    >
-                      <FavoriteIcon
-                        sx={{
-                          color:
-                            Array.isArray(favouriteBookIds) &&
-                            favouriteBookIds.includes(book.id)
-                              ? "red"
-                              : "inherit",
-                        }}
-                      />
-                    </IconButton>
-                    <IconButton aria-label="shopping cart">
-                      <ShoppingCartIcon />
-                    </IconButton>
-                    <Box sx={{ marginLeft: "auto" }}>
-                      <Link
-                        to={`${book.id}`}
-                        style={{ textDecoration: "none" }}
-                      >
-                        <Typography
-                          variant="button"
-                          sx={{
-                            color: "#66b2a0",
-                            fontWeight: "bold",
-                            "&:hover": { textDecoration: "underline" },
-                          }}
-                        >
-                          View Details
-                        </Typography>
-                      </Link>
-                    </Box>
-                  </CardActions>
-                </Card>
+  <CardMedia
+    component="img"
+    height="130"
+    image="/Book.png"
+    alt="Book cover"
+    sx={{ objectFit: "cover" }}
+  />
+
+  <CardContent
+    sx={{
+      flexGrow: 1,
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "space-between",
+    }}
+  >
+    <Box sx={{ display: "flex", alignItems: "center" }}>
+      {/* Star Rating */}
+      <Box sx={{ display: "flex", alignItems: "center" }}>
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Typography
+            key={star}
+            sx={{
+              color:
+                star <= Math.round(book.average_rating || 0)
+                  ? "#ffc107"
+                  : "#e0e0e0",
+              fontSize: "1.2rem",
+            }}
+          >
+            ★
+          </Typography>
+        ))}
+        <Typography variant="caption" sx={{ ml: 1, color: "text.secondary" }}>
+          {book.average_rating != null
+            ? `(${book.average_rating.toFixed(1)})`
+            : "(N/A)"}
+        </Typography>
+      </Box>
+      <Box
+        sx={{
+          marginLeft: "auto",
+          display: "flex",
+          alignItems: "center",
+          gap: "4px",
+          color: "text.secondary",
+        }}
+      >
+        <DownloadForOfflineIcon sx={{ fontSize: 18, color: "#6c757d" }} />
+        <Typography variant="caption">{book.num_of_downloads}</Typography>
+      </Box>
+    </Box>
+  </CardContent>
+
+  <CardActions sx={{ px: 2, pb: 2 }}>
+    <IconButton aria-label="add to favorites" onClick={() => toggleFavourite(book.id)}>
+      <FavoriteIcon
+        sx={{
+          color:
+            Array.isArray(favouriteBookIds) && favouriteBookIds.includes(book.id)
+              ? "red"
+              : "inherit",
+        }}
+      />
+    </IconButton>
+    <IconButton aria-label="shopping cart">
+      <ShoppingCartIcon />
+    </IconButton>
+    <Box sx={{ marginLeft: "auto" }}>
+      <Link to={`${book.id}`} style={{ textDecoration: "none" }}>
+        <Typography
+          variant="button"
+          sx={{
+            color: "#66b2a0",
+            fontWeight: "bold",
+            fontSize: "13px",
+            "&:hover": { textDecoration: "underline" },
+          }}
+        >
+          View Details
+        </Typography>
+      </Link>
+    </Box>
+  </CardActions>
+</Card>
+
               </Grid>
             ))}
           </Grid>

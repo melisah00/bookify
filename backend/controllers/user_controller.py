@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from datetime import datetime
 
 from pydantic import BaseModel
@@ -9,22 +10,39 @@ from typing import List
 # Add these endpoints
 from fastapi import HTTPException, status, Path
 from sqlalchemy.orm import selectinload
+=======
+from datetime import datetime, timedelta
+from sqlalchemy.future import select 
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, UploadFile, File 
+from sqlalchemy.orm import Session
+from typing import List, Optional
+>>>>>>> user-profile-modal
 
+from models.book import Book, Script
 from models.user import User, Role, RoleNameEnum
+<<<<<<< HEAD
 from services.auth_service import RoleChecker, get_current_user
+=======
+from models.event import Event
+from services.auth_service import get_current_user
+>>>>>>> user-profile-modal
 from schemas import UserCreate, UserDisplay
-from schemas.user import UserOut, UserDisplay2
+from schemas.user import UserOut, UserDisplay2, AdminUserOut
 from database import get_db, engine, get_async_db
 from services import user_service
 from sqlalchemy.orm import selectinload
 from schemas.user import UserUpdateRequest
 from sqlalchemy.ext.asyncio import AsyncSession
+<<<<<<< HEAD
 from sqlalchemy import select, Column, String
 
 from sqlalchemy.dialects.postgresql import ARRAY
 
 roles = Column(ARRAY(String), default=[])
 
+=======
+from sqlalchemy import and_, func, select, text
+>>>>>>> user-profile-modal
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -58,6 +76,12 @@ async def read_all_users(
             detail=f"Greška pri dohvatu korisnika: {e}"
         )
 
+
+@router.get("/roles")
+async def get_all_roles(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Role.name))
+    role_names = [row[0] for row in result.all()]
+    return role_names
 
 @router.get("/profile")
 async def get_user_profile(
@@ -277,3 +301,115 @@ async def delete_avatar(
     current_user: User = Depends(get_current_user),
 ):
     return await user_service.delete_avatar_service(db, current_user)
+
+@router.get("/admin/users")
+async def get_users_admin(
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1),
+    username: Optional[str] = Query(None),
+    email: Optional[str] = Query(None),
+    roles: Optional[List[str]] = Query(None),
+):
+    filters = []
+    if username:
+        filters.append(User.username.ilike(f"%{username}%"))
+    if email:
+        filters.append(User.email.ilike(f"%{email}%"))
+    if roles:
+        filters.append(User.roles.any(Role.name.in_(roles)))
+
+    base_query = select(User).options(selectinload(User.roles))
+    count_query = select(func.count()).select_from(User)
+
+    if filters:
+        base_query = base_query.where(and_(*filters))
+        count_query = count_query.where(and_(*filters))
+
+    total_result = await db.execute(count_query)
+    total_count = total_result.scalar_one()
+
+    base_query = base_query.offset((page - 1) * limit).limit(limit)
+    result = await db.execute(base_query)
+    users = result.scalars().all()
+
+    return {
+        "total_count": total_count,
+        "users": [
+            {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "icon": user.icon,
+                "roles": [r.name for r in user.roles],
+            }
+            for user in users
+        ],
+    }
+
+@router.put("/admin/{user_id}/role")
+async def update_user_role(
+    user_id: int = Path(..., gt=0),
+    role_data: dict = None,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    if "admin" not in current_user["roles"]:
+        raise HTTPException(status_code=403, detail="Admins only")
+    
+    new_role = role_data.get("role")
+    if not new_role:
+        raise HTTPException(status_code=400, detail="Missing role")
+
+    return await user_service.update_user_role(db, user_id, new_role)
+
+@router.get("/admin/dashboard-metrics")
+async def get_dashboard_metrics(db: AsyncSession = Depends(get_async_db)):
+    total_books = await db.scalar(select(func.count(Book.id)))
+    total_users = await db.scalar(select(func.count(User.id)))
+    total_scripts = await db.scalar(select(func.count(Script.id)))
+    total_events = await db.scalar(select(func.count(Event.id)))
+
+    total_authors = await db.scalar(
+        select(func.count(User.id))
+        .join(User.roles)
+        .where(Role.name == "author")
+    )
+
+    total_readers = await db.scalar(
+        select(func.count(User.id))
+        .join(User.roles)
+        .where(Role.name == "reader")
+    )
+
+    return {
+        "total_books": total_books,
+        "total_users": total_users,
+        "total_authors": total_authors,
+        "total_readers": total_readers,
+        "total_scripts": total_scripts,
+        "total_events": total_events,
+    }
+
+@router.get("/admin/chat-activity")
+async def get_chat_activity(db: AsyncSession = Depends(get_async_db)):
+    today = datetime.utcnow().date()
+    seven_days_ago = today - timedelta(days=6)
+
+    stmt = text("""
+        SELECT 
+            DATE(timestamp) as date,
+            COUNT(*) as count
+        FROM chat_messages
+        WHERE timestamp >= :start_date
+        GROUP BY DATE(timestamp)
+        ORDER BY date
+    """)
+
+    result = await db.execute(stmt, {"start_date": seven_days_ago})
+    rows = result.fetchall()
+
+    return [{"date": str(row[0]), "count": row[1]} for row in rows]
