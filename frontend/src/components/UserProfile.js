@@ -59,6 +59,7 @@ export default function UserProfile() {
       });
   }, [userId]);
 
+
   // const handleFollow = async () => {
   //   try {
   //     const followRes = await fetch(
@@ -133,10 +134,12 @@ export default function UserProfile() {
 
   const roleNames = Array.isArray(user?.roles)
     ? user.roles.map((r) =>
+
       typeof r === "string"
         ? r.toLowerCase().trim()
         : r.name?.toLowerCase().trim() || ""
     )
+
     : [];
 
   const canFollowOrUnfollow =
@@ -211,6 +214,7 @@ export default function UserProfile() {
               <Box>
                 <Typography variant="h6" sx={{ color: palette.accentMedium, fontWeight: 700 }}>
                   {user.followers?.length || 0}
+
                 </Typography>
                 <Button
                   variant="text"
@@ -259,6 +263,7 @@ export default function UserProfile() {
                 fullWidth
                 variant="contained"
                 onClick={toggleFollow}
+
                 sx={{
                   py: 1,
                   borderRadius: 2,
