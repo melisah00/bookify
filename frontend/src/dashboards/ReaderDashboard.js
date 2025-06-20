@@ -16,19 +16,21 @@ import FavouriteBooksPage from '../components/FavouriteBooksPage'
 import UserProfile from '../components/UserProfile'
 import StudentCornerChat from '../components/StudentCornerChat';
 import StudentCornerScripts from '../components/StudentCornerScripts';
-import EditScriptPage from '../components/EditScriptPage'
-import PrivateChat from "../components/PrivateChat"
+import EditScriptPage from '../components/EditScriptPage';
+import PrivateChat from "../components/PrivateChat";
+import Inbox from "../components/Inbox";
 
 export default function ReaderDashboard() {
   const { user, loading } = useAuth();
   const [open, setOpen] = useState(true);
+  const [onlineUsers, setOnlineUsers] = useState([]);
 
   if (loading) return <div>Učitavanje...</div>;
   if (!user) return <div>Morate biti prijavljeni.</div>;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <Header />
+      <Header onOnlineUsersChange={setOnlineUsers} />
       <Toolbar />
       <Box display="flex"
         flexDirection="column"
@@ -76,6 +78,8 @@ export default function ReaderDashboard() {
                   path="/chat/private/:receiverId"
                   element={<PrivateChat senderId={user.id} currentUsername={user.username} />}
                 />
+                <Route path="/inbox" element={<Inbox onlineUsers={onlineUsers} />} />
+
               </Routes>
             </Box>
           </Box>

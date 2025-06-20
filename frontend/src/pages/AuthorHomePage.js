@@ -17,7 +17,7 @@ import AnalyticsIcon from "@mui/icons-material/Analytics";
 const items = [
   { label: "Profile", icon: <AccountCircleIcon />, to: "/app/author/profile" },
   { label: "Browse Books", to: "/app/author/books", icon: <BookIcon /> },
-  { label: "Inbox", icon: <InboxIcon /> },
+  { label: "Inbox", to: "/app/author/inbox",icon: <InboxIcon /> },
   { label: "Events", icon: <EventIcon />, to: "/app/events" },
   { label: "Forums", icon: <ForumIcon /> },
   { label: "Favorites", icon: <HeartIcon />, to: "/app/author/favourites" },

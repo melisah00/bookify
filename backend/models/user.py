@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey, Table, Enum, DateTime
+from sqlalchemy import Boolean, Column, Integer, String, Date, ForeignKey, Table, Enum, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
@@ -114,6 +114,7 @@ class PrivateChatMessage(Base):
     content = Column(String, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
     edited = Column(String, nullable=True)
-
+    is_read = Column(Boolean, default=False)
+    
     sender = relationship("User", foreign_keys=[sender_id])
     receiver = relationship("User", foreign_keys=[receiver_id])

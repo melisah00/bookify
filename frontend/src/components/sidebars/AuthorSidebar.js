@@ -36,7 +36,7 @@ const navItems = [
   { label: "Home", to: "/app/author", icon: <HomeIcon /> },
   { label: "Profile", to: "/app/author/profile", icon: <AccountCircleIcon /> },
   { label: "Browse Books", to: "/app/author/books", icon: <BookIcon /> },
-  { label: "Inbox", icon: <InboxIcon /> },
+  { label: "Inbox", to: "/app/author/inbox",icon: <InboxIcon /> },
   { label: "Events", to: "/app/events", icon: <EventIcon /> },
   { label: "Forums", icon: <ForumIcon /> },
   { label: "Favorites", icon: <HeartIcon />, to: "/app/author/favourites" },

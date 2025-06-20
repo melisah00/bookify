@@ -15,19 +15,24 @@ import LogoutButton from "./LogoutButton";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import CircularProgress from "@mui/material/CircularProgress";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import palette from "../theme/palette";
 import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
 import Avatar from "@mui/material/Avatar";
 
-export default function Header() {
+export default function Header({ onOnlineUsersChange }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
   const [options, setOptions] = React.useState([]);
   const [inputValue, setInputValue] = React.useState("");
   const [loadingUsers, setLoadingUsers] = React.useState(false);
+  const [conversations, setConversations] = React.useState([]);
+  const [messageAnchorEl, setMessageAnchorEl] = React.useState(null);
+  const [onlineUsers, setOnlineUsers] = React.useState([]);
+  const isMessageMenuOpen = Boolean(messageAnchorEl);
+  const location = useLocation();
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -46,6 +51,108 @@ export default function Header() {
   };
   const handleMobileMenuOpen = (event) =>
     setMobileMoreAnchorEl(event.currentTarget);
+
+  const handleMessageMenuOpen = (event) => {
+    setMessageAnchorEl(event.currentTarget);
+  };
+
+  const handleMessageMenuClose = () => {
+    setMessageAnchorEl(null);
+  };
+
+  const totalUnread = conversations.reduce(
+    (acc, c) => acc + (c.unread_count || 0),
+    0
+  );
+
+  const fetchInbox = () => {
+    fetch(`http://localhost:8000/chat/inbox/${user.id}`, {
+      credentials: "include",
+    })
+      .then((res) => res.json())
+      .then(setConversations)
+      .catch((err) => console.error("Failed to load inbox in header:", err));
+  };
+
+  React.useEffect(() => {
+    if (!user?.id) return;
+    fetchInbox();
+  }, [user, location]);
+
+  React.useEffect(() => {
+  const refreshInbox = () => {
+    fetchInbox();
+  };
+
+  // Slušaj napuštanje privatnog chata
+  window.addEventListener("left-private-chat", refreshInbox);
+
+  return () => {
+    window.removeEventListener("left-private-chat", refreshInbox);
+  };
+}, []);
+
+const headerWS = React.useRef(null);
+
+React.useEffect(() => {
+  if (!user?.id) return;
+
+  const connectWS = () => {
+    headerWS.current = new WebSocket(`ws://localhost:8000/ws/private-chat/${user.id}`);
+
+    headerWS.current.onopen = () => {
+      console.log("📡 Header WebSocket otvoren");
+    };
+
+    headerWS.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+
+      if (
+        data.type === "unread_count_update" ||
+        data.type === "private_message"
+      ) {
+        fetchInbox();
+      }
+
+      if (data.type === "online_users") {
+        setOnlineUsers(data.user_ids);
+
+        // Ako je funkcija propom proslijeđena (npr. u Dashboardu)
+        if (typeof onOnlineUsersChange === "function") {
+          onOnlineUsersChange(data.user_ids);
+        }
+      }
+    };
+
+    headerWS.current.onclose = () => {
+      console.log("❌ Header WebSocket zatvoren");
+    };
+
+    headerWS.current.onerror = (e) => {
+      console.error("Header WS error:", e);
+    };
+  };
+
+  connectWS();
+
+  // Ponovno konektovanje kada izađeš iz PrivateChat
+  const reconnect = () => {
+    console.log("🔁 Header WS ponovna konekcija nakon izlaska iz chata");
+    if (headerWS.current?.readyState === WebSocket.OPEN) {
+      headerWS.current.close();
+    }
+    connectWS();
+  };
+
+  window.addEventListener("left-private-chat", reconnect);
+
+  return () => {
+    window.removeEventListener("left-private-chat", reconnect);
+    headerWS.current?.close();
+  };
+}, [user?.id]);
+
+
 
   React.useEffect(() => {
     const delayDebounce = setTimeout(() => {
@@ -87,6 +194,86 @@ export default function Header() {
     </Menu>
   );
 
+  const renderMessageMenu = (
+  <Menu
+    anchorEl={messageAnchorEl}
+    open={isMessageMenuOpen}
+    onClose={handleMessageMenuClose}
+    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+    transformOrigin={{ vertical: "top", horizontal: "right" }}
+    PaperProps={{ sx: { maxHeight: 400, width: 300 } }}
+  >
+    {conversations.length === 0 ? (
+      <MenuItem disabled>No messages</MenuItem>
+    ) : (
+      conversations.map((conv) => {
+        const initials = (conv.first_name?.[0] || "") + (conv.last_name?.[0] || "");
+        const isOnline = onlineUsers?.includes(conv.id); // koristi ako već imaš onlineUsers
+        return (
+          <MenuItem
+            key={conv.id}
+            onClick={() => {
+              navigate(`/app/${userRole}/chat/private/${conv.id}`);
+              handleMessageMenuClose();
+            }}
+            sx={{ alignItems: "flex-start", gap: 1 }}
+          >
+            <Box sx={{ position: "relative", width: 40, height: 40 }}>
+              <Avatar
+                src={conv.icon ? `http://localhost:8000${conv.icon}` : undefined}
+                sx={{
+                  width: 40,
+                  height: 40,
+                  fontSize: conv.icon ? 16 : 13,
+                  bgcolor: "#66b2a0",
+                }}
+              >
+                {!conv.icon && initials}
+              </Avatar>
+              {/* Online/offline status dot */}
+              <Box
+                sx={{
+                  position: "absolute",
+                  bottom: 0,
+                  right: 0,
+                  width: 10,
+                  height: 10,
+                  borderRadius: "50%",
+                  backgroundColor: isOnline ? "#44b700" : "#9e9e9e",
+                  border: "2px solid white",
+                }}
+              />
+            </Box>
+
+            <Box sx={{ flexGrow: 1, overflow: "hidden" }}>
+              <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+                {conv.first_name} {conv.last_name}
+              </Typography>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                noWrap
+                sx={{ display: "block", maxWidth: "100%" }}
+              >
+                {conv.last_message}
+              </Typography>
+            </Box>
+
+            {conv.unread_count > 0 && (
+              <Badge
+                badgeContent={conv.unread_count}
+                color="error"
+                sx={{ ml: 1, mt: 0.5 }}
+              />
+            )}
+          </MenuItem>
+        );
+      })
+    )}
+  </Menu>
+);
+
+
   const renderMobileMenu = (
     <Menu
       anchorEl={mobileMoreAnchorEl}
@@ -95,9 +282,9 @@ export default function Header() {
       anchorOrigin={{ vertical: "top", horizontal: "right" }}
       transformOrigin={{ vertical: "top", horizontal: "right" }}
     >
-      <MenuItem>
+      <MenuItem onClick={handleMessageMenuOpen}>
         <IconButton size="large" color="inherit">
-          <Badge badgeContent={4} color="error">
+          <Badge badgeContent={totalUnread} color="error">
             <MailIcon />
           </Badge>
         </IconButton>
@@ -281,19 +468,13 @@ export default function Header() {
           </Box>
 
           <Box sx={{ display: { xs: "none", md: "flex" } }}>
-            <IconButton size="large" color="inherit">
-              <Badge
-                badgeContent={4}
-                sx={{ "& .MuiBadge-badge": { backgroundColor: "#d9534f" } }}
-              >
+            <IconButton size="large" color="inherit" onClick={handleMessageMenuOpen}>
+              <Badge badgeContent={totalUnread} color="error">
                 <MailIcon />
               </Badge>
             </IconButton>
             <IconButton size="large" color="inherit">
-              <Badge
-                badgeContent={17}
-                sx={{ "& .MuiBadge-badge": { backgroundColor: "#d9534f" } }}
-              >
+              <Badge badgeContent={17} color="error">
                 <NotificationsIcon />
               </Badge>
             </IconButton>
@@ -334,6 +515,7 @@ export default function Header() {
 
       {renderMobileMenu}
       {renderMenu}
+      {renderMessageMenu}
     </Box>
   );
 }
