@@ -104,67 +104,82 @@ const PrivateChat = () => {
     }
   };
 
-  useEffect(() => {
-    if (!senderId || !receiverId) return;
+useEffect(() => {
+  if (!senderId || !receiverId) return;
 
-    axios
-      .get(`http://localhost:8000/private-chat/${senderId}/${receiverId}`, {
-        withCredentials: true,
-      })
-      .then((res) => {
-        setMessages(res.data);
+  // 🟢 1. Dohvati postojeće poruke
+  axios
+    .get(`http://localhost:8000/private-chat/${senderId}/${receiverId}`, {
+      withCredentials: true,
+    })
+    .then((res) => {
+      setMessages(res.data);
+      scrollToBottom();
+    })
+    .catch((err) => console.error("❌ Greška kod dohvata historije:", err));
+
+  // 🟢 2. Postavi WebSocket konekciju
+  ws.current = new WebSocket(`ws://localhost:8000/ws/private-chat/${senderId}`);
+
+  ws.current.onopen = () => {
+    console.log("✅ WebSocket otvoren");
+  };
+
+  ws.current.onerror = (err) => {
+    console.error("❌ WebSocket greška:", err);
+  };
+
+  ws.current.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+
+    if (data.type === "private_message") {
+      const isRelevant =
+        (data.sender_id === senderId && data.receiver_id == receiverId) ||
+        (data.sender_id == receiverId && data.receiver_id === senderId);
+
+      if (isRelevant) {
+        setMessages((prev) => [...prev, data]);
         scrollToBottom();
-      })
-      .catch((err) => console.error("Error fetching messages:", err));
-
-    ws.current = new WebSocket(
-      `ws://localhost:8000/ws/private-chat/${senderId}`
-    );
-
-    ws.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-
-      if (data.type === "private_message") {
-        const isRelevant =
-          (data.sender_id === senderId && data.receiver_id == receiverId) ||
-          (data.sender_id == receiverId && data.receiver_id === senderId);
-
-        if (isRelevant) {
-          setMessages((prev) => [...prev, data]);
-          scrollToBottom();
-        }
       }
+    }
 
-      if (data.type === "private_delete") {
-        setMessages((prev) =>
-          prev.filter((msg) => msg.message_id !== data.message_id)
-        );
+    if (data.type === "private_delete") {
+      setMessages((prev) =>
+        prev.filter((msg) => msg.message_id !== data.message_id)
+      );
+    }
+
+    if (data.type === "private_edit") {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.message_id === data.message_id
+            ? { ...msg, content: data.new_content }
+            : msg
+        )
+      );
+    }
+
+    if (data.type === "private_typing") {
+      if (data.sender_id === parseInt(receiverId)) {
+        setTypingUser(data.username);
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = setTimeout(() => {
+          setTypingUser(null);
+        }, 3000);
       }
+    }
+  };
 
-      if (data.type === "private_edit") {
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.message_id === data.message_id
-              ? { ...msg, content: data.new_content }
-              : msg
-          )
-        );
-      }
+  return () => {
+    ws.current?.close();
 
-      if (data.type === "private_typing") {
-        if (data.sender_id === parseInt(receiverId)) {
-          setTypingUser(data.username);
-          clearTimeout(typingTimeoutRef.current);
-          typingTimeoutRef.current = setTimeout(
-            () => setTypingUser(null),
-            3000
-          );
-        }
-      }
-    };
+    // Emituj custom event kada napustiš privatni chat
+    const event = new Event("left-private-chat");
+    window.dispatchEvent(event);
+  };
+}, [senderId, receiverId]);
 
-    return () => ws.current?.close();
-  }, [senderId, receiverId]);
+
 
   const sendMessage = () => {
     if (input.trim() && ws.current?.readyState === WebSocket.OPEN) {

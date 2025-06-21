@@ -1,4 +1,6 @@
+import asyncio
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException, Query, Path
+from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload, selectinload
@@ -35,19 +37,33 @@ class PrivateChatManager:
     async def connect(self, user_id: int, websocket: WebSocket):
         await websocket.accept()
         self.connections[user_id] = websocket
+        await self.broadcast_online_users()
 
     def disconnect(self, user_id: int):
         if user_id in self.connections:
             del self.connections[user_id]
+        asyncio.create_task(self.broadcast_online_users())
 
     async def send_personal_message(self, receiver_id: int, message: dict):
         if receiver_id in self.connections:
             await self.connections[receiver_id].send_json(message)
 
+    # ✅ OVO je funkcija koja je pukla
+    async def broadcast_online_users(self):
+        user_ids = list(self.connections.keys())
+        for conn in self.connections.values():
+            await conn.send_json({
+                "type": "online_users",
+                "user_ids": user_ids
+            })
+
+
 
 
 manager = ConnectionManager()
 private_chat_manager = PrivateChatManager()
+
+
 
 @router.websocket("/ws/chat")
 async def websocket_chat(websocket: WebSocket, db: AsyncSession = Depends(get_db)):
@@ -236,9 +252,10 @@ async def private_chat(websocket: WebSocket, user_id: int, db: AsyncSession = De
 
 @router.get("/private-chat/{user1_id}/{user2_id}")
 async def get_private_messages(user1_id: int, user2_id: int, db: AsyncSession = Depends(get_db)):
+    # 1. Dohvati sve poruke između ova dva korisnika
     result = await db.execute(
         select(PrivateChatMessage)
-        .options(selectinload(PrivateChatMessage.sender))  # Učitaj podatke o senderu
+        .options(selectinload(PrivateChatMessage.sender))
         .where(
             ((PrivateChatMessage.sender_id == user1_id) & (PrivateChatMessage.receiver_id == user2_id)) |
             ((PrivateChatMessage.sender_id == user2_id) & (PrivateChatMessage.receiver_id == user1_id))
@@ -247,6 +264,24 @@ async def get_private_messages(user1_id: int, user2_id: int, db: AsyncSession = 
     )
     messages = result.scalars().all()
 
+    # 2. Označi poruke koje su POSLANE KA user1_id kao pročitane
+    count_updated = False
+    for msg in messages:
+        if msg.receiver_id == user1_id and not msg.is_read:
+            msg.is_read = True
+            count_updated = True
+
+    if count_updated:
+        await db.commit()
+
+        # 🔁 Pošalji WebSocket poruku da su sve poruke od user2_id prema user1_id pročitane
+        await private_chat_manager.send_personal_message(user1_id, {
+            "type": "unread_count_update",
+            "sender_id": user2_id,  # onaj ko je slao poruke
+            "count": 0
+        })
+
+    # 3. Vrati formatirane poruke
     return [
         {
             "message_id": m.id,
@@ -260,6 +295,7 @@ async def get_private_messages(user1_id: int, user2_id: int, db: AsyncSession = 
         }
         for m in messages
     ]
+
 
 
 @router.delete("/private-chat/messages/{message_id}")
@@ -328,3 +364,50 @@ async def edit_private_message(
     await private_chat_manager.send_personal_message(message.receiver_id, edit_notice)
 
     return {"detail": "Message updated."}
+    
+
+@router.get("/chat/inbox/{user_id}")
+async def get_inbox_users(user_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(PrivateChatMessage)
+        .where(
+            (PrivateChatMessage.sender_id == user_id) |
+            (PrivateChatMessage.receiver_id == user_id)
+        )
+        .order_by(PrivateChatMessage.timestamp.desc())
+    )
+    messages = result.scalars().all()
+
+    latest_per_user = {}
+    for msg in messages:
+        other_id = msg.receiver_id if msg.sender_id == user_id else msg.sender_id
+        if other_id not in latest_per_user:
+            latest_per_user[other_id] = msg
+
+    users_result = await db.execute(
+        select(User).where(User.id.in_(latest_per_user.keys()))
+    )
+    users = users_result.scalars().all()
+    user_map = {u.id: u for u in users}
+
+    # 🆕 Prebroj nepročitane poruke
+    unread_counts_result = await db.execute(
+        select(PrivateChatMessage.sender_id, func.count())
+        .where(PrivateChatMessage.receiver_id == user_id, PrivateChatMessage.is_read == False)
+        .group_by(PrivateChatMessage.sender_id)
+    )
+    unread_map = {sender_id: count for sender_id, count in unread_counts_result.all()}
+
+    return [
+        {
+            "id": uid,
+            "username": user_map[uid].username,
+            "first_name": user_map[uid].first_name,
+            "last_name": user_map[uid].last_name,
+            "icon": user_map[uid].icon,
+            "last_message": latest_per_user[uid].content,
+            "last_time": latest_per_user[uid].timestamp.isoformat(),
+            "unread_count": unread_map.get(uid, 0),  # 🆕 Dodano ovdje
+        }
+        for uid in latest_per_user
+    ]

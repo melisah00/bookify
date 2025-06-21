@@ -22,17 +22,19 @@ import ForumCategoryList from '../components/forum/ForumCategoryList';
 import TopicDetail from '../components/forum/TopicDetail';
 
 import PrivateChat from "../components/PrivateChat"
+import Inbox from "../components/Inbox";
 
 export default function AuthorDashboard() {
   const { user, loading } = useAuth();
   const [open, setOpen] = useState(true);
+  const [onlineUsers, setOnlineUsers] = useState([]);
 
   if (loading) return <div>Učitavanje...</div>;
   if (!user) return <div>Morate biti prijavljeni.</div>;
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      <Header />
+      <Header onOnlineUsersChange={setOnlineUsers} />
       <Toolbar />
 
       <Box>
@@ -90,6 +92,7 @@ export default function AuthorDashboard() {
                   path="/chat/private/:receiverId"
                   element={<PrivateChat senderId={user.id} currentUsername={user.username} />}
                 />
+                <Route path="/inbox" element={<Inbox onlineUsers={onlineUsers} />} />
               </Routes>
             </Box>
           </Box>
