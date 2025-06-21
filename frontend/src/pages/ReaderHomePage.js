@@ -18,7 +18,7 @@ const items = [
   { label: "Student Corner", to:"/app/reader/student-corner", icon: <SchoolIcon /> },
   { label: "Inbox", icon: <InboxIcon /> },
   { label: 'Events', icon: <EventIcon /> , to: '/app/events' },
-  { label: "Forums", icon: <ForumIcon />, to: '/app/forums' },
+  { label: "Forums", icon: <ForumIcon />, to: '/app/reader/forums' },
   { label: "Favorites", icon: <HeartIcon />, to: "/app/reader/favourites" },
 ];
 

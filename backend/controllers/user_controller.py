@@ -1,7 +1,7 @@
 
 from datetime import datetime, timedelta
 from sqlalchemy.future import select 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, UploadFile, File 
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, UploadFile, File, status 
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -17,14 +17,31 @@ from sqlalchemy.orm import selectinload
 from schemas.user import UserUpdateRequest
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import and_, func, select, text
+import os
 
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
+
+BLOCKED_FILE = "blocked_users.txt"
+
+def get_blocked_ids() -> set[int]:
+    if not os.path.exists(BLOCKED_FILE):
+        return set()
+    with open(BLOCKED_FILE, "r") as f:
+        return set(int(line.strip()) for line in f if line.strip().isdigit())
+
+
+def save_blocked_ids(blocked: set[int]):
+    with open(BLOCKED_FILE, "w") as f:
+        for uid in blocked:
+            f.write(f"{uid}\n")
+
+
+
 def get_session():
     with Session(engine) as session:
         yield session
-
 
 
 @router.post("/", response_model=UserDisplay, status_code=201)
@@ -32,24 +49,60 @@ async def create_user(user_data: UserCreate, db: Session = Depends(get_session))
     return await user_service.create_user_service(user_data, db)
 
 
-@router.get(
-    "/",
-    response_model=List[UserDisplay],
-    summary="Vrati listu svih korisnika (bez admina)"
-)
+@router.get("/me/blocked")
+async def is_user_blocked(current_user: dict = Depends(get_current_user)):
+    blocked_ids = get_blocked_ids()
+    return {"is_blocked": current_user["id"] in blocked_ids}
+
+
+@router.get("/list", response_model=list[AdminUserOut])
 async def read_all_users(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_async_db)
 ):
-    try:
-        users = await user_service.get_all_users_service(db)
-        filtered = [u for u in users if 'admin' not in u.roles]
-        return filtered
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Greška pri dohvatu korisnika: {e}"
-        )
+    if "admin" not in current_user.get("roles", []):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+
+    users = await user_service.get_all_users_service(db)
+    blocked = get_blocked_ids()  
+
+    result = []
+    for u in users:
+        if "admin" in u.roles:
+            continue
+
+        user_dict = u.model_dump() if hasattr(u, 'model_dump') else u.__dict__
+        user_dict["is_blocked"] = u.id in blocked
+
+        result.append(AdminUserOut(**user_dict))  
+
+    return result
+
+# Block a user
+@router.post("/{user_id}/block", status_code=204)
+async def block_user(
+    user_id: int,
+    current_user: dict = Depends(get_current_user)
+):
+    if "admin" not in current_user.get("roles", []):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+    blocked = get_blocked_ids()
+    blocked.add(user_id)
+    save_blocked_ids(blocked)
+    return
+
+# Unblock a user
+@router.post("/{user_id}/unblock", status_code=204)
+async def unblock_user(
+    user_id: int,
+    current_user: dict = Depends(get_current_user)
+):
+    if "admin" not in current_user.get("roles", []):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+    blocked = get_blocked_ids()
+    blocked.discard(user_id)
+    save_blocked_ids(blocked)
+    return
 
 
 @router.get("/roles")

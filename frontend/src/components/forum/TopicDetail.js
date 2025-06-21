@@ -1,19 +1,19 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
-import { useParams } from 'react-router-dom';
-import { IconButton, Pagination } from '@mui/material';
-import ReplyIcon from '@mui/icons-material/Reply'
-
+import { useParams, useNavigate } from 'react-router-dom';
+import { IconButton, Pagination, Button } from '@mui/material';
+import ReplyIcon from '@mui/icons-material/Reply';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 export default function TopicDetail() {
   const { topicId } = useParams();
+  const navigate = useNavigate();
   const { user, loading: authLoading, hasRole } = useAuth();
 
   const [topicTitle, setTopicTitle] = useState('');
-  const [topicDescription, setTopicDescription] = useState(0);
-  // const [view_count, setViewCount] = useState('');
+  const [topicDescription, setTopicDescription] = useState('');
+  const [viewCount, setViewCount] = useState(0);
   const [isLocked, setIsLocked] = useState(false);
   const [replyTexts, setReplyTexts] = useState({});
   const [posts, setPosts] = useState([]);
@@ -25,11 +25,20 @@ export default function TopicDetail() {
 
   const [page, setPage] = useState(1);
   const postsPerPage = 10;
+  const hasIncremented = useRef(false);
 
   const api = axios.create({
     baseURL: 'http://localhost:8000',
     withCredentials: true,
   });
+
+  const incrementViewCount = useCallback(async () => {
+    try {
+      await api.post(`/forum/${topicId}/increment-view`);
+    } catch (e) {
+      console.error('Error incrementing view count:', e);
+    }
+  }, [topicId]);
 
   const fetchTopic = useCallback(async () => {
     try {
@@ -37,8 +46,7 @@ export default function TopicDetail() {
       setTopicTitle(data.title);
       setTopicDescription(data.description);
       setIsLocked(data.is_locked);
-      // setViewCount(data.view_count);          
-
+      setViewCount(data.view_count);
     } catch (e) {
       console.error('Error fetching topic:', e);
     }
@@ -49,19 +57,18 @@ export default function TopicDetail() {
     setError(null);
     try {
       const { data: postsData } = await api.get(`/forum/topics/${topicId}/posts`);
-      const otherIds = Array.from(new Set(
-        postsData.map(p => p.user_id).filter(id => id !== user?.id)
-      ));
+      const otherIds = Array.from(
+        new Set(postsData.map(p => p.user_id).filter(id => id !== user?.id))
+      );
       const usersArr = await Promise.all(
         otherIds.map(id =>
-          api.get(`/users/fe/${id}`).then(res => res.data)
-            .catch(() => ({ id, username: `User#${id}` }))
+          api.get(`/users/fe/${id}`).then(res => res.data).catch(() => ({ id, username: `User#${id}` }))
         )
       );
       const usersMap = Object.fromEntries(usersArr.map(u => [u.id, u.username]));
       const mapped = postsData.map(p => ({
         ...p,
-        username: p.user_id === user?.id ? user.username : usersMap[p.user_id]
+        username: p.user_id === user?.id ? user.username : usersMap[p.user_id],
       }));
       setPosts(mapped);
     } catch (e) {
@@ -73,13 +80,19 @@ export default function TopicDetail() {
   }, [topicId, user]);
 
   useEffect(() => {
-    if (!authLoading) {
-      fetchTopic();
-      fetchPosts();
+    if (!authLoading && !hasIncremented.current) {
+      hasIncremented.current = true;
+      (async () => {
+        if (!hasRole('admin')) {
+          await incrementViewCount();
+        }
+        await fetchTopic();
+        await fetchPosts();
+      })();
     }
-  }, [fetchTopic, fetchPosts, authLoading]);
+  }, [authLoading, hasRole, incrementViewCount, fetchTopic, fetchPosts]);
 
-  const deletePost = async (postId) => {
+  const deletePost = async postId => {
     try {
       await api.delete(`/forum/posts/${postId}`);
       setPosts(prev => prev.filter(p => p.post_id !== postId));
@@ -98,7 +111,7 @@ export default function TopicDetail() {
       topic_id: Number(topicId),
       content: text,
       user_id: user.id,
-      reply_to_post_id: replyToId || null,
+      reply_to_post_id: replyToId,
     };
 
     try {
@@ -149,15 +162,28 @@ export default function TopicDetail() {
   if (loading || authLoading) return <div className="p-4">Loading...</div>;
 
   return (
-    <div className="p-4 bg-gray-50" style={{ margin: "3%" }}>
-      <h2 className="text-2xl font-bold mb-4">{topicTitle}</h2>
-      <p>{topicDescription}</p>
-      {/* <p className="text-sm text-gray-500">Views: {view_count}</p> */}
-      <br></br>
-      <hr></hr>
-      <br></br>
+    <div className="p-4 bg-gray-50" style={{ margin: '3%' }}>
+      <Button
+        variant="contained"
+        onClick={() => navigate(-1)}
+        style={{
+          marginBottom: '1rem',
+          backgroundColor: 'rgb(102,178,160)',
+        }}
+        onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgb(85,150,135)')}
+        onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'rgb(102,178,160)')}
+      >
+        Back
+      </Button>
+
+
+      <h2 className="text-2xl font-bold mb-2">{topicTitle}</h2>
+      <p className="mb-2">{topicDescription}</p>
+      <p className="text-sm text-gray-500 mb-4">Views: <strong>{viewCount}</strong></p>
+      <hr className="mb-4" />
+
       {isLocked && (
-        <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 p-3 rounded my-4">
+        <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 p-3 rounded mb-4">
           This topic is locked. You can't add or reply to comments.
         </div>
       )}
@@ -222,10 +248,17 @@ export default function TopicDetail() {
           />
           <button
             onClick={() => addComment(null, commentText)}
-            className="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="mt-2 text-white px-4 py-2 rounded"
+            style={{
+              backgroundColor: 'rgb(102,178,160)',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgb(85,150,135)')}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'rgb(102,178,160)')}
           >
             Post
           </button>
+
+
         </div>
       )}
     </div>
@@ -245,9 +278,7 @@ function PostItem({ post, replies, votePost, deletePost, replyingTo, setReplying
         <div>
           <span className="font-semibold text-green-700">{post.username}</span>
           {replyToUsername && (
-            <span className="text-gray-500 text-sm ml-2">
-              (replying to {replyToUsername})
-            </span>
+            <span className="text-gray-500 text-sm ml-2">(replying to {replyToUsername})</span>
           )}
           <span className="text-gray-500 text-sm ml-2">{new Date(post.created_at).toLocaleString()}</span>
         </div>
@@ -260,18 +291,14 @@ function PostItem({ post, replies, votePost, deletePost, replyingTo, setReplying
           <button
             onClick={() => votePost(post.post_id, 1)}
             disabled={isOwnPost || alreadyVoted}
-            className={`text-green-600 ${(isOwnPost || alreadyVoted) ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            ▲
-          </button>
+            className={`text-green-600 ${isOwnPost || alreadyVoted ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >▲</button>
           <span>{post.upvote - post.downvote}</span>
           <button
             onClick={() => votePost(post.post_id, -1)}
             disabled={isOwnPost || alreadyVoted}
-            className={`text-red-600 ${(isOwnPost || alreadyVoted) ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            ▼
-          </button>
+            className={`text-red-600 ${isOwnPost || alreadyVoted ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >▼</button>
           {!isLocked && (
             <IconButton
               onClick={() => setReplyingTo(replyingTo === post.post_id ? null : post.post_id)}
@@ -288,9 +315,7 @@ function PostItem({ post, replies, votePost, deletePost, replyingTo, setReplying
       {!isLocked && replyingTo === post.post_id && (
         <div className="mb-4 pl-4">
           {user && (
-            <p className="mb-1 text-gray-600">
-              Replying as <span className="font-semibold text-blue-600">{user.username}</span>
-            </p>
+            <p className="mb-1 text-gray-600">Replying as <span className="font-semibold text-blue-600">{user.username}</span></p>
           )}
           <div className="flex items-center">
             <input
@@ -303,20 +328,11 @@ function PostItem({ post, replies, votePost, deletePost, replyingTo, setReplying
             <button
               onClick={() => addComment(post.post_id, replyTexts[post.post_id])}
               className="bg-green-600 text-white px-4 hover:bg-green-700"
-            >
-              Send
-            </button>
-            <span
-              onClick={() => setReplyingTo(null)}
-              className="cursor-pointer text-gray-500 hover:text-red-500 ml-2 text-xl font-bold"
-              title="Cancel reply"
-            >
-              ×
-            </span>
+            >Send</button>
+            <span onClick={() => setReplyingTo(null)} className="cursor-pointer text-gray-500 hover:text-red-500 ml-2 text-xl font-bold" title="Cancel reply">×</span>
           </div>
         </div>
       )}
-
 
       {replies.length > 0 && (
         <div className={`pl-6 ${depth < 5 ? 'border-l-2 border-gray-200' : ''}`}>
@@ -330,6 +346,7 @@ function PostItem({ post, replies, votePost, deletePost, replyingTo, setReplying
                 replyingTo={replyingTo}
                 setReplyingTo={setReplyingTo}
                 replyTexts={replyTexts}
+
                 handleReplyChange={handleReplyChange}
                 addComment={addComment}
                 user={user}
@@ -347,4 +364,3 @@ function PostItem({ post, replies, votePost, deletePost, replyingTo, setReplying
     </div>
   );
 }
-

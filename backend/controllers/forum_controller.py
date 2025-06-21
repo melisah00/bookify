@@ -2,7 +2,7 @@ from datetime import datetime
 from http.client import HTTPException
 from venv import logger
 from sqlalchemy.orm import selectinload
-from sqlalchemy import select
+from sqlalchemy import select, update
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
@@ -100,6 +100,19 @@ async def get_topic(topic_id: int, db: AsyncSession = Depends(get_db)):
 @router.post("/topics", response_model=ForumTopicDisplay, status_code=201)
 async def create_topic(data: ForumTopicCreate, db: AsyncSession = Depends(get_db)):
     return await forum_service.create_topic_service(data, db)
+
+
+@router.post("/{topic_id}/increment-view", status_code=status.HTTP_204_NO_CONTENT)
+async def increment_topic_view(topic_id: int, db: AsyncSession = Depends(get_db)):
+    res = await db.execute(select(ForumTopic).where(ForumTopic.topic_id == topic_id))
+    topic = res.scalar_one_or_none()
+    if not topic:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Topic not found")
+
+    topic.view_count = (topic.view_count or 0) + 1
+
+    await db.commit()
+    return
 
 
 @router.get("/{topic_id}", response_model=ForumTopicDisplay)

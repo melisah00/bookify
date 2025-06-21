@@ -16,10 +16,15 @@ async def get_user_with_roles_by_id(user_id: int, db: AsyncSession) -> Optional[
     )
     return result.scalars().first()
 
-async def get_all_users(db: AsyncSession) -> List[User]:
-    result = await db.execute(select(User))
-    return result.scalars().all()
+# async def get_all_users(db: AsyncSession) -> List[User]:
+#     result = await db.execute(select(User))
+#     return result.scalars().all()
 
+async def get_all_users(db: AsyncSession):
+    result = await db.execute(
+        select(User).options(selectinload(User.roles))
+    )
+    return result.scalars().all()
 
 async def create_user(user: User, db: AsyncSession) -> User:
     db.add(user)
