@@ -75,7 +75,10 @@ class UserDisplay2(BaseModel):
     following: List[FollowerDisplay]
     icon: Optional[str] = None
 
+
     model_config = ConfigDict(from_attributes=True)
+
+
 
 class AdminUserOut(BaseModel):
     id: int
@@ -85,5 +88,9 @@ class AdminUserOut(BaseModel):
     last_name: Optional[str]
     icon: Optional[str] = None
     roles: List[str]
+    is_blocked: Optional[bool] = None
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+        extra="allow"  
+    )

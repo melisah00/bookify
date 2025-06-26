@@ -1,10 +1,11 @@
 from datetime import datetime
-from fastapi import HTTPException, status, UploadFile
+from services.auth_service import get_current_user
+from fastapi import HTTPException, status, UploadFile, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List
 
-from schemas.user import UserUpdateRequest
+from schemas.user import UserDisplay, UserUpdateRequest, AdminUserOut
 from models import User, Role, RoleNameEnum
 from schemas import UserCreate
 from repositories import user_repository
@@ -13,6 +14,23 @@ from sqlalchemy.orm import selectinload
 import os
 import shutil
 import uuid
+
+
+BLOCKED_FILE = "blocked_users.txt"
+
+def get_blocked_ids() -> set[int]:
+    if not os.path.exists(BLOCKED_FILE):
+        return set()
+    with open(BLOCKED_FILE, "r") as f:
+        return set(int(line.strip()) for line in f if line.strip().isdigit())
+
+async def ensure_not_blocked(current_user: dict = Depends(get_current_user)):
+    blocked = get_blocked_ids()
+    if current_user.get("id") in blocked:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User is blocked")
+    return current_user
+
+
 
 async def create_user_service(user_data: UserCreate, db: AsyncSession) -> User:
     existing_user = await user_repository.get_user_by_email(user_data.email, db)
@@ -49,6 +67,24 @@ async def get_user_by_id_service(user_id: int, db: AsyncSession) -> User:
 
 async def get_all_users_service(db: AsyncSession) -> List[User]:
     return await user_repository.get_all_users(db)
+
+
+async def get_all_users_service(db: AsyncSession) -> List[AdminUserOut]:
+    users: List[User] = await user_repository.get_all_users(db)
+    return [
+        AdminUserOut(
+            id=u.id,
+            username=u.username,
+            email=u.email,
+            first_name=u.first_name,
+            last_name=u.last_name,
+            icon=u.icon,
+            roles=[r.name.value for r in u.roles] if u.roles else [],
+        )
+        for u in users
+    ]
+
+
 
 async def get_user_profile(user_id: int, db: AsyncSession):
     user = await user_repository.get_user_with_roles_by_id(user_id, db)

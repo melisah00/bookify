@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
+
 class ForumCategoryDisplay(BaseModel):
     category_id: int
     name: str
@@ -9,6 +10,20 @@ class ForumCategoryDisplay(BaseModel):
 
     class Config:
         model_config = ConfigDict(from_attributes=True)
+
+
+class ForumCategoryCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+
+class ForumTopicCreate(BaseModel):
+    category_id: int
+    creator_id: int
+    title: str
+    description: Optional[str] = None
+    is_pinned: bool
+    is_locked: bool
 
 
 class ForumTopicDisplay(BaseModel):
@@ -27,17 +42,48 @@ class ForumTopicDisplay(BaseModel):
         model_config = ConfigDict(from_attributes=True)
 
 
+class TopicUpdateSchema(BaseModel):
+    title: str
+    description: Optional[str] = None
+    is_pinned: bool
+    is_locked: bool
+
+
+class ForumPostCreate(BaseModel):
+    topic_id: int
+    content: str
+    reply_to_post_id: Optional[int] = None
+
+
+class ForumPostOut(BaseModel):
+    post_id: int
+    topic_id: int
+    user_id: int
+    content: str
+    created_at: datetime
+    edited_at: Optional[datetime]
+    username: str
+    upvote: int
+    downvote: int
+    reply_to_post_id: Optional[int]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class VoteSchema(BaseModel):
+    vote: int
+
+
 class ForumPostDisplay(BaseModel):
     post_id: int
     topic_id: int
     user_id: int
     content: str
     created_at: datetime
-    edited_at: Optional[datetime] = None
+    edited_at: Optional[datetime]
     upvote: int
     downvote: int
-    reply_to_post_id: Optional[int] = None
+    reply_to_post_id: Optional[int]
 
     class Config:
-        model_config = ConfigDict(from_attributes=True)
-
+        orm_mode = True

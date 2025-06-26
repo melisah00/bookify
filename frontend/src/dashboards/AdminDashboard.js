@@ -1,14 +1,18 @@
-import React, { useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
-import Header from "../components/Header";
-import AdminSidebar from "../components/sidebars/AdminSidebar";
-import { Box, Toolbar } from "@mui/material";
-import { Routes, Route, Navigate } from "react-router-dom";
+ 
+import React, { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import Header from '../components/Header';
+import AdminSidebar from '../components/sidebars/AdminSidebar';
+import { Box, Toolbar } from '@mui/material';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
-import Profile from "../components/Profile";
-import Footer from "../components/Footer";
-import AdminHomePage from "../pages/AdminHomePage";
-import ProtectedLayout from "../ProtectedLayout";
+import Profile from '../components/Profile';
+import Footer from '../components/Footer';
+import AdminHomePage from '../pages/AdminHomePage';
+import ProtectedLayout from '../ProtectedLayout';
+import ForumAdmin from '../components/forum/ForumAdmin';
+import TopicDetail from '../components/forum/TopicDetail';
+
 import AdminUserManagementPage from "../pages/AdminUserManagementPage";
 import AdminAnalyticsPage from "../pages/AdminAnalyticsPage";
 
@@ -49,8 +53,14 @@ export default function AdminDashboard() {
                 <Route index element={<AdminHomePage />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="*" element={<Navigate to="" replace />} />
+
+                <Route path="forum" element={<ForumAdmin />} />
+                <Route path="forums/topics/:topicId" element={<TopicDetail />} />
+                <Route path="*" element={<Navigate to="" replace />} />
+
                 <Route path="users" element={<AdminUserManagementPage />} />
                 <Route path="analytics" element={<AdminAnalyticsPage />} />
+
               </Routes>
             </Box>
           </Box>

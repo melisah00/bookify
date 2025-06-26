@@ -21,6 +21,7 @@ import AnalyticsIcon from "@mui/icons-material/Analytics";
 import UserIcon from "@mui/icons-material/Person";
 import { useTheme } from "@mui/material/styles";
 
+
 const drawerWidth = 200;
 
 const colors = {
@@ -28,12 +29,13 @@ const colors = {
 };
 
 const navItems = [
-  { label: "Home", to: "/app/admin", icon: <HomeIcon /> },
-  { label: "Users", to: "/app/admin/users", icon: <UserIcon /> },
-  { label: "Inbox", icon: <InboxIcon /> },
-  { label: "Events", to: "/app/events", icon: <EventIcon /> },
-  { label: "Forums", icon: <ForumIcon /> },
-  { label: "Analytics", to: "/app/admin/analytics", icon: <AnalyticsIcon /> },
+    { label: 'Home', to: '/app/admin', icon: <HomeIcon /> },
+    { label: "Users", to: "/app/admin/users", icon: <UserIcon /> },
+    { label: 'Inbox', icon: <InboxIcon /> },
+    { label: 'Events', to: '/app/events', icon: <EventIcon /> },
+    { label: 'Forums', icon: <ForumIcon />, to: '/app/admin/forum' },
+    { label: "Analytics", to: "/app/admin/analytics", icon: <AnalyticsIcon /> },
+
 ];
 
 export default function AdminSidebar({ open, onToggle }) {

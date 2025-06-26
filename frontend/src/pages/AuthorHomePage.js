@@ -19,7 +19,7 @@ const items = [
   { label: "Browse Books", to: "/app/author/books", icon: <BookIcon /> },
   { label: "Inbox", to: "/app/author/inbox",icon: <InboxIcon /> },
   { label: "Events", icon: <EventIcon />, to: "/app/events" },
-  { label: "Forums", icon: <ForumIcon /> },
+  { label: "Forums", icon: <ForumIcon />, to: '/app/author/forums' },
   { label: "Favorites", icon: <HeartIcon />, to: "/app/author/favourites" },
   { label: "Upload Book", icon: <UploadIcon />, to: "/app/author/upload" },
   { label: "My Books", icon: <MyBooksIcon />, to: "/app/author/my-books" },
