@@ -20,8 +20,7 @@ import AuthorAnalyticsPage from "../components/AuthorAnalyticsPage";
 import TopPerformingBooksPage from "../pages/TopPerformingBooksPage";
 import ForumCategoryList from '../components/forum/ForumCategoryList';
 import TopicDetail from '../components/forum/TopicDetail';
-
-import PrivateChat from "../components/PrivateChat"
+import PrivateChat from "../components/PrivateChat";
 import Inbox from "../components/Inbox";
 
 export default function AuthorDashboard() {
@@ -33,73 +32,48 @@ export default function AuthorDashboard() {
   if (!user) return <div>Morate biti prijavljeni.</div>;
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       <Header onOnlineUsersChange={setOnlineUsers} />
       <Toolbar />
 
-      <Box>
-        <Box sx={{ display: "flex", flexGrow: 1, minHeight: "100vh" }}>
-          <AuthorSidebar open={open} onToggle={() => setOpen((o) => !o)} />
+      <Box sx={{ display: "flex", flexGrow: 1 }}>
+        <AuthorSidebar open={open} onToggle={() => setOpen((o) => !o)} />
 
-          <Box
-            component="main"
-            sx={{
-              flexGrow: 1,
-              display: "flex",
-              flexDirection: "column",
-              height: "100%",
-            }}
-          >
-            <Box
-              sx={{
-                flexGrow: 1,
-
-                width: "100%",
-                height: "100%",
-                px: 0,
-                py: 0,
-              }}
-            >
-              <Routes element={<ProtectedLayout />}>
-                <Route index element={<AuthorHomePage />} />
-                <Route path="profile" element={<Profile />} />
-                <Route path="books" element={<BookListPage />} />
-                <Route
-                  path="books/:bookId"
-                  element={<SingleBookDisplayPage />}
-                />
-                <Route
-                  path="books/:bookId/submit-review"
-                  element={<SubmitReviewPage />}
-                />
-                <Route path="upload" element={<BookUploadForm />} />
-                <Route path="favourites" element={<FavouriteBooksPage />} />
-                <Route path="/user/:id" element={<UserProfile />} />
-
-                {/* <Route path="*" element={<Navigate to="" replace />} /> */}
-
-                <Route path="my-books" element={<MyBooksPage />} />
-                <Route path="analytics" element={<AuthorAnalyticsPage />} />
-                <Route
-                  path="analytics/top-books"
-                  element={<TopPerformingBooksPage />}
-                />
-
-                <Route path="forums" element={<ForumCategoryList />} />
-                <Route path="forums/topics/:topicId" element={<TopicDetail />} />
-                <Route path="*" element={<Navigate to="" replace />} />
-                <Route
-                  path="/chat/private/:receiverId"
-                  element={<PrivateChat senderId={user.id} currentUsername={user.username} />}
-                />
-                <Route path="/inbox" element={<Inbox onlineUsers={onlineUsers} />} />
-              </Routes>
-            </Box>
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <Box sx={{ flexGrow: 1 }}>
+            <Routes element={<ProtectedLayout />}>
+              <Route index element={<AuthorHomePage />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="books" element={<BookListPage />} />
+              <Route path="books/:bookId" element={<SingleBookDisplayPage />} />
+              <Route path="books/:bookId/submit-review" element={<SubmitReviewPage />} />
+              <Route path="upload" element={<BookUploadForm />} />
+              <Route path="favourites" element={<FavouriteBooksPage />} />
+              <Route path="/user/:id" element={<UserProfile />} />
+              <Route path="my-books" element={<MyBooksPage />} />
+              <Route path="analytics" element={<AuthorAnalyticsPage />} />
+              <Route path="analytics/top-books" element={<TopPerformingBooksPage />} />
+              <Route path="forums" element={<ForumCategoryList />} />
+              <Route path="forums/topics/:topicId" element={<TopicDetail />} />
+              <Route path="*" element={<Navigate to="" replace />} />
+              <Route path="/chat/private/:receiverId" element={
+                <PrivateChat senderId={user.id} currentUsername={user.username} />
+              } />
+              <Route path="/inbox" element={<Inbox onlineUsers={onlineUsers} />} />
+            </Routes>
           </Box>
+          <Footer />
         </Box>
       </Box>
 
-      <Footer />
+      {/* <Footer /> */}
     </Box>
   );
 }

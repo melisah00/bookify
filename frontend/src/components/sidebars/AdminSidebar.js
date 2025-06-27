@@ -31,7 +31,7 @@ const colors = {
 const navItems = [
     { label: 'Home', to: '/app/admin', icon: <HomeIcon /> },
     { label: "Users", to: "/app/admin/users", icon: <UserIcon /> },
-    { label: 'Inbox', icon: <InboxIcon /> },
+    // { label: 'Inbox', icon: <InboxIcon /> },
     { label: 'Events', to: '/app/events', icon: <EventIcon /> },
     { label: 'Forums', icon: <ForumIcon />, to: '/app/admin/forum' },
     { label: "Analytics", to: "/app/admin/analytics", icon: <AnalyticsIcon /> },

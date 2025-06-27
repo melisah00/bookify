@@ -9,7 +9,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import MailIcon from "@mui/icons-material/Mail";
-import NotificationsIcon from "@mui/icons-material/Notifications";
+// import NotificationsIcon from "@mui/icons-material/Notifications";
 import MoreIcon from "@mui/icons-material/MoreVert";
 import LogoutButton from "./LogoutButton";
 import TextField from "@mui/material/TextField";
@@ -65,92 +65,101 @@ export default function Header({ onOnlineUsersChange }) {
     0
   );
 
-  const fetchInbox = () => {
+  // const fetchInbox = () => {
+  //   fetch(`http://localhost:8000/chat/inbox/${user.id}`, {
+  //     credentials: "include",
+  //   })
+  //     .then((res) => res.json())
+  //     .then(setConversations)
+  //     .catch((err) => console.error("Failed to load inbox in header:", err));
+  // };
+
+  const fetchInbox = React.useCallback(() => {
     fetch(`http://localhost:8000/chat/inbox/${user.id}`, {
       credentials: "include",
     })
       .then((res) => res.json())
       .then(setConversations)
       .catch((err) => console.error("Failed to load inbox in header:", err));
-  };
+  }, [user?.id]);
+
 
   React.useEffect(() => {
     if (!user?.id) return;
     fetchInbox();
-  }, [user, location]);
+  }, [user, location, fetchInbox]);
 
   React.useEffect(() => {
-  const refreshInbox = () => {
-    fetchInbox();
-  };
-
-  // Slušaj napuštanje privatnog chata
-  window.addEventListener("left-private-chat", refreshInbox);
-
-  return () => {
-    window.removeEventListener("left-private-chat", refreshInbox);
-  };
-}, []);
-
-const headerWS = React.useRef(null);
-
-React.useEffect(() => {
-  if (!user?.id) return;
-
-  const connectWS = () => {
-    headerWS.current = new WebSocket(`ws://localhost:8000/ws/private-chat/${user.id}`);
-
-    headerWS.current.onopen = () => {
-      console.log("📡 Header WebSocket otvoren");
+    const refreshInbox = () => {
+      fetchInbox();
     };
 
-    headerWS.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+    window.addEventListener("left-private-chat", refreshInbox);
+    return () => {
+      window.removeEventListener("left-private-chat", refreshInbox);
+    };
+  }, [fetchInbox]);
 
-      if (
-        data.type === "unread_count_update" ||
-        data.type === "private_message"
-      ) {
-        fetchInbox();
-      }
 
-      if (data.type === "online_users") {
-        setOnlineUsers(data.user_ids);
+  const headerWS = React.useRef(null);
 
-        // Ako je funkcija propom proslijeđena (npr. u Dashboardu)
-        if (typeof onOnlineUsersChange === "function") {
-          onOnlineUsersChange(data.user_ids);
+  React.useEffect(() => {
+    if (!user?.id) return;
+
+    const connectWS = () => {
+      headerWS.current = new WebSocket(`ws://localhost:8000/ws/private-chat/${user.id}`);
+
+      headerWS.current.onopen = () => {
+        console.log("📡 Header WebSocket otvoren");
+      };
+
+      headerWS.current.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+
+        if (
+          data.type === "unread_count_update" ||
+          data.type === "private_message"
+        ) {
+          fetchInbox();
         }
-      }
+
+        if (data.type === "online_users") {
+          setOnlineUsers(data.user_ids);
+
+          // Ako je funkcija propom proslijeđena (npr. u Dashboardu)
+          if (typeof onOnlineUsersChange === "function") {
+            onOnlineUsersChange(data.user_ids);
+          }
+        }
+      };
+
+      headerWS.current.onclose = () => {
+        console.log("❌ Header WebSocket zatvoren");
+      };
+
+      headerWS.current.onerror = (e) => {
+        console.error("Header WS error:", e);
+      };
     };
 
-    headerWS.current.onclose = () => {
-      console.log("❌ Header WebSocket zatvoren");
-    };
-
-    headerWS.current.onerror = (e) => {
-      console.error("Header WS error:", e);
-    };
-  };
-
-  connectWS();
-
-  // Ponovno konektovanje kada izađeš iz PrivateChat
-  const reconnect = () => {
-    console.log("🔁 Header WS ponovna konekcija nakon izlaska iz chata");
-    if (headerWS.current?.readyState === WebSocket.OPEN) {
-      headerWS.current.close();
-    }
     connectWS();
-  };
 
-  window.addEventListener("left-private-chat", reconnect);
+    // Ponovno konektovanje kada izađeš iz PrivateChat
+    const reconnect = () => {
+      console.log("🔁 Header WS ponovna konekcija nakon izlaska iz chata");
+      if (headerWS.current?.readyState === WebSocket.OPEN) {
+        headerWS.current.close();
+      }
+      connectWS();
+    };
 
-  return () => {
-    window.removeEventListener("left-private-chat", reconnect);
-    headerWS.current?.close();
-  };
-}, [user?.id]);
+    window.addEventListener("left-private-chat", reconnect);
+
+    return () => {
+      window.removeEventListener("left-private-chat", reconnect);
+      headerWS.current?.close();
+    };
+  }, [user?.id, onOnlineUsersChange, fetchInbox]);
 
 
 
@@ -177,7 +186,7 @@ React.useEffect(() => {
       anchorEl={anchorEl}
       open={isMenuOpen}
       onClose={handleMenuClose}
-      anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       transformOrigin={{ vertical: "top", horizontal: "right" }}
     >
       <MenuItem onClick={handleMenuClose}>
@@ -195,83 +204,83 @@ React.useEffect(() => {
   );
 
   const renderMessageMenu = (
-  <Menu
-    anchorEl={messageAnchorEl}
-    open={isMessageMenuOpen}
-    onClose={handleMessageMenuClose}
-    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-    transformOrigin={{ vertical: "top", horizontal: "right" }}
-    PaperProps={{ sx: { maxHeight: 400, width: 300 } }}
-  >
-    {conversations.length === 0 ? (
-      <MenuItem disabled>No messages</MenuItem>
-    ) : (
-      conversations.map((conv) => {
-        const initials = (conv.first_name?.[0] || "") + (conv.last_name?.[0] || "");
-        const isOnline = onlineUsers?.includes(conv.id); // koristi ako već imaš onlineUsers
-        return (
-          <MenuItem
-            key={conv.id}
-            onClick={() => {
-              navigate(`/app/${userRole}/chat/private/${conv.id}`);
-              handleMessageMenuClose();
-            }}
-            sx={{ alignItems: "flex-start", gap: 1 }}
-          >
-            <Box sx={{ position: "relative", width: 40, height: 40 }}>
-              <Avatar
-                src={conv.icon ? `http://localhost:8000${conv.icon}` : undefined}
-                sx={{
-                  width: 40,
-                  height: 40,
-                  fontSize: conv.icon ? 16 : 13,
-                  bgcolor: "#66b2a0",
-                }}
-              >
-                {!conv.icon && initials}
-              </Avatar>
-              {/* Online/offline status dot */}
-              <Box
-                sx={{
-                  position: "absolute",
-                  bottom: 0,
-                  right: 0,
-                  width: 10,
-                  height: 10,
-                  borderRadius: "50%",
-                  backgroundColor: isOnline ? "#44b700" : "#9e9e9e",
-                  border: "2px solid white",
-                }}
-              />
-            </Box>
+    <Menu
+      anchorEl={messageAnchorEl}
+      open={isMessageMenuOpen}
+      onClose={handleMessageMenuClose}
+      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      transformOrigin={{ vertical: "top", horizontal: "right" }}
+      PaperProps={{ sx: { maxHeight: 400, width: 300 } }}
+    >
+      {conversations.length === 0 ? (
+        <MenuItem disabled>No messages</MenuItem>
+      ) : (
+        conversations.map((conv) => {
+          const initials = (conv.first_name?.[0] || "") + (conv.last_name?.[0] || "");
+          const isOnline = onlineUsers?.includes(conv.id); // koristi ako već imaš onlineUsers
+          return (
+            <MenuItem
+              key={conv.id}
+              onClick={() => {
+                navigate(`/app/${userRole}/chat/private/${conv.id}`);
+                handleMessageMenuClose();
+              }}
+              sx={{ alignItems: "flex-start", gap: 1 }}
+            >
+              <Box sx={{ position: "relative", width: 40, height: 40 }}>
+                <Avatar
+                  src={conv.icon ? `http://localhost:8000${conv.icon}` : undefined}
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    fontSize: conv.icon ? 16 : 13,
+                    bgcolor: "#66b2a0",
+                  }}
+                >
+                  {!conv.icon && initials}
+                </Avatar>
+                {/* Online/offline status dot */}
+                <Box
+                  sx={{
+                    position: "absolute",
+                    bottom: 0,
+                    right: 0,
+                    width: 10,
+                    height: 10,
+                    borderRadius: "50%",
+                    backgroundColor: isOnline ? "#44b700" : "#9e9e9e",
+                    border: "2px solid white",
+                  }}
+                />
+              </Box>
 
-            <Box sx={{ flexGrow: 1, overflow: "hidden" }}>
-              <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                {conv.first_name} {conv.last_name}
-              </Typography>
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                noWrap
-                sx={{ display: "block", maxWidth: "100%" }}
-              >
-                {conv.last_message}
-              </Typography>
-            </Box>
+              <Box sx={{ flexGrow: 1, overflow: "hidden" }}>
+                <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+                  {conv.first_name} {conv.last_name}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  noWrap
+                  sx={{ display: "block", maxWidth: "100%" }}
+                >
+                  {conv.last_message}
+                </Typography>
+              </Box>
 
-            {conv.unread_count > 0 && (
-              <Badge
-                badgeContent={conv.unread_count}
-                color="error"
-                sx={{ ml: 1, mt: 0.5 }}
-              />
-            )}
-          </MenuItem>
-        );
-      })
-    )}
-  </Menu>
-);
+              {conv.unread_count > 0 && (
+                <Badge
+                  badgeContent={conv.unread_count}
+                  color="error"
+                  sx={{ ml: 1, mt: 0.5 }}
+                />
+              )}
+            </MenuItem>
+          );
+        })
+      )}
+    </Menu>
+  );
 
 
   const renderMobileMenu = (
@@ -279,25 +288,28 @@ React.useEffect(() => {
       anchorEl={mobileMoreAnchorEl}
       open={isMobileMenuOpen}
       onClose={handleMobileMenuClose}
-      anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       transformOrigin={{ vertical: "top", horizontal: "right" }}
     >
-      <MenuItem onClick={handleMessageMenuOpen}>
-        <IconButton size="large" color="inherit">
-          <Badge badgeContent={totalUnread} color="error">
-            <MailIcon />
-          </Badge>
-        </IconButton>
-        <p>Messages</p>
-      </MenuItem>
-      <MenuItem>
+      {user?.roles?.[0] !== "admin" && (
+        <MenuItem onClick={handleMessageMenuOpen}>
+          <IconButton size="large" color="inherit">
+            <Badge badgeContent={totalUnread} color="error">
+              <MailIcon />
+            </Badge>
+          </IconButton>
+          <p>Messages</p>
+        </MenuItem>
+      )}
+
+      {/* <MenuItem>
         <IconButton size="large" color="inherit">
           <Badge badgeContent={17} color="error">
             <NotificationsIcon />
           </Badge>
         </IconButton>
         <p>Notifications</p>
-      </MenuItem>
+      </MenuItem> */}
       <MenuItem onClick={handleProfileMenuOpen}>
         <IconButton size="large" color="inherit">
           <AccountCircle />
@@ -367,10 +379,8 @@ React.useEffect(() => {
                 }}
                 getOptionLabel={(option) =>
                   option.username
-                    ? `${
-                        option.first_name !== "N/A" ? option.first_name : ""
-                      } ${
-                        option.last_name !== "N/A" ? option.last_name : ""
+                    ? `${option.first_name !== "N/A" ? option.first_name : ""
+                      } ${option.last_name !== "N/A" ? option.last_name : ""
                       } (@${option.username})`.trim()
                     : ""
                 }
@@ -468,16 +478,19 @@ React.useEffect(() => {
           </Box>
 
           <Box sx={{ display: { xs: "none", md: "flex" } }}>
-            <IconButton size="large" color="inherit" onClick={handleMessageMenuOpen}>
-              <Badge badgeContent={totalUnread} color="error">
-                <MailIcon />
-              </Badge>
-            </IconButton>
-            <IconButton size="large" color="inherit">
+            {user?.roles?.[0] !== "admin" && (
+              <IconButton size="large" color="inherit" onClick={handleMessageMenuOpen}>
+                <Badge badgeContent={totalUnread} color="error">
+                  <MailIcon />
+                </Badge>
+              </IconButton>
+            )}
+
+            {/* <IconButton size="large" color="inherit">
               <Badge badgeContent={17} color="error">
                 <NotificationsIcon />
               </Badge>
-            </IconButton>
+            </IconButton> */}
             <IconButton
               size="large"
               edge="end"

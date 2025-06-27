@@ -61,7 +61,9 @@ export default function LandingPage() {
       <AppBar position="static" color="primary" elevation={0}>
         <Toolbar sx={{ justifyContent: "space-between" }}>
           <Typography variant="h6" sx={{ fontWeight: "bold", display: 'flex', alignItems: 'center', color: 'primary.contrastText' }}>
-            <Box component="img" src="/Book.png" alt="Bookify Logo" sx={{ width: 40, height: 40, mr: 1 }} />
+            <Box component="img" src="/Book.png" alt="Bookify Logo" sx={{
+              width: 40, height: 40, mr: 1, filter: "brightness(0) invert(1)",
+            }} />
             BOOKIFY
           </Typography>
           <Box>
@@ -71,45 +73,88 @@ export default function LandingPage() {
         </Toolbar>
       </AppBar>
 
-      <Container sx={{ py: { xs: 8, md: 10 } }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={6} alignItems="center" justifyContent="center">
-          <Box sx={{ flex: 1, textAlign: { xs: 'center', md: 'left' } }}>
+      <Container sx={{ pt: { xs: 10, md: 16 }, pb: { xs: 6, md: 10 } }}>
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          spacing={0}
+          alignItems="center" 
+          justifyContent="center"
+        >
+          
+          <Box
+            sx={{
+              flex: 1,
+              textAlign: { xs: 'center', md: 'left' },
+              mt: 2,
+              mb: 2,
+            }}
+          >
             <Typography variant="h3" component="h1" gutterBottom>
               Bookify – Your Digital Library
             </Typography>
             <Typography variant="h6" color="text.secondary" paragraph>
               Find, share, and rate books with a community of fellow book lovers.
+              Organize your personal bookshelf and discover new reads every day.
             </Typography>
-            <Box sx={{ mt: 4 }}>
-              <Button variant="contained" color="primary" sx={{ px: 4, py: 1.5, fontSize: '1rem' }} onClick={() => navigate("/login")}>Get Started</Button>
+            <br></br>
+            <Box sx={{ mt: 4 }}> 
+              <Button
+                variant="contained"
+                color="primary"
+                sx={{ px: 4, py: 1.5, fontSize: '1rem' }}
+                onClick={() => navigate("/login")}
+              >
+                Get Started
+              </Button>
             </Box>
           </Box>
 
-          <Box sx={{ flex: 1, mx: 'auto', textAlign: 'center' }}>
-            <Box
-              component="img"
-              src="/Book.png"
-              alt="Reading"
-              sx={{
-                width: { xs: '100%', md: 500 },
-                height: { xs: 300, md: 400 },
-                objectFit: 'cover',
-                clipPath: 'inset(5% 5% 5% 5%)',
-                borderRadius: 3,
-              }}
-            />
-            <Typography variant="h6" color="text.primary" sx={{ mt: 2, fontWeight: 'medium' }}>
-              Discover • Read • Grow
-            </Typography>
+
+          <Box
+            sx={{
+              flex: 1,
+              mt: { xs: 0, md: -6 },
+              mb: 2,
+              position: 'relative',
+              zIndex: 1,
+              textAlign: 'center',
+
+            }}
+          >
+            <Box sx={{ ml: { xs: 0, md: 20, lg: 40 } }}>
+              <Box
+                component="img"
+                src="/Book.png"
+                alt="Reading"
+                sx={{
+                  width: { xs: '100%', md: 500 },
+                  height: { xs: 300, md: 400 },
+                  objectFit: 'cover',
+                  borderRadius: 3,
+                  mx: 'auto',
+                  display: 'block'
+                }}
+              />
+              <Typography
+                variant="h6"
+                color="text.primary"
+                sx={{ mt: 2, fontWeight: 'medium' }}
+              >
+                Discover • Read • Grow
+              </Typography>
+            </Box>
           </Box>
+
         </Stack>
       </Container>
+
+      <br></br>
 
       <Box component="section" sx={{ py: { xs: 6, md: 8 }, px: 2, backgroundColor: '#eef7f5' }}>
         <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: 'bold', mb: 6 }}>
           Why Bookify?
         </Typography>
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={4} justifyContent="center">
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={4} justifyContent="center" alignItems={{ xs: 'center', md: 'flex-start' }}>
           {features.map((item, idx) => (
             <Paper
               key={idx}
@@ -182,9 +227,9 @@ export default function LandingPage() {
       </Box>
 
       <Footer />
+
       
-      {/* ChatBot Component */}
       <ChatBot />
-    </ThemeProvider>
+    </ThemeProvider >
   );
 }

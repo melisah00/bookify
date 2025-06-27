@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Typography, Button, Stack } from '@mui/material';
 
-import ForumCategoryCreate from './ForumCategoryCreate';
+// import ForumCategoryCreate from './ForumCategoryCreate';
 import ForumCategoryList from './ForumCategoryList';
 import ForumCategoryTable from './ForumCategoryTable';
 import AdminUserList from './AdminUserList';
@@ -17,7 +17,8 @@ export default function ForumAdmin() {
         gutterBottom
         sx={{
           textAlign: 'center', fontWeight: 700,
-          color: 'rgb(102,178,160)'
+          color: 'rgb(102,178,160)',
+          fontSize: '3rem',
         }}
       >
         Forum administrator
@@ -83,7 +84,7 @@ export default function ForumAdmin() {
 
       <Box>
         {view === 'listCategories' && <ForumCategoryList />}
-        {view === 'createCategory' && <ForumCategoryCreate onCreated={() => setView('listCategories')} />}
+        {/* {view === 'createCategory' && <ForumCategoryCreate onCreated={() => setView('listCategories')} />} */}
         {view === 'forumCategoryTable' && <ForumCategoryTable onCreated={() => setView('forumCategoryTable')} />}
         {view === 'userManagement' && <AdminUserList />}
       </Box>

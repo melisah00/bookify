@@ -91,11 +91,12 @@ export default function ReaderDashboard() {
 
               </Routes>
             </Box>
-
+            <Footer />
           </Box>
+          
         </Box>
-      {/* </Box> */}
-      <Footer />
+      
     </Box>
+
   );
 }

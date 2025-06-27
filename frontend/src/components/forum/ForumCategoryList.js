@@ -151,7 +151,7 @@ const ForumCategoryList = () => {
           {categories.map((category) => (
             <li
               key={category.category_id}
-              className="border rounded-xl p-4 shadow-sm hover:shadow-md transition"
+              className="border rounded-xl p-4 shadow-sm hover:shadow-md transition bg-[#f6f7f9]"
             >
               <h3 className="text-xl font-semibold text-green-800">
                 {category.name}
@@ -177,7 +177,7 @@ const ForumCategoryList = () => {
                           <Link
                             key={topic.topic_id}
                             to={`${basePath}/forums/topics/${topic.topic_id}`}
-                            className={`w-full border rounded-xl p-4 flex justify-between items-center hover:shadow-lg transition hover:bg-gray-50 ${topic.is_locked
+                            className={`w-full border rounded-xl p-4 flex justify-between items-center hover:shadow-lg transition hover:bg-gray-70 ${topic.is_locked
                               ? "opacity-70 cursor-not-allowed"
                               : ""
                               }`}

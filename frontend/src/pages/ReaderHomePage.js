@@ -15,9 +15,9 @@ import { useAuth } from "../contexts/AuthContext";
 const items = [
   { label: "Profile", icon: <AccountCircleIcon />, to: "/app/reader/profile" },
   { label: "Browse Books", to: "/app/reader/books", icon: <BookIcon /> },
-  { label: "Student Corner", to:"/app/reader/student-corner", icon: <SchoolIcon /> },
-  { label: "Inbox", to:"/app/reader/inbox",icon: <InboxIcon /> },
-  { label: 'Events', icon: <EventIcon /> , to: '/app/events' },
+  { label: "Student Corner", to: "/app/reader/student-corner", icon: <SchoolIcon /> },
+  { label: "Inbox", to: "/app/reader/inbox", icon: <InboxIcon /> },
+  { label: 'Events', icon: <EventIcon />, to: '/app/events' },
   { label: "Forums", icon: <ForumIcon />, to: '/app/reader/forums' },
   { label: "Favorites", icon: <HeartIcon />, to: "/app/reader/favourites" },
 ];
@@ -56,8 +56,8 @@ export default function ReaderHomePage() {
           gridTemplateColumns: {
             xs: "repeat(1, 1fr)",
             sm: "repeat(2, 1fr)",
-            md: "repeat(3, 1fr)",
-            lg: "repeat(4, 1fr)",
+            lg: "repeat(3, 1fr)",
+            // lg: "repeat(4, 1fr)",
           },
         }}
       >
@@ -95,6 +95,9 @@ export default function ReaderHomePage() {
               },
               textAlign: "center",
               px: 2,
+              ...(items.length % 2 !== 0 && index === items.length - 1 && {
+                gridColumn: { sm: "1 / -1", lg: "2 / span 1" },
+              }),
             }}
           >
             <Box sx={{ fontSize: 36 }}>{item.icon}</Box>
