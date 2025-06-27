@@ -13,6 +13,8 @@ const AdminUserList = () => {
     const [users, setUsers] = useState([]);
     const [error, setError] = useState(null);
     const { loading } = useAuth();
+    const [currentPage, setCurrentPage] = useState(1);
+    const [usersPerPage] = useState(10); 
 
     const API_URL = 'http://localhost:8000/users/list';
 
@@ -43,19 +45,16 @@ const AdminUserList = () => {
         if (!loading) fetchUsers();
     }, [loading, fetchUsers]);
 
+    const indexOfLastUser = currentPage * usersPerPage;
+    const indexOfFirstUser = indexOfLastUser - usersPerPage;
+    const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
+
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
     if (error) return <p style={{ color: palette.errorRed }}>Error: {error}</p>;
 
     return (
         <div style={{ padding: '2rem' }}>
-            <h2 style={{
-                fontSize: '2rem',
-                fontWeight: '700',
-                marginBottom: '1.5rem',
-                color: palette.textDark,
-            }}>
-                User Management
-            </h2>
-
             <table
                 style={{
                     width: '100%',
@@ -63,17 +62,18 @@ const AdminUserList = () => {
                     borderSpacing: '0 0.75rem',
                     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
                     color: palette.textDark,
+                    textAlign: 'center'
                 }}
             >
-                <thead>
-                    <tr style={{ backgroundColor: palette.accentMedium, color: 'white', textAlign: 'left' }}>
+                <thead >
+                    <tr style={{ backgroundColor: palette.accentMedium, color: 'white', textAlign: 'center' }}>
                         <th style={{ padding: '12px 20px', borderRadius: '8px 0 0 8px' }}>Username</th>
                         <th style={{ padding: '12px 20px' }}>Blocked</th>
                         <th style={{ padding: '12px 20px', borderRadius: '0 8px 8px 0' }}>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {users.map((u, idx) => (
+                    {currentUsers.map((u, idx) => (
                         <tr
                             key={u.id}
                             style={{
@@ -94,21 +94,20 @@ const AdminUserList = () => {
                                         cursor: 'pointer',
                                         padding: '8px 16px',
                                         borderRadius: '6px',
-                                        border: 'none',
-                                        color: 'white',
-                                        backgroundColor: u.is_blocked ? palette.errorRed : palette.accentMedium,
-                                        transition: 'background-color 0.3s ease',
+                                        border: `2px solid ${u.is_blocked ? palette.errorRed : palette.accentMedium}`,
+                                        color: u.is_blocked ? palette.errorRed : palette.accentMedium,
+                                        backgroundColor: 'transparent',
+                                        fontWeight: '600',
+                                        transition: 'all 0.3s ease',
                                     }}
-                                    onMouseEnter={e =>
-                                        e.currentTarget.style.backgroundColor = u.is_blocked
-                                            ? '#b7413a'
-                                            : 'rgba(102,178,160,0.85)'
-                                    }
-                                    onMouseLeave={e =>
-                                        e.currentTarget.style.backgroundColor = u.is_blocked
-                                            ? palette.errorRed
-                                            : palette.accentMedium
-                                    }
+                                    onMouseEnter={e => {
+                                        e.currentTarget.style.backgroundColor = u.is_blocked ? palette.errorRed : palette.accentMedium;
+                                        e.currentTarget.style.color = 'white';
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.backgroundColor = 'transparent';
+                                        e.currentTarget.style.color = u.is_blocked ? palette.errorRed : palette.accentMedium;
+                                    }}
                                 >
                                     {u.is_blocked ? 'Unblock' : 'Block'}
                                 </button>
@@ -117,6 +116,39 @@ const AdminUserList = () => {
                     ))}
                 </tbody>
             </table>
+
+            {/* Pagination */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                {Array.from({ length: Math.ceil(users.length / usersPerPage) }, (_, i) => (
+                    <button
+                        key={i + 1}
+                        onClick={() => paginate(i + 1)}
+                        style={{
+                            margin: '0 5px',
+                            padding: '8px 12px',
+                            backgroundColor: currentPage === i + 1 ? palette.accentMedium : 'transparent',
+                            color: currentPage === i + 1 ? 'white' : palette.textDark,
+                            border: `1px solid ${palette.accentMedium}`,
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontWeight: currentPage === i + 1 ? 'bold' : 'normal',
+                            transition: 'all 0.3s ease',
+                        }}
+                        onMouseEnter={e => {
+                            if (currentPage !== i + 1) {
+                                e.currentTarget.style.backgroundColor = palette.hoverShade;
+                            }
+                        }}
+                        onMouseLeave={e => {
+                            if (currentPage !== i + 1) {
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                            }
+                        }}
+                    >
+                        {i + 1}
+                    </button>
+                ))}
+            </div>
         </div>
     );
 };

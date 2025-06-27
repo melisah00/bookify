@@ -38,7 +38,7 @@ export default function TopicDetail() {
     } catch (e) {
       console.error('Error incrementing view count:', e);
     }
-  }, [topicId]);
+  }, [topicId, api]);
 
   const fetchTopic = useCallback(async () => {
     try {
@@ -50,7 +50,7 @@ export default function TopicDetail() {
     } catch (e) {
       console.error('Error fetching topic:', e);
     }
-  }, [topicId]);
+  }, [topicId, api]);
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
@@ -77,7 +77,7 @@ export default function TopicDetail() {
     } finally {
       setLoading(false);
     }
-  }, [topicId, user]);
+  }, [topicId, user, api]);
 
   useEffect(() => {
     if (!authLoading && !hasIncremented.current) {
@@ -180,7 +180,7 @@ export default function TopicDetail() {
       <h2 className="text-2xl font-bold mb-2">{topicTitle}</h2>
       <p className="mb-2">{topicDescription}</p>
       <p className="text-sm text-gray-500 mb-4">Views: <strong>{viewCount}</strong></p>
-      <hr className="mb-4" />
+      <hr className="mb-4 border-gray-400" />
 
       {isLocked && (
         <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 p-3 rounded mb-4">
@@ -198,7 +198,7 @@ export default function TopicDetail() {
         <p>No posts.</p>
       ) : (
         paginatedPosts.map(post => (
-          <div key={post.post_id} className="mb-6 border-b pb-4">
+          <div key={post.post_id} className="mb-6 border-b border-gray-300 pb-4">
             <PostItem
               post={post}
               replies={repliesMap[post.post_id] || []}
@@ -327,15 +327,19 @@ function PostItem({ post, replies, votePost, deletePost, replyingTo, setReplying
             />
             <button
               onClick={() => addComment(post.post_id, replyTexts[post.post_id])}
-              className="bg-green-600 text-white px-4 hover:bg-green-700"
-            >Send</button>
+              className="text-white px-3 py-1 text-sm rounded hover:brightness-90"
+              style={{ backgroundColor: 'rgb(102,178,160)', margin: '8px', borderRadius: '10px' }}
+            >
+              Send
+            </button>
+
             <span onClick={() => setReplyingTo(null)} className="cursor-pointer text-gray-500 hover:text-red-500 ml-2 text-xl font-bold" title="Cancel reply">×</span>
           </div>
         </div>
       )}
 
       {replies.length > 0 && (
-        <div className={`pl-6 ${depth < 5 ? 'border-l-2 border-gray-200' : ''}`}>
+        <div className={`pl-6 ${depth < 5 ? 'border-l-2 border-gray-300' : ''}`}>
           {replies.map(reply => (
             <div key={reply.post_id} className="mb-3">
               <PostItem

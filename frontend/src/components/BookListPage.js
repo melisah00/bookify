@@ -15,7 +15,7 @@ import {
   Pagination,
 } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+// import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import BookFilter from "./BookFilter";
 import { useAuth } from "../contexts/AuthContext";
 import DownloadForOfflineIcon from "@mui/icons-material/DownloadForOffline";
@@ -260,10 +260,10 @@ function BookListPage() {
                         }}
                       />
                     </IconButton>
-                    <IconButton aria-label="shopping cart">
+                    {/* <IconButton aria-label="shopping cart">
                       <ShoppingCartIcon />
-                    </IconButton>
-                    <Box sx={{ marginLeft: "auto" }}>
+                    </IconButton> */}
+                    <Box sx={{ paddingLeft:"35%"}}>
                       <Link
                         to={`${book.id}`}
                         style={{ textDecoration: "none" }}
@@ -274,6 +274,7 @@ function BookListPage() {
                             color: "#66b2a0",
                             fontWeight: "bold",
                             "&:hover": { textDecoration: "underline" },
+                            
                           }}
                         >
                           View Details
