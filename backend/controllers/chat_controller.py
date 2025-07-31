@@ -48,7 +48,6 @@ class PrivateChatManager:
         if receiver_id in self.connections:
             await self.connections[receiver_id].send_json(message)
 
-    # ✅ OVO je funkcija koja je pukla
     async def broadcast_online_users(self):
         user_ids = list(self.connections.keys())
         for conn in self.connections.values():
